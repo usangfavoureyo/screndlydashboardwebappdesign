@@ -28,10 +28,10 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
               aria-label={item.label}
             >
               <Icon
-                className={`w-7 h-7 ${
+                className={`w-7 h-7 stroke-1 ${
                   isActive
-                    ? 'text-[#F45247] stroke-[2.5]'
-                    : 'text-white stroke-[1.5]'
+                    ? 'text-[#F45247]'
+                    : 'text-white'
                 }`}
               />
             </button>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Button } from './ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 interface LogEntry {
   id: string;
@@ -25,13 +25,16 @@ const mockLogs: LogEntry[] = [
 ];
 
 export function LogsPage() {
-  const [platformFilter, setPlatformFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 10;
 
+  const handleRetry = (logId: string, videoTitle: string) => {
+    console.log(`Retrying upload for: ${videoTitle}`);
+    // Retry logic here
+  };
+
   const filteredLogs = mockLogs.filter(log => {
-    if (platformFilter !== 'all' && log.platform !== platformFilter) return false;
     if (statusFilter !== 'all' && log.status !== statusFilter) return false;
     return true;
   });
@@ -50,22 +53,6 @@ export function LogsPage() {
       {/* Filters */}
       <div className="bg-[#1F2937] rounded-2xl shadow-sm p-4">
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <Select value={platformFilter} onValueChange={setPlatformFilter}>
-              <SelectTrigger className="rounded-lg">
-                <SelectValue placeholder="All Platforms" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Platforms</SelectItem>
-                <SelectItem value="Instagram">Instagram</SelectItem>
-                <SelectItem value="Facebook">Facebook</SelectItem>
-                <SelectItem value="TikTok">TikTok</SelectItem>
-                <SelectItem value="Threads">Threads</SelectItem>
-                <SelectItem value="X">X</SelectItem>
-                <SelectItem value="YouTube">YouTube</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <div className="flex-1">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="rounded-lg">
@@ -92,6 +79,7 @@ export function LogsPage() {
                 <th className="text-left p-4 text-[#9CA3AF]">Status</th>
                 <th className="text-left p-4 text-[#9CA3AF]">Timestamp</th>
                 <th className="text-left p-4 text-[#9CA3AF]">Error</th>
+                <th className="text-left p-4 text-[#9CA3AF]">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -123,6 +111,21 @@ export function LogsPage() {
                           <p className="text-[#9CA3AF] text-xs mt-1">{log.errorDetails}</p>
                         )}
                       </div>
+                    ) : (
+                      <span className="text-[#9CA3AF]">-</span>
+                    )}
+                  </td>
+                  <td className="p-4">
+                    {log.status === 'failed' ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRetry(log.id, log.videoTitle)}
+                        className="gap-2"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Retry
+                      </Button>
                     ) : (
                       <span className="text-[#9CA3AF]">-</span>
                     )}

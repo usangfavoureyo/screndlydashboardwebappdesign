@@ -118,8 +118,8 @@ export function ChannelsPage() {
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex-1">
-                <h3 className="text-white mb-1">{channel.name}</h3>
-                <p className="text-[#9CA3AF]">{channel.channelId}</p>
+                <h3 className="text-gray-900 dark:text-white mb-1">{channel.name}</h3>
+                <p className="text-[#6B7280] dark:text-[#9CA3AF]">{channel.channelId}</p>
               </div>
               <div className="flex items-center gap-6">
                 <div className="text-right">

@@ -17,11 +17,9 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   return (
     <div className="min-h-screen bg-[#000000] flex items-center justify-center">
       <div className="text-center animate-pulse">
-        <div className="inline-flex items-center justify-center w-24 h-24 bg-[#F45247] rounded-3xl mb-6">
+        <div className="inline-flex items-center justify-center w-24 h-24 bg-[#F45247] rounded-3xl">
           <Film className="w-14 h-14 text-white" />
         </div>
-        <h1 className="text-white text-5xl mb-4">Screndly</h1>
-        <p className="text-white/60">Automate Everything. Create Effortlessly.</p>
       </div>
     </div>
   );

@@ -22,12 +22,16 @@ const platformData = [
   { platform: 'YouTube', posts: 35 },
 ];
 
-export function DashboardOverview() {
+interface DashboardOverviewProps {
+  onNavigate: (page: string) => void;
+}
+
+export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-white mb-2">Dashboard</h1>
-        <p className="text-[#9CA3AF]">Welcome back! Here's what's happening with your trailer automation.</p>
+        <h1 className="text-gray-900 dark:text-white mb-2">Dashboard</h1>
+        <p className="text-[#6B7280] dark:text-[#9CA3AF]">Welcome back! Here's what's happening with your automation.</p>
       </div>
 
       {/* Stats Grid */}
@@ -137,7 +141,11 @@ export function DashboardOverview() {
       <div className="bg-[#1F2937] rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white">Recent Activity</h3>
-          <Button variant="ghost" className="text-[#F45247] hover:text-[#E04238]">
+          <Button 
+            variant="ghost" 
+            className="text-[#F45247] hover:text-[#E04238]"
+            onClick={() => onNavigate('activity')}
+          >
             View all
           </Button>
         </div>

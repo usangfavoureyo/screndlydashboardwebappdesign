@@ -65,7 +65,7 @@ export function PlatformCard({ platform, onUpdate, onConnect }: PlatformCardProp
         <div className="flex items-center gap-3">
           <div className="text-3xl">{platform.icon}</div>
           <div>
-            <h3 className="text-white">{platform.name}</h3>
+            <h3 className="text-gray-900 dark:text-white">{platform.name}</h3>
             <div className={`flex items-center gap-1 mt-1 ${statusConfig.color}`}>
               <StatusIcon className="w-4 h-4" />
               <span className="text-sm">{statusConfig.label}</span>

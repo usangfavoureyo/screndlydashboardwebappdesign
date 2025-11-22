@@ -82,14 +82,14 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
     <>
       {/* Desktop/Mobile Header */}
       <div 
-        className={`fixed left-0 right-0 h-16 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] z-40 flex items-center justify-between px-4 md:pl-64 transition-transform duration-300 ${
+        className={`fixed left-0 right-0 h-16 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] z-40 flex items-center justify-between px-4 lg:pl-64 transition-transform duration-300 ${
           scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
         }`}
         style={{ top: 0 }}
       >
-        {/* Logo on mobile, spacer on desktop */}
-        <div className="flex items-center md:flex-1">
-          <img src={screndlyLogo} alt="Screndly" className="w-8 h-8 md:hidden" />
+        {/* Logo on mobile/tablet, spacer on desktop */}
+        <div className="flex items-center lg:flex-1">
+          <img src={screndlyLogo} alt="Screndly" className="w-8 h-8 lg:hidden" />
         </div>
         
         <div className="flex items-center gap-2">
@@ -124,19 +124,19 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
         <>
           {/* Overlay */}
           <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           />
           
           {/* Mobile Menu Drawer */}
-          <aside className="fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#333333] flex-col z-50 md:hidden flex">
+          <aside className="fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#333333] flex-col z-50 lg:hidden flex">
             <NavContent />
           </aside>
         </>
       )}
 
-      {/* Sidebar - Desktop Only */}
-      <aside className="hidden md:flex fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#333333] flex-col z-50">
+      {/* Sidebar - Desktop Only (lg and above) */}
+      <aside className="hidden lg:flex fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#333333] flex-col z-50">
         <NavContent />
       </aside>
 

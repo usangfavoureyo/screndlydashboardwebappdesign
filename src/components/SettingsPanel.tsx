@@ -1,73 +1,315 @@
-import { useState } from 'react';
-import { X, Key, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, FileText, Mail, LogOut } from 'lucide-react';
+import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell } from 'lucide-react';
 import { Button } from './ui/button';
+import { Switch } from './ui/switch';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Switch } from './ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { useTheme } from './ThemeProvider';
+import { useState, useEffect } from 'react';
+import { haptics, setHapticsEnabled } from '../utils/haptics';
+import { TMDbSettings } from './settings/TMDbSettings';
+import { ApiKeysSettings } from './settings/ApiKeysSettings';
+import { VideoSettings } from './settings/VideoSettings';
+import { CommentReplySettings } from './settings/CommentReplySettings';
+import { RssSettings } from './settings/RssSettings';
+import { TmdbFeedsSettings } from './settings/TmdbFeedsSettings';
+import { ErrorHandlingSettings } from './settings/ErrorHandlingSettings';
+import { CleanupSettings } from './settings/CleanupSettings';
+import { HapticSettings } from './settings/HapticSettings';
+import { AppearanceSettings } from './settings/AppearanceSettings';
+import { NotificationsSettings } from './settings/NotificationsSettings';
 
 interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onLogout: () => void;
+  onNavigate: (page: string) => void;
+  pageBeforeSettings?: string;
+  onNewNotification?: (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', source: 'upload' | 'rss' | 'tmdb' | 'system') => void;
+  initialPage?: string | null;
 }
 
-export function SettingsPanel({ isOpen, onClose, onLogout }: SettingsPanelProps) {
+export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNotification, initialPage }: SettingsPanelProps) {
   const { theme, setTheme } = useTheme();
-  const [settings, setSettings] = useState({
-    // API Keys
-    youtubeKey: '••••••••••••••••',
-    openaiKey: '••••••••••••••••',
-    serperKey: '••••••••••••••••',
-    tmdbKey: '••••••••••••••••',
-    s3Key: '••••••••••••••••',
-    redisUrl: 'redis://localhost:6379',
-    databaseUrl: 'postgresql://localhost/screndly',
+  const [settings, setSettings] = useState(() => {
+    // Load from localStorage if available
+    const saved = localStorage.getItem('screndlySettings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Merge with defaults to ensure all new fields exist
+        return {
+          ...getDefaultSettings(),
+          ...parsed,
+          // Ensure platform blacklists exist
+          xCommentBlacklist: parsed.xCommentBlacklist || getDefaultSettings().xCommentBlacklist,
+          threadsCommentBlacklist: parsed.threadsCommentBlacklist || getDefaultSettings().threadsCommentBlacklist,
+          facebookCommentBlacklist: parsed.facebookCommentBlacklist || getDefaultSettings().facebookCommentBlacklist,
+          instagramCommentBlacklist: parsed.instagramCommentBlacklist || getDefaultSettings().instagramCommentBlacklist,
+          youtubeCommentBlacklist: parsed.youtubeCommentBlacklist || getDefaultSettings().youtubeCommentBlacklist,
+        };
+      } catch (e) {
+        // If parsing fails, use defaults
+      }
+    }
     
-    // Video
-    fetchInterval: '10',
-    regionFilter: 'US,UK',
-    advancedFilters: 'trailer, official, teaser',
-    
-    // Comment Reply
-    commentRepliesActive: true,
-    totalCommentsProcessed: 1247,
-    repliesPosted: 1189,
-    commentErrors: 4,
-    commentBlacklist: '',
-    
-    // RSS
-    rssEnabled: false,
-    rssImageCount: 'random',
-    rssPlatforms: ['x', 'threads'],
-    rssFetchInterval: '5',
-    rssPostingInterval: '10',
-    rssDeduplication: true,
-    rssLogLevel: 'standard',
-    
-    // Cleanup
-    cleanupEnabled: true,
-    cleanupInterval: 'daily',
-    storageRetention: '48',
-    
-    // Appearance
-    darkMode: true,
-
-    // Notifications
-    emailNotifications: true,
-    pushNotifications: false,
-
-    // Cleanup
+    return getDefaultSettings();
   });
+
+  function getDefaultSettings() {
+    const hapticsEnabled = localStorage.getItem('hapticsEnabled');
+    return {
+      // API Keys
+      youtubeKey: '••••••••••••••••',
+      openaiKey: '••••••••••••••••',
+      serperKey: '••••••••••••••••',
+      tmdbKey: '••••••••••••••••',
+      s3Key: '••••••••••••••••',
+      redisUrl: 'redis://localhost:6379',
+      databaseUrl: 'postgresql://localhost/screndly',
+      
+      // Video
+      fetchInterval: '10',
+      regionFilter: 'US,UK',
+      advancedFilters: 'trailer, official, teaser',
+      
+      // Comment Reply
+      commentRepliesActive: true,
+      totalCommentsProcessed: 1247,
+      repliesPosted: 1189,
+      commentErrors: 4,
+      commentBlacklistUsernames: '',
+      commentBlacklistKeywords: '',
+      commentReplyFrequency: 'instant',
+      commentThrottle: 'low', // low, medium, high
+      
+      // Per-platform comment settings
+      xCommentBlacklist: {
+        active: true,
+        usernames: '',
+        keywords: '',
+        noEmojiOnly: false,
+        noLinks: false,
+        pauseOldPosts: true,
+        pauseAfterHours: '24',
+      },
+      threadsCommentBlacklist: {
+        active: false,
+        usernames: '',
+        keywords: '',
+        noEmojiOnly: false,
+        noLinks: false,
+        pauseOldPosts: true,
+        pauseAfterHours: '24',
+      },
+      facebookCommentBlacklist: {
+        active: false,
+        usernames: '',
+        keywords: '',
+        noEmojiOnly: false,
+        noLinks: false,
+        pauseOldPosts: true,
+        pauseAfterHours: '24',
+      },
+      instagramCommentBlacklist: {
+        active: true,
+        usernames: '',
+        keywords: '',
+        noEmojiOnly: false,
+        noLinks: false,
+        pauseOldPosts: true,
+        pauseAfterHours: '24',
+      },
+      youtubeCommentBlacklist: {
+        active: false,
+        usernames: '',
+        keywords: '',
+        noEmojiOnly: false,
+        noLinks: false,
+        pauseOldPosts: true,
+        pauseAfterHours: '24',
+      },
+      
+      // RSS
+      rssEnabled: false,
+      rssImageCount: 'random',
+      rssPlatforms: ['x', 'threads'],
+      rssFetchInterval: '5',
+      rssPostingInterval: '10',
+      rssDeduplication: true,
+      rssLogLevel: 'standard',
+      
+      // Cleanup
+      cleanupEnabled: true,
+      cleanupInterval: 'daily',
+      storageRetention: '48',
+      
+      // Appearance
+      darkMode: true,
+      hapticsEnabled: hapticsEnabled === null ? true : hapticsEnabled === 'true',
+
+      // Notifications
+      emailNotifications: true,
+      pushNotifications: false,
+    };
+  }
+
+  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-save effect with debounce
+  useEffect(() => {
+    if (!isOpen) return; // Don't save if panel is closed
+
+    const timer = setTimeout(() => {
+      saveSettings();
+    }, 1000); // Save 1 second after last change
+
+    return () => clearTimeout(timer);
+  }, [settings, isOpen]);
+
+  const saveSettings = () => {
+    setIsSaving(true);
+    // Save settings to localStorage
+    localStorage.setItem('screndlySettings', JSON.stringify(settings));
+    
+    setTimeout(() => {
+      setIsSaving(false);
+      setLastSaved(new Date().toLocaleTimeString());
+    }, 300);
+  };
 
   const updateSetting = (key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
+  const [activeSettingsPage, setActiveSettingsPage] = useState<string | null>(initialPage || null);
+
   if (!isOpen) return null;
+
+  // Render sub-page if one is active
+  if (activeSettingsPage === 'apikeys') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <ApiKeysSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'video') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <VideoSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'comment') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <CommentReplySettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'rss') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <RssSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'tmdb') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <TmdbFeedsSettings onSave={saveSettings} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'error') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <ErrorHandlingSettings onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'cleanup') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <CleanupSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'haptic') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <HapticSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'appearance') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <AppearanceSettings theme={theme} setTheme={setTheme} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'notifications') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <NotificationsSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
 
   return (
     <>
@@ -78,443 +320,214 @@ export function SettingsPanel({ isOpen, onClose, onLogout }: SettingsPanelProps)
       />
       
       {/* Settings Panel */}
-      <div className="fixed top-0 right-0 bottom-0 w-full lg:w-[600px] bg-white dark:bg-[#1F2937] z-50 overflow-y-auto">
+      <div className="fixed top-0 right-0 bottom-0 w-full lg:w-[600px] bg-white dark:bg-[#000000] z-50 overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#1F2937] border-b border-gray-200 dark:border-[#374151] p-4 flex items-center justify-between">
+        <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center justify-between">
           <h2 className="text-gray-900 dark:text-white text-xl">Settings</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="w-5 h-5 text-gray-900 dark:text-white" />
-          </Button>
+          <button 
+            className="text-gray-900 dark:text-white p-1" 
+            onClick={() => {
+              try {
+                haptics.light();
+              } catch (e) {
+                // Silently fail if haptics not available
+              }
+              onClose();
+            }}
+          >
+            <X className="w-[26px] h-[26px] stroke-1" />
+          </button>
         </div>
 
-        <div className="p-6 space-y-8">
-          {/* Keys Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Key className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">API Keys</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">YouTube API Key</Label>
-                <Input
-                  type="password"
-                  value={settings.youtubeKey}
-                  onChange={(e) => updateSetting('youtubeKey', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+        <div className="p-6 space-y-4">
+          {/* Settings Navigation Items */}
+          <div className="space-y-1">
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('apikeys');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Key className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">API Keys</span>
               </div>
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">OpenAI API Key</Label>
-                <Input
-                  type="password"
-                  value={settings.openaiKey}
-                  onChange={(e) => updateSetting('openaiKey', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('video');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Video className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Video Settings</span>
               </div>
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">Serper API Key</Label>
-                <Input
-                  type="password"
-                  value={settings.serperKey}
-                  onChange={(e) => updateSetting('serperKey', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('comment');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <MessageSquare className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Comment Automation</span>
               </div>
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">TMDb API Key</Label>
-                <Input
-                  type="password"
-                  value={settings.tmdbKey}
-                  onChange={(e) => updateSetting('tmdbKey', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('rss');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Rss className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">RSS Posting</span>
               </div>
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">AWS S3 Credentials</Label>
-                <Input
-                  type="password"
-                  value={settings.s3Key}
-                  onChange={(e) => updateSetting('s3Key', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('tmdb');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Clapperboard className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">TMDb Feeds</span>
               </div>
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">Redis URL</Label>
-                <Input
-                  value={settings.redisUrl}
-                  onChange={(e) => updateSetting('redisUrl', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('error');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Error Handling</span>
               </div>
-              <div>
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">Database URL</Label>
-                <Input
-                  value={settings.databaseUrl}
-                  onChange={(e) => updateSetting('databaseUrl', e.target.value)}
-                  className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1"
-                />
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('cleanup');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Trash2 className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Cleanup</span>
               </div>
-            </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('haptic');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Smartphone className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Haptic Feedback</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('appearance');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Palette className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Appearance</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                setActiveSettingsPage('notifications');
+              }}
+              className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Bell className="w-5 h-5 text-[#ec1e24]" />
+                <span className="text-gray-900 dark:text-white">Notifications</span>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
 
-          <Separator className="bg-gray-200 dark:bg-[#374151]" />
-
-          {/* Video Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Video className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">Video Settings</h3>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <Label className="text-[#9CA3AF]">Fetch Interval (minutes)</Label>
-                <Input
-                  type="number"
-                  value={settings.fetchInterval}
-                  onChange={(e) => updateSetting('fetchInterval', e.target.value)}
-                  className="bg-[#374151] border-[#4B5563] text-white mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-[#9CA3AF]">Region Filter</Label>
-                <Input
-                  value={settings.regionFilter}
-                  onChange={(e) => updateSetting('regionFilter', e.target.value)}
-                  placeholder="US,UK"
-                  className="bg-[#374151] border-[#4B5563] text-white mt-1"
-                />
-                <p className="text-xs text-[#6B7280] mt-1">Comma-separated country codes</p>
-              </div>
-              <div>
-                <Label className="text-[#9CA3AF]">Advanced Filters for Trailer Validation</Label>
-                <Input
-                  value={settings.advancedFilters}
-                  onChange={(e) => updateSetting('advancedFilters', e.target.value)}
-                  placeholder="trailer, official, teaser"
-                  className="bg-[#374151] border-[#4B5563] text-white mt-1"
-                />
-                <p className="text-xs text-[#6B7280] mt-1">Keywords to look for in trailer titles before downloading (comma-separated)</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
-
-          {/* Comment Reply Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <MessageSquare className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">Comment Reply Automation</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Active</span>
-                <Switch
-                  checked={settings.commentRepliesActive}
-                  onCheckedChange={(checked) => updateSetting('commentRepliesActive', checked)}
-                />
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-[#374151] p-3 rounded-lg">
-                  <p className="text-[#9CA3AF] text-xs">Processed</p>
-                  <p className="text-white text-xl mt-1">{settings.totalCommentsProcessed}</p>
-                </div>
-                <div className="bg-[#374151] p-3 rounded-lg">
-                  <p className="text-[#9CA3AF] text-xs">Replies Posted</p>
-                  <p className="text-white text-xl mt-1">{settings.repliesPosted}</p>
-                </div>
-                <div className="bg-[#374151] p-3 rounded-lg">
-                  <p className="text-[#9CA3AF] text-xs">Errors</p>
-                  <p className="text-[#EF4444] text-xl mt-1">{settings.commentErrors}</p>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Blacklist (usernames/keywords)</Label>
-                <Textarea
-                  value={settings.commentBlacklist}
-                  onChange={(e) => updateSetting('commentBlacklist', e.target.value)}
-                  placeholder="spam_user, badword, etc."
-                  className="bg-[#374151] border-[#4B5563] text-white mt-1 min-h-[80px]"
-                />
-                <p className="text-xs text-[#6B7280] mt-1">One per line or comma-separated</p>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
-
-          {/* RSS Section */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Rss className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">RSS Posting</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Enable RSS Posting</span>
-                <Switch
-                  checked={settings.rssEnabled}
-                  onCheckedChange={(checked) => updateSetting('rssEnabled', checked)}
-                />
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Image Count</Label>
-                <Select
-                  value={settings.rssImageCount}
-                  onValueChange={(value) => updateSetting('rssImageCount', value)}
-                >
-                  <SelectTrigger className="bg-[#374151] border-[#4B5563] text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 Image</SelectItem>
-                    <SelectItem value="2">2 Images</SelectItem>
-                    <SelectItem value="3">3 Images</SelectItem>
-                    <SelectItem value="random">Random (1-2)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Auto-Post Platforms</Label>
-                <div className="flex gap-2 mt-2">
-                  {['x', 'threads', 'facebook'].map((platform) => (
-                    <button
-                      key={platform}
-                      onClick={() => {
-                        const current = settings.rssPlatforms;
-                        updateSetting(
-                          'rssPlatforms',
-                          current.includes(platform)
-                            ? current.filter(p => p !== platform)
-                            : [...current, platform]
-                        );
-                      }}
-                      className={`px-3 py-2 rounded-lg capitalize ${
-                        settings.rssPlatforms.includes(platform)
-                          ? 'bg-[#F45247] text-white'
-                          : 'bg-[#374151] text-[#9CA3AF]'
-                      }`}
-                    >
-                      {platform}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">RSS Fetch Interval (minutes)</Label>
-                <Select
-                  value={settings.rssFetchInterval}
-                  onValueChange={(value) => updateSetting('rssFetchInterval', value)}
-                >
-                  <SelectTrigger className="bg-[#374151] border-[#4B5563] text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 minute</SelectItem>
-                    <SelectItem value="2">2 minutes</SelectItem>
-                    <SelectItem value="3">3 minutes</SelectItem>
-                    <SelectItem value="4">4 minutes</SelectItem>
-                    <SelectItem value="5">5 minutes</SelectItem>
-                    <SelectItem value="10">10 minutes</SelectItem>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Posting Interval (minutes)</Label>
-                <Select
-                  value={settings.rssPostingInterval}
-                  onValueChange={(value) => updateSetting('rssPostingInterval', value)}
-                >
-                  <SelectTrigger className="bg-[#374151] border-[#4B5563] text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1 minute</SelectItem>
-                    <SelectItem value="2">2 minutes</SelectItem>
-                    <SelectItem value="3">3 minutes</SelectItem>
-                    <SelectItem value="4">4 minutes</SelectItem>
-                    <SelectItem value="5">5 minutes</SelectItem>
-                    <SelectItem value="10">10 minutes</SelectItem>
-                    <SelectItem value="15">15 minutes</SelectItem>
-                    <SelectItem value="30">30 minutes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Deduplication</span>
-                <Switch
-                  checked={settings.rssDeduplication}
-                  onCheckedChange={(checked) => updateSetting('rssDeduplication', checked)}
-                />
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Log Level</Label>
-                <Select
-                  value={settings.rssLogLevel}
-                  onValueChange={(value) => updateSetting('rssLogLevel', value)}
-                >
-                  <SelectTrigger className="bg-[#374151] border-[#4B5563] text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="minimal">Minimal (Errors only)</SelectItem>
-                    <SelectItem value="standard">Standard (Success + Failures)</SelectItem>
-                    <SelectItem value="full">Full (All entries + Status)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
-
-          {/* Error Handling */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <AlertCircle className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">Error Handling</h3>
-            </div>
-            <div className="bg-[#374151] p-4 rounded-lg">
-              <p className="text-[#9CA3AF] text-sm">
-                Automatic error reporting is enabled. API failures and rate limits are logged and monitored.
-              </p>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
-
-          {/* Cleanup */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Trash2 className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">Cleanup</h3>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Auto Cleanup</span>
-                <Switch
-                  checked={settings.cleanupEnabled}
-                  onCheckedChange={(checked) => updateSetting('cleanupEnabled', checked)}
-                />
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Cleanup Interval</Label>
-                <Select
-                  value={settings.cleanupInterval}
-                  onValueChange={(value) => updateSetting('cleanupInterval', value)}
-                >
-                  <SelectTrigger className="bg-[#374151] border-[#4B5563] text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-[#9CA3AF]">Storage Retention (hours)</Label>
-                <Input
-                  type="number"
-                  value={settings.storageRetention}
-                  onChange={(e) => updateSetting('storageRetention', e.target.value)}
-                  className="bg-[#374151] border-[#4B5563] text-white mt-1"
-                />
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
-
-          {/* Appearance */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Palette className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">Appearance</h3>
-            </div>
-            <div>
-              <Label className="text-[#9CA3AF]">Theme</Label>
-              <Select
-                value={theme}
-                onValueChange={(value: 'dark' | 'light') => {
-                  updateSetting('darkMode', value === 'dark');
-                  setTheme(value);
-                }}
-              >
-                <SelectTrigger className="bg-gray-100 dark:bg-[#374151] border-gray-300 dark:border-[#4B5563] text-gray-900 dark:text-white mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dark">Dark Mode</SelectItem>
-                  <SelectItem value="light">Light Mode</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
-
-          {/* Notifications */}
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Mail className="w-5 h-5 text-[#F45247]" />
-              <h3 className="text-gray-900 dark:text-white">Notifications</h3>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Email Notifications</span>
-                <Switch
-                  checked={settings.emailNotifications}
-                  onCheckedChange={(checked) => updateSetting('emailNotifications', checked)}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-[#9CA3AF]">Push Notifications</span>
-                <Switch
-                  checked={settings.pushNotifications}
-                  onCheckedChange={(checked) => updateSetting('pushNotifications', checked)}
-                />
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-[#374151]" />
+          <Separator className="bg-gray-200 dark:bg-[#1F1F1F] my-4" />
 
           {/* Legal */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <FileText className="w-5 h-5 text-[#F45247]" />
+            <div className="flex items-center gap-2 px-4 mb-2">
+              <FileText className="w-5 h-5 text-[#ec1e24]" />
               <h3 className="text-gray-900 dark:text-white">Legal</h3>
             </div>
-            <div className="space-y-2">
-              <a href="https://screndly.com/privacy" target="_blank" rel="noopener noreferrer" className="block text-[#9CA3AF] hover:text-white">
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  haptics.light();
+                  onNavigate('privacy');
+                }} 
+                className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+              >
                 Privacy Policy
-              </a>
-              <a href="https://screndly.com/terms" target="_blank" rel="noopener noreferrer" className="block text-[#9CA3AF] hover:text-white">
+              </button>
+              <button 
+                onClick={() => {
+                  haptics.light();
+                  onNavigate('terms');
+                }} 
+                className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+              >
                 Terms of Service
-              </a>
-              <a href="https://screndly.com/disclaimer" target="_blank" rel="noopener noreferrer" className="block text-[#9CA3AF] hover:text-white">
+              </button>
+              <button 
+                onClick={() => {
+                  haptics.light();
+                  onNavigate('disclaimer');
+                }} 
+                className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+              >
                 Disclaimer
-              </a>
-              <a href="https://screndly.com/cookie" target="_blank" rel="noopener noreferrer" className="block text-[#9CA3AF] hover:text-white">
+              </button>
+              <button 
+                onClick={() => {
+                  haptics.light();
+                  onNavigate('cookie');
+                }} 
+                className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+              >
                 Cookie Policy
-              </a>
+              </button>
             </div>
           </div>
 
@@ -522,17 +535,29 @@ export function SettingsPanel({ isOpen, onClose, onLogout }: SettingsPanelProps)
 
           {/* Company */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <Mail className="w-5 h-5 text-[#F45247]" />
+            <div className="flex items-center gap-2 px-4 mb-2">
+              <Mail className="w-5 h-5 text-[#ec1e24]" />
               <h3 className="text-gray-900 dark:text-white">Company</h3>
             </div>
-            <div className="space-y-2">
-              <a href="https://screndly.com/contact" target="_blank" rel="noopener noreferrer" className="block text-[#9CA3AF] hover:text-white">
+            <div className="space-y-1">
+              <button 
+                onClick={() => {
+                  haptics.light();
+                  onNavigate('contact');
+                }} 
+                className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+              >
                 Contact
-              </a>
-              <a href="https://screndly.com/about" target="_blank" rel="noopener noreferrer" className="block text-[#9CA3AF] hover:text-white">
-                About Screndly
-              </a>
+              </button>
+              <button 
+                onClick={() => {
+                  haptics.light();
+                  onNavigate('about');
+                }} 
+                className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+              >
+                About
+              </button>
             </div>
           </div>
 
@@ -541,9 +566,12 @@ export function SettingsPanel({ isOpen, onClose, onLogout }: SettingsPanelProps)
           {/* Logout */}
           <div>
             <Button
-              onClick={onLogout}
+              onClick={() => {
+                haptics.medium();
+                onLogout();
+              }}
               variant="outline"
-              className="w-full gap-2 text-[#EF4444] border-[#EF4444] hover:bg-[#EF4444] hover:text-white"
+              className="w-full gap-2 text-[#EF4444] border-[#EF4444] hover:bg-[#EF4444] hover:text-white bg-white dark:bg-black"
             >
               <LogOut className="w-4 h-4" />
               Logout

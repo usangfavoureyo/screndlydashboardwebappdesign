@@ -1,6 +1,9 @@
-import { Film, LayoutDashboard, Youtube, Share2, FileText, LogOut, Image, Bell, Settings } from 'lucide-react';
+import { LayoutDashboard, Youtube, Share2, FileText, Bell, Settings, LogOut, Menu, X, Rss, Clapperboard } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
+import { haptics } from '../utils/haptics';
+import { useScrollDirection } from '../utils/useScrollDirection';
+import screndlyLogo from 'figma:asset/aa914b18f567f6825fda46e6657ced11e5c34887.png';
 
 interface NavigationProps {
   currentPage: string;
@@ -13,28 +16,28 @@ interface NavigationProps {
 
 export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggleNotifications, onLogout, unreadNotifications }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const scrollDirection = useScrollDirection();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'channels', label: 'Channels', icon: Youtube },
     { id: 'platforms', label: 'Platforms', icon: Share2 },
+    { id: 'rss', label: 'RSS Feed', icon: Rss },
+    { id: 'tmdb', label: 'TMDb Feeds', icon: Clapperboard },
     { id: 'logs', label: 'Logs', icon: FileText },
-    { id: 'thumbnail', label: 'Thumbnail Designer', icon: Image },
   ];
 
   const NavContent = () => (
     <>
-      <div className="p-6 border-b border-gray-200 dark:border-[#374151]">
+      <div className="p-6 border-b border-gray-200 dark:border-[#333333]">
         <button
           onClick={() => {
             onNavigate('dashboard');
             setIsMobileMenuOpen(false);
           }}
-          className="flex items-center gap-3 w-full"
+          className="flex items-center gap-3 w-full transition-transform duration-300 hover:scale-105 active:scale-95"
         >
-          <div className="w-10 h-10 bg-[#F45247] rounded-xl flex items-center justify-center">
-            <Film className="w-6 h-6 text-white" />
-          </div>
+          <img src={screndlyLogo} alt="Screndly" className="w-10 h-10 transition-transform duration-300" />
         </button>
       </div>
 
@@ -49,26 +52,26 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
                 onNavigate(item.id);
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                 isActive
-                  ? 'bg-[#F45247] text-white'
-                  : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#374151]'
+                  ? 'bg-[#ec1e24] text-white shadow-lg shadow-[#ec1e24]/30'
+                  : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:translate-x-1'
               }`}
             >
-              <Icon className="w-5 h-5" />
+              <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
               <span>{item.label}</span>
             </button>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-200 dark:border-[#374151]">
+      <div className="p-4 border-t border-gray-200 dark:border-[#333333]">
         <Button
           onClick={onLogout}
           variant="ghost"
-          className="w-full justify-start gap-3 text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#374151] rounded-xl"
+          className="w-full justify-start gap-3 text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-xl transition-all duration-300 hover:translate-x-1 hover:text-[#ec1e24]"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-5 h-5 transition-transform duration-300" />
           <span>Logout</span>
         </Button>
       </div>
@@ -78,42 +81,62 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
   return (
     <>
       {/* Desktop/Mobile Header */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-[#1F2937] border-b border-gray-200 dark:border-[#374151] z-40 flex items-center justify-between px-4 lg:pl-64">
-        <button
-          onClick={() => {
-            onNavigate('dashboard');
-            setIsMobileMenuOpen(false);
-          }}
-          className="flex items-center gap-2 lg:hidden"
-        >
-          <div className="w-8 h-8 bg-[#F45247] rounded-lg flex items-center justify-center">
-            <Film className="w-5 h-5 text-white" />
-          </div>
-        </button>
-        
-        {/* Desktop spacer */}
-        <div className="hidden lg:block flex-1"></div>
+      <div 
+        className={`fixed left-0 right-0 h-16 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] z-40 flex items-center justify-between px-4 md:pl-64 transition-transform duration-300 ${
+          scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
+        }`}
+        style={{ top: 0 }}
+      >
+        {/* Logo on mobile, spacer on desktop */}
+        <div className="flex items-center md:flex-1">
+          <img src={screndlyLogo} alt="Screndly" className="w-8 h-8 md:hidden" />
+        </div>
         
         <div className="flex items-center gap-2">
-          <button className="text-gray-900 dark:text-white p-1 relative" onClick={onToggleNotifications}>
-            <Bell className="w-[26px] h-[26px] stroke-1" />
+          <button 
+            className="text-gray-900 dark:text-white p-1 relative transition-all duration-300 hover:scale-110 active:scale-95 hover:text-[#ec1e24]" 
+            onClick={() => {
+              haptics.light();
+              onToggleNotifications();
+            }}
+          >
+            <Bell className="w-[26px] h-[26px] stroke-1 transition-transform duration-300" />
             {unreadNotifications > 0 && (
-              <div className="absolute -top-1 -right-1 bg-[#F45247] text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+              <div className="absolute -top-1 -right-1 bg-[#ec1e24] text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse-slow">
                 {unreadNotifications}
               </div>
             )}
           </button>
           <button 
-            className="text-gray-900 dark:text-white p-1"
-            onClick={onToggleSettings}
+            className="text-gray-900 dark:text-white p-1 transition-all duration-300 hover:scale-110 active:scale-95 hover:text-[#ec1e24]"
+            onClick={() => {
+              haptics.light();
+              onToggleSettings();
+            }}
           >
-            <Settings className="w-[26px] h-[26px] stroke-1" />
+            <Settings className="w-[26px] h-[26px] stroke-1 transition-transform duration-300 hover:rotate-90" />
           </button>
         </div>
       </div>
 
+      {/* Mobile Menu Overlay and Drawer */}
+      {isMobileMenuOpen && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          
+          {/* Mobile Menu Drawer */}
+          <aside className="fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#333333] flex-col z-50 md:hidden flex">
+            <NavContent />
+          </aside>
+        </>
+      )}
+
       {/* Sidebar - Desktop Only */}
-      <aside className="hidden lg:flex fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#1F2937] border-r border-gray-200 dark:border-[#374151] flex-col z-50">
+      <aside className="hidden md:flex fixed top-0 left-0 h-full w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#333333] flex-col z-50">
         <NavContent />
       </aside>
 

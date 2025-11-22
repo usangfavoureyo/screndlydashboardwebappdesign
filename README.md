@@ -1,7 +1,7 @@
 
-  # Dashboard Web App Design
+  # Screenly Dashboad Web App v1.0
 
-  This is a code bundle for Dashboard Web App Design. The original project is available at https://www.figma.com/design/5rn9zzDDIKSYlHJTdxvWZw/Dashboard-Web-App-Design.
+  This is a code bundle for Screenly Dashboad Web App v1.0. The original project is available at https://www.figma.com/design/5rn9zzDDIKSYlHJTdxvWZw/Screenly-Dashboad-Web-App-v1.0.
 
   ## Running the code
 

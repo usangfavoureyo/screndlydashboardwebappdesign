@@ -112,9 +112,9 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
   const getStatusConfig = (status: QueueItem['status']) => {
     switch (status) {
       case 'queued':
-        return { icon: Clock, color: 'text-gray-500 dark:text-[#9CA3AF]', bg: 'bg-gray-100 dark:bg-[#374151]', label: 'Queued' };
+        return { icon: Clock, color: 'text-gray-700 dark:text-[#9CA3AF]', bg: 'bg-gray-200 dark:bg-[#1f1f1f]', label: 'Queued' };
       case 'published':
-        return { icon: CheckCircle, color: 'text-[#10B981]', bg: 'bg-[#D1FAE5] dark:bg-[#065F46]', label: 'Published' };
+        return { icon: CheckCircle, color: 'text-gray-700 dark:text-[#9CA3AF]', bg: 'bg-gray-200 dark:bg-[#1f1f1f]', label: 'Published' };
       case 'failed':
         return { icon: XCircle, color: 'text-[#EF4444]', bg: 'bg-[#FEE2E2] dark:bg-[#991B1B]', label: 'Failed' };
     }
@@ -157,7 +157,7 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
             </svg>
           </button>
           <div className="flex-1">
-            <h1 className="text-gray-900 dark:text-white mb-2">RSS Activity</h1>
+            <h1 className="text-gray-900 dark:text-white mb-2">RSS Feeds Activity</h1>
             <p className="text-[#6B7280] dark:text-[#9CA3AF]">
               Track all RSS feed processing activity and status
             </p>

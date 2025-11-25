@@ -300,10 +300,30 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-gray-900 dark:text-white mb-2">RSS</h1>
+        <h1 className="text-gray-900 dark:text-white mb-2">RSS Feeds</h1>
         <p className="text-[#6B7280] dark:text-[#9CA3AF]">
           Automated feed ingestion and posting
         </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
+          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Total Feeds</p>
+          <p className="text-gray-900 dark:text-white text-2xl">{feeds.length}</p>
+        </div>
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
+          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Active</p>
+          <p className="text-gray-900 dark:text-white text-2xl">{activeFeeds}</p>
+        </div>
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
+          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Published Today</p>
+          <p className="text-gray-900 dark:text-white text-2xl">{publishedToday}</p>
+        </div>
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
+          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Errors</p>
+          <p className="text-gray-900 dark:text-white text-2xl">{failedItems}</p>
+        </div>
       </div>
 
       {/* Global Controls */}
@@ -356,26 +376,6 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
               />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Total Feeds</p>
-          <p className="text-gray-900 dark:text-white text-2xl">{feeds.length}</p>
-        </div>
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Active</p>
-          <p className="text-gray-900 dark:text-white text-2xl">{activeFeeds}</p>
-        </div>
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Published Today</p>
-          <p className="text-gray-900 dark:text-white text-2xl">{publishedToday}</p>
-        </div>
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Errors</p>
-          <p className="text-gray-900 dark:text-white text-2xl">{failedItems}</p>
         </div>
       </div>
 

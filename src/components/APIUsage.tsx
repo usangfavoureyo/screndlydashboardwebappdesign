@@ -1,4 +1,4 @@
-import { ArrowLeft, Key, Zap, Globe, Clapperboard, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Key, Zap, Globe, Clapperboard, TrendingUp, Film } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 
@@ -33,7 +33,7 @@ export function APIUsage({ onBack }: APIUsageProps) {
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {/* OpenAI */}
           <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
             <div className="flex items-center gap-2 mb-3">
@@ -70,6 +70,18 @@ export function APIUsage({ onBack }: APIUsageProps) {
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
           </div>
 
+          {/* Vizla */}
+          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg">
+                <Film className="w-5 h-5 text-[#ec1e24]" />
+              </div>
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Vizla</span>
+            </div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-1">127</div>
+            <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
+          </div>
+
           {/* Total */}
           <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
             <div className="flex items-center gap-2 mb-3">
@@ -78,7 +90,7 @@ export function APIUsage({ onBack }: APIUsageProps) {
               </div>
               <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Total</span>
             </div>
-            <div className="text-2xl text-gray-900 dark:text-white mb-1">5,590</div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-1">5,717</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
           </div>
         </div>
@@ -136,6 +148,19 @@ export function APIUsage({ onBack }: APIUsageProps) {
                   <td className="text-right py-3 px-4 text-gray-900 dark:text-white">21,149</td>
                   <td className="text-right py-3 px-4 text-gray-900 dark:text-white">82,036</td>
                 </tr>
+                <tr className="border-b border-gray-200 dark:border-[#333333]">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg">
+                        <Film className="w-4 h-4 text-[#ec1e24]" />
+                      </div>
+                      <span className="text-gray-900 dark:text-white">Vizla API</span>
+                    </div>
+                  </td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">127</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">891</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">3,258</td>
+                </tr>
                 <tr className="bg-gray-50 dark:bg-[#0A0A0A]">
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">
@@ -145,9 +170,9 @@ export function APIUsage({ onBack }: APIUsageProps) {
                       <span className="text-gray-900 dark:text-white">Total</span>
                     </div>
                   </td>
-                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">5,590</td>
-                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">33,744</td>
-                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">128,741</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">5,717</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">34,635</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">131,999</td>
                 </tr>
               </tbody>
             </table>

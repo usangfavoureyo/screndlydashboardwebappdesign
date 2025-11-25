@@ -14,20 +14,23 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
 
   const activities = [
     { id: '1', title: 'The Batman - Official Trailer 2', platform: 'Instagram', status: 'success', time: '2 min ago', type: 'video' },
-    { id: '2', title: 'Breaking: New Sci-Fi Movie Announced', platform: 'X', status: 'success', time: '5 min ago', type: 'rss' },
-    { id: '3', title: 'Dune: Part Two - Final Trailer', platform: 'TikTok', status: 'success', time: '15 min ago', type: 'video' },
-    { id: '4', title: 'Hollywood Reporter: Awards Season Update', platform: 'Threads', status: 'success', time: '30 min ago', type: 'rss' },
-    { id: '5', title: 'Oppenheimer - Official Trailer', platform: 'YouTube', status: 'success', time: '1 hour ago', type: 'video' },
-    { id: '6', title: 'Barbie - Teaser Trailer', platform: 'Facebook', status: 'failed', time: '2 hours ago', type: 'video' },
-    { id: '7', title: 'Variety: Top 10 Box Office Films', platform: 'X', status: 'failed', time: '2 hours ago', type: 'rss' },
-    { id: '8', title: 'Killers of the Flower Moon - Trailer', platform: 'X', status: 'success', time: '3 hours ago', type: 'video' },
-    { id: '9', title: 'Deadline: Streaming Wars Continue', platform: 'Threads', status: 'success', time: '4 hours ago', type: 'rss' },
-    { id: '10', title: 'Wonka - Official Trailer', platform: 'Threads', status: 'success', time: '4 hours ago', type: 'video' },
-    { id: '11', title: 'Napoleon - Final Trailer', platform: 'Instagram', status: 'failed', time: '5 hours ago', type: 'video' },
-    { id: '12', title: 'IndieWire: Festival Circuit News', platform: 'Facebook', status: 'success', time: '5 hours ago', type: 'rss' },
-    { id: '13', title: 'The Marvels - Trailer 2', platform: 'TikTok', status: 'success', time: '6 hours ago', type: 'video' },
-    { id: '14', title: 'Aquaman 2 - Official Trailer', platform: 'Facebook', status: 'success', time: '7 hours ago', type: 'video' },
-    { id: '15', title: 'Spider-Man: Beyond - Teaser', platform: 'YouTube', status: 'success', time: '8 hours ago', type: 'video' },
+    { id: '2', title: 'Gladiator II - Trailer Review', platform: 'YouTube', status: 'success', time: '3 min ago', type: 'videostudio' },
+    { id: '3', title: 'Breaking: New Sci-Fi Movie Announced', platform: 'X', status: 'success', time: '5 min ago', type: 'rss' },
+    { id: '4', title: 'Dune: Part Two - Final Trailer', platform: 'TikTok', status: 'success', time: '15 min ago', type: 'video' },
+    { id: '5', title: 'Hollywood Reporter: Awards Season Update', platform: 'Threads', status: 'success', time: '30 min ago', type: 'rss' },
+    { id: '6', title: 'Oppenheimer - Official Trailer', platform: 'YouTube', status: 'success', time: '1 hour ago', type: 'video' },
+    { id: '7', title: 'Wicked - Monthly Releases', platform: 'Instagram', status: 'failed', time: '1 hour ago', type: 'videostudio' },
+    { id: '8', title: 'Barbie - Teaser Trailer', platform: 'Facebook', status: 'failed', time: '2 hours ago', type: 'video' },
+    { id: '9', title: 'Variety: Top 10 Box Office Films', platform: 'X', status: 'failed', time: '2 hours ago', type: 'rss' },
+    { id: '10', title: 'Avatar 3 - Teaser Analysis', platform: 'TikTok', status: 'success', time: '3 hours ago', type: 'videostudio' },
+    { id: '11', title: 'Killers of the Flower Moon - Trailer', platform: 'X', status: 'success', time: '3 hours ago', type: 'video' },
+    { id: '12', title: 'Deadline: Streaming Wars Continue', platform: 'Threads', status: 'success', time: '4 hours ago', type: 'rss' },
+    { id: '13', title: 'Wonka - Official Trailer', platform: 'Threads', status: 'success', time: '4 hours ago', type: 'video' },
+    { id: '14', title: 'Napoleon - Final Trailer', platform: 'Instagram', status: 'failed', time: '5 hours ago', type: 'video' },
+    { id: '15', title: 'IndieWire: Festival Circuit News', platform: 'Facebook', status: 'success', time: '5 hours ago', type: 'rss' },
+    { id: '16', title: 'The Marvels - Trailer 2', platform: 'TikTok', status: 'success', time: '6 hours ago', type: 'video' },
+    { id: '17', title: 'Aquaman 2 - Official Trailer', platform: 'Facebook', status: 'success', time: '7 hours ago', type: 'video' },
+    { id: '18', title: 'Spider-Man: Beyond - Teaser', platform: 'YouTube', status: 'success', time: '8 hours ago', type: 'video' },
   ];
 
   return (
@@ -59,7 +62,7 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
                 <span
                   className={`px-3 py-1 rounded-full ${
                     activity.status === 'success'
-                      ? 'bg-[#D1FAE5] dark:bg-[#065F46] text-[#065F46] dark:text-[#D1FAE5]'
+                      ? 'bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF]'
                       : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
                   }`}
                 >

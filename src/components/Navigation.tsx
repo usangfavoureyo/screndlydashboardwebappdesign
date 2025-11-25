@@ -1,4 +1,4 @@
-import { LayoutDashboard, Youtube, Share2, FileText, Bell, Settings, LogOut, Menu, X, Rss, Clapperboard } from 'lucide-react';
+import { LayoutDashboard, Youtube, Share2, FileText, Bell, Settings, LogOut, Menu, X, Rss, Clapperboard, Film } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState } from 'react';
 import { haptics } from '../utils/haptics';
@@ -24,7 +24,7 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
     { id: 'platforms', label: 'Platforms', icon: Share2 },
     { id: 'rss', label: 'RSS Feed', icon: Rss },
     { id: 'tmdb', label: 'TMDb Feeds', icon: Clapperboard },
-    { id: 'logs', label: 'Logs', icon: FileText },
+    { id: 'video-studio', label: 'Video Studio', icon: Film },
   ];
 
   const NavContent = () => (
@@ -54,7 +54,7 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
               }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
                 isActive
-                  ? 'bg-[#ec1e24] text-white shadow-lg shadow-[#ec1e24]/30'
+                  ? 'bg-[#ec1e24] text-white'
                   : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#1A1A1A] hover:translate-x-1'
               }`}
             >

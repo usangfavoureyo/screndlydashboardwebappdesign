@@ -52,6 +52,15 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           />
         </div>
         <div>
+          <Label className="text-gray-600 dark:text-[#9CA3AF]">Visla API Key</Label>
+          <Input
+            type="password"
+            value={settings.vislaKey}
+            onChange={(e) => updateSetting('vislaKey', e.target.value)}
+            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+          />
+        </div>
+        <div>
           <Label className="text-gray-600 dark:text-[#9CA3AF]">AWS S3 Credentials</Label>
           <Input
             type="password"

@@ -60,7 +60,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
             <path d="M22 12H2M9 19l-7-7 7-7"/>
           </svg>
         </button>
-        <h2 className="text-gray-900 dark:text-white text-xl">Video Settings</h2>
+        <h2 className="text-gray-900 dark:text-white text-xl">Video</h2>
       </div>
 
       <div className="p-6 space-y-6">

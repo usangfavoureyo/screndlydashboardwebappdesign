@@ -103,6 +103,42 @@ export function CleanupSettings({ settings, updateSetting, onBack }: CleanupSett
             </p>
           </div>
         </div>
+
+        {/* Video Studio Section */}
+        <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-gray-900 dark:text-white">Video Studio</h3>
+          
+          <div>
+            <Label className="text-[#9CA3AF]">Cleanup Interval</Label>
+            <Select
+              value={settings.videoStudioCleanupInterval || settings.cleanupInterval || 'daily'}
+              onValueChange={(value) => updateSetting('videoStudioCleanupInterval', value)}
+            >
+              <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="never">Never</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-[#9CA3AF]">Storage Retention (hours)</Label>
+            <Input
+              type="number"
+              value={settings.videoStudioStorageRetention || settings.storageRetention || '48'}
+              onChange={(e) => updateSetting('videoStudioStorageRetention', e.target.value)}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] mt-1">
+              Applies to generated videos in Video Review and Monthly Releases
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

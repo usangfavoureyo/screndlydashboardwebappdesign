@@ -5,11 +5,14 @@ import { ChannelsPage } from "./components/ChannelsPage";
 import { PlatformsPage } from "./components/PlatformsPage";
 import { LogsPage } from "./components/LogsPage";
 import { RecentActivityPage } from "./components/RecentActivityPage";
+import { DesignSystemPage } from "./components/DesignSystemPage";
 import { RSSPage } from "./components/RSSPage";
 import { RSSActivityPage } from "./components/RSSActivityPage";
 import { TMDbFeedsPage } from "./components/TMDbFeedsPage";
 import { TMDbActivityPage } from "./components/TMDbActivityPage";
 import { VideoDetailsPage } from "./components/VideoDetailsPage";
+import { VideoStudioPage } from "./components/VideoStudioPage";
+import { VideoStudioActivityPage } from "./components/VideoStudioActivityPage";
 import { PrivacyPage } from "./components/PrivacyPage";
 import { TermsPage } from "./components/TermsPage";
 import { DisclaimerPage } from "./components/DisclaimerPage";
@@ -26,6 +29,7 @@ import { SettingsPanel } from "./components/SettingsPanel";
 import { NotificationPanel } from "./components/NotificationPanel";
 import { SplashScreen } from "./components/SplashScreen";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { TMDbPostsProvider } from "./contexts/TMDbPostsContext";
 import { setFavicon } from "./utils/favicon";
 import { useSwipeNavigation } from "./hooks/useSwipeNavigation";
 import { haptics } from "./utils/haptics";
@@ -40,6 +44,7 @@ export default function App() {
   const [settingsInitialPage, setSettingsInitialPage] = useState<string | null>(null);
   const [isNotificationsOpen, setIsNotificationsOpen] =
     useState(false);
+  const [isCaptionEditorOpen, setIsCaptionEditorOpen] = useState(false);
   
   const [notifications, setNotifications] = useState([
     {
@@ -55,6 +60,15 @@ export default function App() {
     {
       id: "2",
       type: "success" as const,
+      title: "Video Generated",
+      message: "Gladiator II - Trailer Review video created successfully",
+      timestamp: "8 minutes ago",
+      read: false,
+      source: "videostudio" as const,
+    },
+    {
+      id: "3",
+      type: "success" as const,
       title: "RSS Article Posted",
       message: "Variety: Breaking box office records - Auto-posted to X and Threads",
       timestamp: "10 minutes ago",
@@ -62,7 +76,7 @@ export default function App() {
       source: "rss" as const,
     },
     {
-      id: "3",
+      id: "4",
       type: "info" as const,
       title: "TMDb Feed Generated",
       message:
@@ -72,7 +86,7 @@ export default function App() {
       source: "tmdb" as const,
     },
     {
-      id: "4",
+      id: "5",
       type: "success" as const,
       title: "TMDb Anniversary Posted",
       message: "The Matrix 25th Anniversary - Auto-posted to all platforms",
@@ -81,7 +95,7 @@ export default function App() {
       source: "tmdb" as const,
     },
     {
-      id: "5",
+      id: "6",
       type: "error" as const,
       title: "Upload Failed",
       message:
@@ -91,7 +105,16 @@ export default function App() {
       source: "upload" as const,
     },
     {
-      id: "6",
+      id: "7",
+      type: "error" as const,
+      title: "Video Generation Failed",
+      message: "Wicked - Monthly Release video generation failed. LLM API error.",
+      timestamp: "2 hours ago",
+      read: true,
+      source: "videostudio" as const,
+    },
+    {
+      id: "8",
       type: "info" as const,
       title: "New Channel Detected",
       message:
@@ -101,7 +124,7 @@ export default function App() {
       source: "system" as const,
     },
     {
-      id: "7",
+      id: "9",
       type: "warning" as const,
       title: "API Limit Warning",
       message: "X API approaching daily limit (850/1000 requests)",
@@ -110,7 +133,7 @@ export default function App() {
       source: "system" as const,
     },
     {
-      id: "8",
+      id: "10",
       type: "info" as const,
       title: "TMDb Weekly Digest",
       message: "12 new movies releasing this week - feeds auto-generated",
@@ -140,7 +163,7 @@ export default function App() {
     const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info'];
     
     // Handle special settings sub-pages
-    const settingsPages = ['settings-comment-reply', 'settings-apikeys', 'settings-video', 'settings-rss', 'settings-tmdb', 'settings-error', 'settings-cleanup', 'settings-haptic', 'settings-appearance', 'settings-notifications'];
+    const settingsPages = ['settings-comment-reply', 'settings-apikeys', 'settings-video', 'settings-rss', 'settings-tmdb', 'settings-videostudio', 'settings-error', 'settings-cleanup', 'settings-haptic', 'settings-appearance', 'settings-notifications'];
     
     if (page === 'settings') {
       setSettingsInitialPage(null);
@@ -217,7 +240,7 @@ export default function App() {
     setNotifications([]);
   };
 
-  const addNotification = (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', source: 'upload' | 'rss' | 'tmdb' | 'system') => {
+  const addNotification = (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', source: 'upload' | 'rss' | 'tmdb' | 'videostudio' | 'system') => {
     const newNotification = {
       id: Date.now().toString(),
       type: type as const,
@@ -235,10 +258,15 @@ export default function App() {
   ).length;
 
   // Bottom navigation pages in order
-  const bottomNavPages = ['dashboard', 'channels', 'platforms', 'rss', 'tmdb', 'logs'];
+  const bottomNavPages = ['dashboard', 'channels', 'platforms', 'rss', 'tmdb', 'video-studio'];
 
   // Swipe navigation handlers
   const handleSwipeLeft = () => {
+    // Disable swipe when caption editor is open
+    if (isCaptionEditorOpen) {
+      return;
+    }
+    
     // If notifications panel is open, close it (swipe to dashboard)
     if (isNotificationsOpen) {
       haptics.light();
@@ -253,8 +281,8 @@ export default function App() {
     
     const currentIndex = bottomNavPages.indexOf(currentPage);
     
-    // Special case: Swipe left on logs page opens settings
-    if (currentPage === 'logs') {
+    // Special case: Swipe left on video-studio page opens settings
+    if (currentPage === 'video-studio') {
       haptics.light();
       toggleSettings();
       return;
@@ -267,6 +295,11 @@ export default function App() {
   };
 
   const handleSwipeRight = () => {
+    // Disable swipe when caption editor is open
+    if (isCaptionEditorOpen) {
+      return;
+    }
+    
     // Disable swipe right when notifications panel is open
     if (isNotificationsOpen) {
       return;
@@ -295,11 +328,13 @@ export default function App() {
   };
 
   // Only enable swipe navigation on bottom nav pages or when notifications/settings are open
+  // Disable swipe when caption editor is open
   const isBottomNavPage = bottomNavPages.includes(currentPage);
+  const isSwipeEnabled = (isBottomNavPage || isNotificationsOpen || isSettingsOpen) && !isCaptionEditorOpen;
 
   useSwipeNavigation({
-    onSwipeLeft: (isBottomNavPage || isNotificationsOpen || isSettingsOpen) ? handleSwipeLeft : () => {},
-    onSwipeRight: (isBottomNavPage || isNotificationsOpen || isSettingsOpen) ? handleSwipeRight : () => {},
+    onSwipeLeft: isSwipeEnabled ? handleSwipeLeft : () => {},
+    onSwipeRight: isSwipeEnabled ? handleSwipeRight : () => {},
     // Decreased sensitivity (increased swipe distance) - 80px default, 120px for logs
     minSwipeDistance: 80,
     increasedMinSwipeDistance: currentPage === 'logs' ? 120 : undefined,
@@ -315,93 +350,104 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      {!isAuthenticated ? (
-        <>
-          {currentPage === 'terms' ? (
-            <TermsPage onNavigate={handleNavigate} isAuthenticated={false} />
-          ) : currentPage === 'privacy' ? (
-            <PrivacyPage onNavigate={handleNavigate} isAuthenticated={false} />
-          ) : currentPage === 'disclaimer' ? (
-            <DisclaimerPage onNavigate={handleNavigate} isAuthenticated={false} />
-          ) : (
-            <LoginPage onLogin={handleLogin} onNavigate={handleNavigate} />
-          )}
-        </>
-      ) : (
-        <div className="min-h-screen bg-white dark:bg-[#000000]">
-          <Navigation
-            currentPage={currentPage}
-            onNavigate={handleNavigate}
-            onToggleSettings={toggleSettings}
-            onToggleNotifications={toggleNotifications}
-            onLogout={handleLogout}
-            unreadNotifications={unreadCount}
-          />
-          <main className="lg:ml-64 pb-16 lg:pb-0">
-            <div className="p-4 sm:p-6 lg:p-8 transition-opacity duration-200">
-              {currentPage === "dashboard" && (
-                <DashboardOverview
-                  onNavigate={handleNavigate}
-                />
-              )}
-              {currentPage === "channels" && <ChannelsPage />}
-              {currentPage === "platforms" && <PlatformsPage />}
-              {currentPage === "logs" && <LogsPage onNewNotification={addNotification} />}
-              {currentPage === "activity" && (
-                <RecentActivityPage onNavigate={handleNavigate} />
-              )}
-              {currentPage === "rss" && (
-                <RSSPage onNavigate={handleNavigate} />
-              )}
-              {currentPage === "rss-activity" && (
-                <RSSActivityPage onNavigate={handleNavigate} previousPage={previousPage} />
-              )}
-              {currentPage === "tmdb" && (
-                <TMDbFeedsPage onNavigate={handleNavigate} previousPage={previousPage} />
-              )}
-              {currentPage === "tmdb-activity" && (
-                <TMDbActivityPage onNavigate={handleNavigate} previousPage={previousPage} />
-              )}
-              {currentPage === "video-details" && (
-                <VideoDetailsPage onNavigate={handleNavigate} previousPage={previousPage} />
-              )}
-              {currentPage === "privacy" && <PrivacyPage onNavigate={handleNavigate} />}
-              {currentPage === "terms" && <TermsPage onNavigate={handleNavigate} />}
-              {currentPage === "disclaimer" && <DisclaimerPage onNavigate={handleNavigate} />}
-              {currentPage === "cookie" && <CookiePage onNavigate={handleNavigate} />}
-              {currentPage === "contact" && <ContactPage onNavigate={handleNavigate} />}
-              {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
-              {currentPage === "data-deletion" && <DataDeletionPage onNavigate={handleNavigate} />}
-              {currentPage === "app-info" && <AppInfoPage onNavigate={handleNavigate} />}
-              {currentPage === "api-usage" && <APIUsage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} />}
-              {currentPage === "comment-automation" && <CommentAutomationPage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} />}
-            </div>
-          </main>
-          <MobileBottomNav
-            currentPage={currentPage}
-            onNavigate={handleNavigate}
-          />
-          {isSettingsOpen && (
-            <SettingsPanel
-              isOpen={isSettingsOpen}
-              onClose={handleCloseSettings}
-              onLogout={handleLogout}
+      <TMDbPostsProvider>
+        {!isAuthenticated ? (
+          <>
+            {currentPage === 'terms' ? (
+              <TermsPage onNavigate={handleNavigate} isAuthenticated={false} />
+            ) : currentPage === 'privacy' ? (
+              <PrivacyPage onNavigate={handleNavigate} isAuthenticated={false} />
+            ) : currentPage === 'disclaimer' ? (
+              <DisclaimerPage onNavigate={handleNavigate} isAuthenticated={false} />
+            ) : (
+              <LoginPage onLogin={handleLogin} onNavigate={handleNavigate} />
+            )}
+          </>
+        ) : (
+          <div className="min-h-screen bg-white dark:bg-[#000000]">
+            <Navigation
+              currentPage={currentPage}
               onNavigate={handleNavigate}
-              pageBeforeSettings={pageBeforeSettings}
-              onNewNotification={addNotification}
-              initialPage={settingsInitialPage}
+              onToggleSettings={toggleSettings}
+              onToggleNotifications={toggleNotifications}
+              onLogout={handleLogout}
+              unreadNotifications={unreadCount}
             />
-          )}
-          <NotificationPanel
-            isOpen={isNotificationsOpen}
-            onClose={() => setIsNotificationsOpen(false)}
-            notifications={notifications}
-            onMarkAsRead={markAsRead}
-            onMarkAllAsRead={markAllAsRead}
-            onClearAll={clearAllNotifications}
-          />
-        </div>
-      )}
+            <main className="lg:ml-64 pb-16 lg:pb-0">
+              <div className="p-4 sm:p-6 lg:p-8 transition-opacity duration-200">
+                {currentPage === "dashboard" && (
+                  <DashboardOverview
+                    onNavigate={handleNavigate}
+                  />
+                )}
+                {currentPage === "channels" && <ChannelsPage />}
+                {currentPage === "platforms" && <PlatformsPage />}
+                {currentPage === "logs" && <LogsPage onNewNotification={addNotification} onNavigate={handleNavigate} />}
+                {currentPage === "activity" && (
+                  <RecentActivityPage onNavigate={handleNavigate} />
+                )}
+                {currentPage === "design-system" && (
+                  <DesignSystemPage onNavigate={handleNavigate} />
+                )}
+                {currentPage === "rss" && (
+                  <RSSPage onNavigate={handleNavigate} />
+                )}
+                {currentPage === "rss-activity" && (
+                  <RSSActivityPage onNavigate={handleNavigate} previousPage={previousPage} />
+                )}
+                {currentPage === "tmdb" && (
+                  <TMDbFeedsPage onNavigate={handleNavigate} previousPage={previousPage} />
+                )}
+                {currentPage === "tmdb-activity" && (
+                  <TMDbActivityPage onNavigate={handleNavigate} previousPage={previousPage} />
+                )}
+                {currentPage === "video-details" && (
+                  <VideoDetailsPage onNavigate={handleNavigate} previousPage={previousPage} />
+                )}
+                {currentPage === "video-studio" && (
+                  <VideoStudioPage onNavigate={handleNavigate} previousPage={previousPage} onCaptionEditorChange={setIsCaptionEditorOpen} />
+                )}
+                {currentPage === "video-studio-activity" && (
+                  <VideoStudioActivityPage onNavigate={handleNavigate} previousPage={previousPage} />
+                )}
+                {currentPage === "privacy" && <PrivacyPage onNavigate={handleNavigate} />}
+                {currentPage === "terms" && <TermsPage onNavigate={handleNavigate} />}
+                {currentPage === "disclaimer" && <DisclaimerPage onNavigate={handleNavigate} />}
+                {currentPage === "cookie" && <CookiePage onNavigate={handleNavigate} />}
+                {currentPage === "contact" && <ContactPage onNavigate={handleNavigate} />}
+                {currentPage === "about" && <AboutPage onNavigate={handleNavigate} />}
+                {currentPage === "data-deletion" && <DataDeletionPage onNavigate={handleNavigate} />}
+                {currentPage === "app-info" && <AppInfoPage onNavigate={handleNavigate} />}
+                {currentPage === "api-usage" && <APIUsage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} />}
+                {currentPage === "comment-automation" && <CommentAutomationPage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} />}
+              </div>
+            </main>
+            <MobileBottomNav
+              currentPage={currentPage}
+              onNavigate={handleNavigate}
+            />
+            {isSettingsOpen && (
+              <SettingsPanel
+                isOpen={isSettingsOpen}
+                onClose={handleCloseSettings}
+                onLogout={handleLogout}
+                onNavigate={handleNavigate}
+                pageBeforeSettings={pageBeforeSettings}
+                onNewNotification={addNotification}
+                initialPage={settingsInitialPage}
+              />
+            )}
+            <NotificationPanel
+              isOpen={isNotificationsOpen}
+              onClose={() => setIsNotificationsOpen(false)}
+              notifications={notifications}
+              onMarkAsRead={markAsRead}
+              onMarkAllAsRead={markAllAsRead}
+              onClearAll={clearAllNotifications}
+            />
+          </div>
+        )}
+      </TMDbPostsProvider>
     </ThemeProvider>
   );
 }

@@ -1,19 +1,39 @@
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Clapperboard } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Clapperboard, Calendar, Send, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
+import { Label } from './ui/label';
+import { DatePicker } from './ui/date-picker';
+import { TimePicker } from './ui/time-picker';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
+import { useTMDbPosts } from '../contexts/TMDbPostsContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from './ui/dialog';
 
 interface TMDbActivityItem {
   id: string;
   title: string;
   mediaType: 'movie' | 'tv';
   source: 'tmdb_today' | 'tmdb_weekly' | 'tmdb_monthly' | 'tmdb_anniversary';
-  status: 'queued' | 'published' | 'failed';
+  status: 'queued' | 'published' | 'failed' | 'scheduled';
   timestamp: string;
   platforms?: string[];
   error?: string;
   imageUrl?: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
 }
 
 interface TMDbActivityPageProps {
@@ -22,120 +42,33 @@ interface TMDbActivityPageProps {
 }
 
 export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageProps) {
-  const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending'>('all');
+  const { posts, reschedulePost, updatePostStatus, deletePost } = useTMDbPosts();
+  const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending' | 'scheduled'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isChangeDateOpen, setIsChangeDateOpen] = useState(false);
+  const [isChangeTimeOpen, setIsChangeTimeOpen] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState('');
 
-  const [activityItems] = useState<TMDbActivityItem[]>([
-    {
-      id: 'tmdb-1',
-      title: 'Gladiator II',
-      mediaType: 'movie',
-      source: 'tmdb_today',
-      status: 'published',
-      timestamp: '2 min ago',
-      platforms: ['X', 'Threads', 'Facebook'],
-      imageUrl: 'https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg',
-    },
-    {
-      id: 'tmdb-2',
-      title: 'The Matrix (25th Anniversary)',
-      mediaType: 'movie',
-      source: 'tmdb_anniversary',
-      status: 'published',
-      timestamp: '5 min ago',
-      platforms: ['X', 'Facebook'],
-      imageUrl: 'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-    },
-    {
-      id: 'tmdb-3',
-      title: 'Arcane Season 2',
-      mediaType: 'tv',
-      source: 'tmdb_monthly',
-      status: 'failed',
-      timestamp: '10 min ago',
-      error: 'Failed to post to X: Rate limit exceeded',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg',
-    },
-    {
-      id: 'tmdb-4',
-      title: 'Terrifier 3',
-      mediaType: 'movie',
-      source: 'tmdb_weekly',
-      status: 'queued',
-      timestamp: '15 min ago',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/7NDHoebflLwL1CcgLJ9wZbbDrmV.jpg',
-    },
-    {
-      id: 'tmdb-5',
-      title: 'Interstellar (10th Anniversary)',
-      mediaType: 'movie',
-      source: 'tmdb_anniversary',
-      status: 'published',
-      timestamp: '20 min ago',
-      platforms: ['X', 'Threads'],
-      imageUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-    },
-    {
-      id: 'tmdb-6',
-      title: 'Dune: Part Two',
-      mediaType: 'movie',
-      source: 'tmdb_today',
-      status: 'published',
-      timestamp: '25 min ago',
-      platforms: ['X', 'Facebook'],
-    },
-    {
-      id: 'tmdb-7',
-      title: 'The Last of Us Season 2',
-      mediaType: 'tv',
-      source: 'tmdb_monthly',
-      status: 'failed',
-      timestamp: '30 min ago',
-      error: 'TMDb API timeout',
-    },
-    {
-      id: 'tmdb-8',
-      title: 'Oppenheimer',
-      mediaType: 'movie',
-      source: 'tmdb_weekly',
-      status: 'published',
-      timestamp: '45 min ago',
-      platforms: ['X', 'Threads', 'Facebook'],
-    },
-    {
-      id: 'tmdb-9',
-      title: 'The Shawshank Redemption (30th Anniversary)',
-      mediaType: 'movie',
-      source: 'tmdb_anniversary',
-      status: 'published',
-      timestamp: '1 hour ago',
-      platforms: ['X'],
-    },
-    {
-      id: 'tmdb-10',
-      title: 'Stranger Things Season 5',
-      mediaType: 'tv',
-      source: 'tmdb_monthly',
-      status: 'queued',
-      timestamp: '1 hour ago',
-    },
-  ]);
-
-  const filteredItems = activityItems.filter((item) => {
+  const filteredItems = posts.filter((item) => {
     if (filter === 'failures') return item.status === 'failed';
     if (filter === 'published') return item.status === 'published';
     if (filter === 'pending') return item.status === 'queued';
+    if (filter === 'scheduled') return item.status === 'scheduled';
     return true;
   });
 
   const getStatusConfig = (status: TMDbActivityItem['status']) => {
     switch (status) {
       case 'queued':
-        return { icon: Clock, color: 'text-gray-500 dark:text-[#9CA3AF]', bg: 'bg-gray-100 dark:bg-[#374151]', label: 'Queued' };
+        return { icon: Clock, color: 'text-gray-700 dark:text-[#9CA3AF]', bg: 'bg-gray-200 dark:bg-[#1f1f1f]', label: 'Queued' };
       case 'published':
-        return { icon: CheckCircle, color: 'text-[#10B981]', bg: 'bg-[#D1FAE5] dark:bg-[#065F46]', label: 'Published' };
+        return { icon: CheckCircle, color: 'text-gray-700 dark:text-[#9CA3AF]', bg: 'bg-gray-200 dark:bg-[#1f1f1f]', label: 'Published' };
       case 'failed':
         return { icon: XCircle, color: 'text-[#EF4444]', bg: 'bg-[#FEE2E2] dark:bg-[#991B1B]', label: 'Failed' };
+      case 'scheduled':
+        return { icon: Calendar, color: 'text-gray-700 dark:text-[#9CA3AF]', bg: 'bg-gray-200 dark:bg-[#1f1f1f]', label: 'Scheduled' };
     }
   };
 
@@ -156,9 +89,37 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
     e.stopPropagation();
     haptics.medium();
     toast.success('Retry Initiated', {
-      description: `Retrying TMDb feed: "${title}"`,
+      description: `Retrying TMDb feed: \"${title}\"`,
     });
     // Add logic to retry the TMDb feed processing here
+  };
+
+  const handlePostImmediately = (id: string, title: string) => {
+    haptics.medium();
+    toast.success('Posting Immediately', {
+      description: `\"${title}\" will be posted now`,
+    });
+    // Add logic to post immediately
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    haptics.medium();
+    deletePost(id);
+    toast.success('Deleted', {
+      description: `\"${title}\" has been removed`,
+    });
+  };
+
+  const handleChangeScheduleDate = (id: string, title: string) => {
+    haptics.light();
+    setSelectedItemId(id);
+    setIsChangeDateOpen(true);
+  };
+
+  const handleChangeScheduleTime = (id: string, title: string) => {
+    haptics.light();
+    setSelectedItemId(id);
+    setIsChangeTimeOpen(true);
   };
 
   const handleRefresh = () => {
@@ -170,6 +131,44 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
+  };
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const handleTimeChange = (time: string) => {
+    setSelectedTime(time);
+  };
+
+  const handleSaveSchedule = () => {
+    if (!selectedItemId) return;
+
+    if (selectedDate && !selectedTime) {
+      // Only date changed
+      const newScheduledTime = new Date(`${selectedDate.toISOString().split('T')[0]}T12:00:00`).toISOString();
+      reschedulePost(selectedItemId, newScheduledTime);
+      toast.success('Schedule Updated');
+    } else if (selectedTime && selectedDate) {
+      // Both date and time changed
+      const newScheduledTime = new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedTime}:00`).toISOString();
+      reschedulePost(selectedItemId, newScheduledTime);
+      toast.success('Schedule Updated');
+    } else if (selectedTime) {
+      // Only time changed - use the existing date
+      const selectedPost = posts.find(p => p.id === selectedItemId);
+      if (selectedPost) {
+        const existingDate = new Date(selectedPost.scheduledTime);
+        const newScheduledTime = new Date(`${existingDate.toISOString().split('T')[0]}T${selectedTime}:00`).toISOString();
+        reschedulePost(selectedItemId, newScheduledTime);
+        toast.success('Schedule Updated');
+      }
+    }
+    
+    setIsChangeDateOpen(false);
+    setIsChangeTimeOpen(false);
+    setSelectedDate(undefined);
+    setSelectedTime('');
   };
 
   return (
@@ -189,7 +188,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             </svg>
           </button>
           <div className="flex-1">
-            <h1 className="text-gray-900 dark:text-white mb-2">TMDb Activity</h1>
+            <h1 className="text-gray-900 dark:text-white mb-2">TMDb Feeds Activity</h1>
             <p className="text-gray-600 dark:text-[#9CA3AF]">
               Track all TMDb feed processing status
             </p>
@@ -209,24 +208,24 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Total Posts</p>
-          <p className="text-gray-900 dark:text-white text-2xl">{activityItems.length}</p>
+          <p className="text-gray-900 dark:text-white text-2xl">{posts.length}</p>
         </div>
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Published</p>
           <p className="text-gray-900 dark:text-white text-2xl">
-            {activityItems.filter(item => item.status === 'published').length}
+            {posts.filter(item => item.status === 'published').length}
           </p>
         </div>
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Pending</p>
           <p className="text-gray-900 dark:text-white text-2xl">
-            {activityItems.filter(item => item.status === 'queued').length}
+            {posts.filter(item => item.status === 'queued').length}
           </p>
         </div>
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Failures</p>
           <p className="text-gray-900 dark:text-white text-2xl">
-            {activityItems.filter(item => item.status === 'failed').length}
+            {posts.filter(item => item.status === 'failed').length}
           </p>
         </div>
       </div>
@@ -246,6 +245,19 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             }`}
           >
             All Activity
+          </button>
+          <button
+            onClick={() => {
+              haptics.light();
+              setFilter('scheduled');
+            }}
+            className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
+              filter === 'scheduled'
+                ? 'bg-[#ec1e24] text-white'
+                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+            }`}
+          >
+            Scheduled
           </button>
           <button
             onClick={() => {
@@ -354,7 +366,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                     {/* Platforms */}
                     {item.platforms && item.platforms.length > 0 && (
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">Posted to:</span>
+                        <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">{item.status === 'scheduled' ? 'Post to:' : 'Posted to:'}</span>
                         <div className="flex flex-wrap gap-1.5">
                           {item.platforms.map((platform) => (
                             <span 
@@ -377,6 +389,76 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                     )}
                   </div>
                 </div>
+
+                {/* Scheduled Date & Actions - Full Width Bar */}
+                {item.status === 'scheduled' && (
+                  <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#333333] flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-500 dark:text-[#9CA3AF]" />
+                      <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                        Scheduled: <span className="text-gray-900 dark:text-white">
+                          {new Date(item.scheduledTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {' at '}
+                          {new Date(item.scheduledTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </span>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 w-8 p-0 border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#111111]"
+                          onClick={() => haptics.light()}
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-600 dark:text-[#9CA3AF]" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            haptics.light();
+                            handleChangeScheduleDate(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                        >
+                          <Calendar className="w-4 h-4 mr-2" />
+                          Change Date
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            haptics.light();
+                            handleChangeScheduleTime(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                        >
+                          <Clock className="w-4 h-4 mr-2" />
+                          Change Time
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            haptics.medium();
+                            handlePostImmediately(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Post Now
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            haptics.medium();
+                            handleDelete(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
               </div>
             );
           })
@@ -393,6 +475,87 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
           </div>
         )}
       </div>
+
+      {/* Change Date Dialog */}
+      <Dialog open={isChangeDateOpen} onOpenChange={setIsChangeDateOpen} modal={false}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Change Schedule Date</DialogTitle>
+            <DialogDescription>
+              Select a new date for the scheduled post
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="scheduled-date">Date</Label>
+              <div className="mt-2">
+                <DatePicker
+                  date={selectedDate}
+                  onDateChange={setSelectedDate}
+                  placeholder="Select a date"
+                  className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
+                />
+              </div>
+            </div>
+            <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <Clock className="w-4 h-4 text-[#ec1e24] mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-black dark:text-white">
+                  Posts are automatically spaced to prevent overlap. The system will adjust if needed.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsChangeDateOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveSchedule}>
+              Save Date
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Time Dialog */}
+      <Dialog open={isChangeTimeOpen} onOpenChange={setIsChangeTimeOpen} modal={false}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Change Schedule Time</DialogTitle>
+            <DialogDescription>
+              Select a new time for the scheduled post
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="scheduled-time">Time</Label>
+              <div className="mt-2">
+                <TimePicker
+                  value={selectedTime}
+                  onChange={setSelectedTime}
+                  className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
+                />
+              </div>
+            </div>
+            <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <Clock className="w-4 h-4 text-[#ec1e24] mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-black dark:text-white">
+                  Posts are automatically spaced to prevent overlap. The system will adjust if needed.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsChangeTimeOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveSchedule}>
+              Save Time
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

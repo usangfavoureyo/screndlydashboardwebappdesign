@@ -142,7 +142,7 @@ export function PlatformCard({ platform, onUpdate, onConnect, onDisconnect }: Pl
           className={`transition-all duration-300 hover:scale-105 active:scale-95 ${
             platform.connected 
               ? "bg-white dark:bg-[#000000] text-black dark:text-white border-black dark:border-[#333333] hover:bg-gray-100 dark:hover:bg-[#333333] hover:border-gray-800 dark:hover:border-[#444444]" 
-              : "bg-[#ec1e24] hover:bg-[#d11b20] text-white hover:shadow-lg hover:shadow-[#ec1e24]/30"
+              : "bg-[#ec1e24] hover:bg-[#d11b20] text-white"
           }`}
         >
           {platform.connected ? 'Disconnect' : 'Connect'}

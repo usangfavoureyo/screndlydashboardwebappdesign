@@ -1,9 +1,10 @@
 import { StatCard } from './StatCard';
-import { Video, Radio, Globe, AlertCircle, HardDrive, MessageSquare, Rss, Clapperboard, Calendar, TrendingUp, Zap, CheckCircle, Key } from 'lucide-react';
+import { Video, Radio, Globe, AlertCircle, HardDrive, MessageSquare, Rss, Clapperboard, Calendar, TrendingUp, Zap, CheckCircle, Key, Film } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const chartData = [
   { date: 'Mon', videos: 12 },
@@ -384,7 +385,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
             onClick={() => {
               haptics.light();
-              onNavigate('tmdb', 'dashboard');
+              onNavigate('tmdb-activity', 'dashboard');
             }}
           >
             View all
@@ -421,6 +422,60 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
                 </div>
               </div>
               <Clapperboard className="w-5 h-5 text-[#ec1e24]" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Video Studio Widget */}
+      <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Film className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <h3 className="text-gray-900 dark:text-white">Video Studio</h3>
+              <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Video generation activity</p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+            onClick={() => {
+              haptics.light();
+              onNavigate('video-studio-activity', 'dashboard');
+            }}
+          >
+            View all
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <p className="text-2xl text-gray-900 dark:text-white mb-1">12</p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Videos Generated</p>
+          </div>
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <p className="text-2xl text-gray-900 dark:text-white mb-1">8</p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Videos Published</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h4 className="text-sm text-gray-900 dark:text-white">Recent Activity</h4>
+          {[
+            { title: 'Gladiator II - Review', type: 'Video Review', status: 'Published', time: '2h ago' },
+            { title: 'November 2024 Releases', type: 'Monthly Releases', status: 'Generating', time: '5h ago' },
+            { title: 'Wicked - Review', type: 'Video Review', status: 'Published', time: '1d ago' },
+          ].map((item, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
+              <div>
+                <p className="text-gray-900 dark:text-white">{item.title}</p>
+                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">{item.type}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-900 dark:text-white mb-0.5">{item.status}</p>
+                <p className="text-xs text-gray-500 dark:text-[#6B7280]">{item.time}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -479,13 +534,23 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">TMDb API Usage</div>
           </div>
 
-          {/* Total API Calls */}
+          {/* Vizla API Usage */}
           <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="flex items-center gap-2 mb-2">
+              <Film className="w-4 h-4 text-[#ec1e24]" />
+              <span className="text-xs text-gray-500 dark:text-[#6B7280]">Today</span>
+            </div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">127</div>
+            <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">Vizla API Usage</div>
+          </div>
+
+          {/* Total API Calls */}
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333] col-span-2">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-4 h-4 text-[#ec1e24]" />
               <span className="text-xs text-gray-500 dark:text-[#6B7280]">Today</span>
             </div>
-            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">5,590</div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">5,717</div>
             <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">Total API Calls</div>
           </div>
         </div>
@@ -522,7 +587,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
                 <span
                   className={`px-3 py-1 rounded-full ${
                     activity.status === 'success'
-                      ? 'bg-[#D1FAE5] dark:bg-[#065F46] text-[#065F46] dark:text-[#D1FAE5]'
+                      ? 'bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF]'
                       : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
                   }`}
                 >

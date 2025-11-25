@@ -105,9 +105,8 @@ export function TMDbStatsPanel({ feeds, onFilterChange }: TMDbStatsPanelProps) {
   return (
     <div className="grid grid-cols-1 gap-4">
       {/* Ready Items */}
-      <button 
-        onClick={handleReadyClick}
-        className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] p-6 hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all cursor-pointer text-left"
+      <div 
+        className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] p-6 transition-all text-left"
       >
         <div className="flex items-center justify-between mb-2">
           <Calendar className="w-5 h-5 text-[#ec1e24]" />
@@ -121,7 +120,7 @@ export function TMDbStatsPanel({ feeds, onFilterChange }: TMDbStatsPanelProps) {
         <div className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
           Next: {stats.nextGeneration}
         </div>
-      </button>
+      </div>
     </div>
   );
 }

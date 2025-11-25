@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
+import { Slider } from '../ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { FacebookIcon } from '../icons/FacebookIcon';
 import { ThreadsIcon } from '../icons/ThreadsIcon';
@@ -42,6 +43,25 @@ const defaultSettings = {
   weeklyPlatforms: { x: true, threads: true, facebook: false },
   monthlyPlatforms: { x: true, threads: true, facebook: false },
   anniversaryPlatforms: { x: true, threads: false, facebook: false },
+  // Caption generation settings
+  tmdbCaptionModel: 'gpt-4o',
+  tmdbCaptionTemperature: 0.7,
+  tmdbCaptionTone: 'Engaging',
+  tmdbCaptionMaxLength: 280,
+  tmdbCaptionPrompt: `You are a social media caption writer for Screen Render, a movie and TV trailer platform. Create engaging, platform-optimized captions for movie/TV show anniversary posts.
+
+INPUT: Movie/TV show title, release date, anniversary year, cast, and synopsis
+OUTPUT: Engaging social media caption with emojis, hashtags, and hook
+
+Guidelines:
+- Hook in first line celebrating the anniversary (7-10 words max)
+- Include relevant emoji and hashtags (#MovieAnniversary, #ClassicFilm, etc.)
+- Add 2-3 strategically placed emojis (🎬 🎥 🍿)
+- Keep total under {maxLength} characters for platform compatibility
+- Match nostalgic and celebratory tone
+- No generic "Happy Anniversary" openers
+- Highlight iconic moments or cultural impact
+- Make it shareable and engaging`,
 };
 
 export function TMDbSettings({ onSave }: TMDbSettingsProps) {

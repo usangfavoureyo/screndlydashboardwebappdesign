@@ -1,4 +1,4 @@
-import { LayoutDashboard, Youtube, Share2, FileText, Rss, Clapperboard } from 'lucide-react';
+import { LayoutDashboard, Youtube, Share2, FileText, Rss, Clapperboard, Film } from 'lucide-react';
 import { haptics } from '../utils/haptics';
 import { useScrollDirection } from '../utils/useScrollDirection';
 
@@ -14,7 +14,7 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
     { id: 'platforms', icon: Share2 },
     { id: 'rss', icon: Rss },
     { id: 'tmdb', icon: Clapperboard },
-    { id: 'logs', icon: FileText },
+    { id: 'video-studio', icon: Film },
   ];
 
   const handleNavigation = (pageId: string) => {
@@ -44,7 +44,7 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
               <Icon
                 className={`w-7 h-7 stroke-1 transition-all duration-300 ${
                   isActive
-                    ? 'text-[#ec1e24] drop-shadow-[0_0_8px_rgba(236,30,36,0.5)]'
+                    ? 'text-[#ec1e24]'
                     : 'text-black dark:text-white'
                 }`}
               />

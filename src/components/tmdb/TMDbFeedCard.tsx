@@ -9,6 +9,7 @@ import { TimePicker } from '../ui/time-picker';
 import { haptics } from '../../utils/haptics';
 import { toast } from 'sonner@2.0.3';
 import { logFeedUpdate, logFeedDeletion } from '../../utils/tmdbLogger';
+import { useTMDbPosts } from '../../contexts/TMDbPostsContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +59,7 @@ interface TMDbFeedCardProps {
 }
 
 export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
+  const { schedulePost } = useTMDbPosts();
   const [isApproved, setIsApproved] = useState(false);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isEditCaptionOpen, setIsEditCaptionOpen] = useState(false);
@@ -65,6 +67,8 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isPlatformSelectOpen, setIsPlatformSelectOpen] = useState(false);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   const [editedCaption, setEditedCaption] = useState(feed.caption);
   const [selectedImageType, setSelectedImageType] = useState<'poster' | 'backdrop'>(feed.imageType);
@@ -113,9 +117,51 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
   };
 
   const handleApprove = () => {
+    haptics.light();
+    // Open platform selection dialog instead of just toggling approved status
+    setIsPlatformSelectOpen(true);
+  };
+
+  const handleSchedulePost = () => {
+    if (selectedPlatforms.length === 0) {
+      toast.error('Please select at least one platform');
+      return;
+    }
+
+    // Schedule the post using the context
+    schedulePost({
+      ...feed,
+      status: 'scheduled',
+      platforms: selectedPlatforms,
+    });
+
     haptics.success();
-    setIsApproved(!isApproved);
-    toast.success(isApproved ? 'Feed unapproved' : 'Feed approved for posting');
+    setIsApproved(true);
+    setIsPlatformSelectOpen(false);
+    toast.success('Post scheduled successfully');
+
+    // Log the scheduling
+    logFeedUpdate(
+      feed.id,
+      feed.title,
+      'scheduled',
+      'System',
+      {
+        tmdbId: feed.tmdbId,
+        mediaType: feed.mediaType,
+        year: feed.year,
+        platforms: selectedPlatforms,
+      }
+    );
+  };
+
+  const togglePlatform = (platform: string) => {
+    haptics.light();
+    setSelectedPlatforms(prev => 
+      prev.includes(platform)
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
   };
 
   const handleEditCaption = () => {
@@ -233,6 +279,14 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
     const newScheduledTime = new Date(`${scheduledDate.toISOString().split('T')[0]}T${scheduledTime}`).toISOString();
     haptics.success();
     onUpdate?.(feed.id, { scheduledTime: newScheduledTime });
+    
+    // Schedule the post in the context
+    schedulePost({
+      ...feed,
+      scheduledTime: newScheduledTime,
+      status: 'scheduled',
+    });
+    
     setIsRescheduleOpen(false);
     toast.success('Post rescheduled successfully');
     
@@ -605,6 +659,63 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
           <span>Regenerating caption with AI...</span>
         </div>
       )}
+
+      {/* Platform Selection Dialog */}
+      <Dialog open={isPlatformSelectOpen} onOpenChange={setIsPlatformSelectOpen}>
+        <DialogContent className="bg-white dark:bg-black">
+          <DialogHeader>
+            <DialogTitle>Select Platforms</DialogTitle>
+            <DialogDescription>
+              Choose the platforms to schedule this post on
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <button
+                onClick={() => togglePlatform('facebook')}
+                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                  selectedPlatforms.includes('facebook')
+                    ? 'border-[#ec1e24] bg-white dark:bg-black'
+                    : 'border-gray-200 dark:border-[#333333]'
+                }`}
+              >
+                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
+                <p className="text-sm">Facebook</p>
+              </button>
+              <button
+                onClick={() => togglePlatform('twitter')}
+                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                  selectedPlatforms.includes('twitter')
+                    ? 'border-[#ec1e24] bg-white dark:bg-black'
+                    : 'border-gray-200 dark:border-[#333333]'
+                }`}
+              >
+                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
+                <p className="text-sm">Twitter</p>
+              </button>
+              <button
+                onClick={() => togglePlatform('instagram')}
+                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                  selectedPlatforms.includes('instagram')
+                    ? 'border-[#ec1e24] bg-white dark:bg-black'
+                    : 'border-gray-200 dark:border-[#333333]'
+                }`}
+              >
+                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
+                <p className="text-sm">Instagram</p>
+              </button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPlatformSelectOpen(false)} className="bg-white dark:bg-black">
+              Cancel
+            </Button>
+            <Button onClick={handleSchedulePost}>
+              Schedule Post
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

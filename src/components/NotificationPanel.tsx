@@ -1,4 +1,4 @@
-import { X, CheckCheck, AlertCircle, Upload, Trash2, Settings as SettingsIcon, Clapperboard } from 'lucide-react';
+import { X, CheckCheck, AlertCircle, Upload, Trash2, Settings as SettingsIcon, Clapperboard, Film } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 
@@ -9,7 +9,7 @@ interface Notification {
   message: string;
   timestamp: string;
   read: boolean;
-  source?: 'tmdb' | 'rss' | 'upload' | 'system';
+  source?: 'tmdb' | 'rss' | 'upload' | 'videostudio' | 'system';
 }
 
 interface NotificationPanelProps {
@@ -37,6 +37,11 @@ export function NotificationPanel({
     // Check if it's a TMDb notification
     if (notification.source === 'tmdb') {
       return <Clapperboard className="w-5 h-5 text-[#ec1e24]" />;
+    }
+    
+    // Check if it's a Video Studio notification
+    if (notification.source === 'videostudio') {
+      return <Film className="w-5 h-5 text-[#ec1e24]" />;
     }
     
     // Otherwise use the type-based icons with brand red color

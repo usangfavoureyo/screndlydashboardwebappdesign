@@ -1,0 +1,419 @@
+import { Film, Calendar, CheckCircle, XCircle, Clock, Download, RefreshCw, Share2, Send } from 'lucide-react';
+import { Button } from './ui/button';
+import { haptics } from '../utils/haptics';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
+import { InstagramIcon } from './icons/InstagramIcon';
+import { FacebookIcon } from './icons/FacebookIcon';
+import { ThreadsIcon } from './icons/ThreadsIcon';
+import { XIcon } from './icons/XIcon';
+import { YouTubeIcon } from './icons/YouTubeIcon';
+import { TikTokIcon } from './icons/TikTokIcon';
+import { useState } from 'react';
+
+interface VideoStudioActivityPageProps {
+  onNavigate: (page: string) => void;
+  previousPage?: string | null;
+}
+
+export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudioActivityPageProps) {
+  const activities = [
+    {
+      id: '1',
+      type: 'review' as const,
+      title: 'Dune: Part Three - Official Trailer',
+      status: 'completed' as const,
+      timestamp: '2 hours ago',
+      aspectRatio: '16:9',
+      duration: '2:15',
+      downloads: 3,
+      published: true,
+      platforms: ['X', 'Threads', 'Facebook']
+    },
+    {
+      id: '2',
+      type: 'monthly' as const,
+      title: 'December 2024 Movie Releases Compilation',
+      status: 'processing' as const,
+      timestamp: '1 hour ago',
+      aspectRatio: '9:16',
+      duration: '4:30',
+      progress: 67,
+      downloads: 0,
+      published: false,
+      platforms: []
+    },
+    {
+      id: '3',
+      type: 'review' as const,
+      title: 'Wicked - Official Trailer 2',
+      status: 'completed' as const,
+      timestamp: '5 hours ago',
+      aspectRatio: '1:1',
+      duration: '1:45',
+      downloads: 8,
+      published: false,
+      platforms: []
+    },
+    {
+      id: '4',
+      type: 'review' as const,
+      title: 'Gladiator II - Final Trailer',
+      status: 'failed' as const,
+      timestamp: '1 day ago',
+      aspectRatio: '16:9',
+      duration: '2:30',
+      error: 'Visla API timeout - insufficient credits',
+      downloads: 0,
+      published: false,
+      platforms: []
+    },
+    {
+      id: '5',
+      type: 'monthly' as const,
+      title: 'November 2024 TV Show Releases',
+      status: 'completed' as const,
+      timestamp: '2 days ago',
+      aspectRatio: '16:9',
+      duration: '5:00',
+      downloads: 12,
+      published: true,
+      platforms: ['X', 'Threads', 'Facebook']
+    }
+  ];
+
+  // Calculate stats
+  const completedCount = activities.filter(a => a.status === 'completed').length;
+  const processingCount = activities.filter(a => a.status === 'processing').length;
+  const failedCount = activities.filter(a => a.status === 'failed').length;
+  const totalDownloads = activities.reduce((sum, a) => sum + a.downloads, 0);
+
+  const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  const [selectedPlatforms, setSelectedPlatforms] = useState({
+    x: true,
+    threads: true,
+    facebook: false,
+    tiktok: false,
+    youtube: false,
+    instagram: false,
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start gap-4">
+        <button
+          onClick={() => {
+            haptics.light();
+            onNavigate(previousPage || 'video-studio');
+          }}
+          className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2 mt-1"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 12H2M9 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div>
+          <h1 className="text-gray-900 dark:text-white mb-2">Video Studio Activity</h1>
+          <p className="text-[#6B7280] dark:text-[#9CA3AF]">Track video generation, downloads, and publishing status</p>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <p className="text-2xl text-gray-900 dark:text-white">{completedCount}</p>
+              <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">Completed</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="flex items-center gap-3">
+            <Clock className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <p className="text-2xl text-gray-900 dark:text-white">{processingCount}</p>
+              <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">Processing</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="flex items-center gap-3">
+            <XCircle className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <p className="text-2xl text-gray-900 dark:text-white">{failedCount}</p>
+              <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">Failed</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="flex items-center gap-3">
+            <Download className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <p className="text-2xl text-gray-900 dark:text-white">{totalDownloads}</p>
+              <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">Total Downloads</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Feed */}
+      <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+        <h3 className="text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+
+        <div className="space-y-4">
+          {activities.map((activity) => (
+            <div
+              key={activity.id}
+              className="p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <h4 className="text-gray-900 dark:text-white">
+                      {activity.title}
+                    </h4>
+                    <span className={`px-3 py-1 text-xs rounded-full flex-shrink-0 ${
+                      activity.status === 'completed'
+                        ? 'bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF]'
+                        : activity.status === 'processing'
+                        ? 'bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF]'
+                        : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
+                    }`}>
+                      {activity.status === 'completed' && 'Completed'}
+                      {activity.status === 'processing' && 'Processing'}
+                      {activity.status === 'failed' && 'Failed'}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF] mb-2">
+                    <span>{activity.timestamp}</span>
+                    <span>•</span>
+                    <span>{activity.aspectRatio}</span>
+                    <span>•</span>
+                    <span>{activity.duration}</span>
+                  </div>
+
+                  {/* Error Message */}
+                  {activity.status === 'failed' && activity.error && (
+                    <div className="p-3 bg-[#FEE2E2] dark:bg-[#991B1B]/20 border border-[#FCA5A5] dark:border-[#991B1B] rounded-xl text-sm text-[#991B1B] dark:text-[#FEE2E2] mb-2">
+                      {activity.error}
+                    </div>
+                  )}
+
+                  {/* Processing Progress */}
+                  {activity.status === 'processing' && activity.progress !== undefined && (
+                    <div className="space-y-1 mb-2">
+                      <div className="w-full bg-gray-200 dark:bg-[#0A0A0A] rounded-full h-2">
+                        <div
+                          className="bg-[#ec1e24] h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${activity.progress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
+                        {activity.progress}% complete
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Download & Publishing Status */}
+                  {activity.status === 'completed' && (
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      {/* Download Count */}
+                      {activity.downloads > 0 && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg">
+                          <Download className="w-3.5 h-3.5 text-gray-600 dark:text-[#9CA3AF]" />
+                          <span className="text-xs text-gray-600 dark:text-[#9CA3AF]">{activity.downloads} download{activity.downloads !== 1 ? 's' : ''}</span>
+                        </div>
+                      )}
+
+                      {/* Publishing Status */}
+                      {activity.published && activity.platforms.length > 0 ? (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#ec1e24]/10 border border-[#ec1e24]/30 rounded-lg">
+                          <Share2 className="w-3.5 h-3.5 text-[#ec1e24]" />
+                          <span className="text-xs text-[#ec1e24]">Published to {activity.platforms.join(', ')}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg">
+                          <Download className="w-3.5 h-3.5 text-gray-600 dark:text-[#9CA3AF]" />
+                          <span className="text-xs text-gray-600 dark:text-[#9CA3AF]">Download only</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-2 flex-shrink-0">
+                  {activity.status === 'completed' && (
+                    <>
+                      <button
+                        onClick={() => haptics.light()}
+                        className="w-10 h-10 flex items-center justify-center bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#ec1e24] transition-all duration-200"
+                      >
+                        <Download className="w-5 h-5 text-[#ec1e24]" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          haptics.light();
+                          setIsPublishDialogOpen(true);
+                        }}
+                        className="w-10 h-10 flex items-center justify-center bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#ec1e24] transition-all duration-200"
+                      >
+                        <Share2 className="w-5 h-5 text-[#ec1e24]" />
+                      </button>
+                    </>
+                  )}
+
+                  {activity.status === 'failed' && (
+                    <Button
+                      onClick={() => haptics.light()}
+                      size="sm"
+                      variant="outline"
+                      className="border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2 text-[#ec1e24]" />
+                      Retry
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Publish Dialog */}
+      <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white">Publish Video</DialogTitle>
+            <DialogDescription className="text-[#6B7280] dark:text-[#9CA3AF]">
+              Select the platforms you want to publish the video to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 flex justify-center">
+            <div className="grid grid-cols-3 gap-3 max-w-fit">
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedPlatforms({ ...selectedPlatforms, x: !selectedPlatforms.x });
+                }}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.x 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="X"
+              >
+                <XIcon className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedPlatforms({ ...selectedPlatforms, threads: !selectedPlatforms.threads });
+                }}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.threads 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="Threads"
+              >
+                <ThreadsIcon className="w-5 h-5" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedPlatforms({ ...selectedPlatforms, facebook: !selectedPlatforms.facebook });
+                }}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.facebook 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="Facebook"
+              >
+                <FacebookIcon className="w-5.5 h-5.5" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedPlatforms({ ...selectedPlatforms, tiktok: !selectedPlatforms.tiktok });
+                }}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.tiktok 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="TikTok"
+              >
+                <TikTokIcon className="w-6.5 h-6.5" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedPlatforms({ ...selectedPlatforms, youtube: !selectedPlatforms.youtube });
+                }}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.youtube 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="YouTube"
+              >
+                <YouTubeIcon className="w-6 h-6" />
+              </button>
+              
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedPlatforms({ ...selectedPlatforms, instagram: !selectedPlatforms.instagram });
+                }}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.instagram 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="Instagram"
+              >
+                <InstagramIcon className="w-5.5 h-5.5" />
+              </button>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => {
+                haptics.light();
+                setIsPublishDialogOpen(false);
+              }}
+              variant="outline"
+              className="flex-1 border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                haptics.medium();
+                // Handle publish logic here
+                setIsPublishDialogOpen(false);
+              }}
+              className="flex-1 bg-[#ec1e24] hover:bg-[#d01a20] text-white shadow-none hover:shadow-none active:shadow-none focus:shadow-none hover:scale-100 active:scale-100"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Publish
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

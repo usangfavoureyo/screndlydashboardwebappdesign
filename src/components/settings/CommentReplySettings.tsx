@@ -3,6 +3,9 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Textarea } from '../ui/textarea';
+import { Slider } from '../ui/slider';
+import { haptics } from '../../utils/haptics';
+import { toast } from 'sonner@2.0.3';
 
 interface CommentReplySettingsProps {
   settings: any;
@@ -14,27 +17,19 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
   return (
     <div className="fixed top-0 right-0 bottom-0 w-full lg:w-[600px] bg-white dark:bg-[#000000] z-50 overflow-y-auto">
       {/* Header */}
-      <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-3">
+      <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-4 z-10">
         <button 
-          className="text-gray-900 dark:text-white p-1" 
+          className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2" 
           onClick={onBack}
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 12H2M9 19l-7-7 7-7"/>
           </svg>
         </button>
-        <h2 className="text-gray-900 dark:text-white text-xl">Comment Automation</h2>
+        <h2 className="text-2xl text-gray-900 dark:text-white">Comment Automation</h2>
       </div>
 
       <div className="p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[#9CA3AF]">Active</span>
-          <Switch
-            checked={settings.commentRepliesActive}
-            onCheckedChange={(checked) => updateSetting('commentRepliesActive', checked)}
-          />
-        </div>
-
         <div>
           <Label className="text-[#9CA3AF]">Reply Frequency</Label>
           <Select
@@ -411,6 +406,152 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 />
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+
+        {/* Reply Generation Section */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-gray-900 dark:text-white mb-1">Reply Generation (Comment Automation)</h3>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              AI-powered reply generation for user comments across platforms
+            </p>
+          </div>
+
+          {/* Reply AI Model */}
+          <div>
+            <Label htmlFor="comment-reply-model" className="text-[#9CA3AF]">Reply AI Model</Label>
+            <Select
+              value={settings.commentReplyModel || 'gpt-4o'}
+              onValueChange={(value) => {
+                haptics.light();
+                updateSetting('commentReplyModel', value);
+                toast.success(`Reply AI Model changed to ${value}`);
+              }}
+            >
+              <SelectTrigger id="comment-reply-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
+                <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+              GPT-4o balances creativity and cost for engaging comment replies
+            </p>
+          </div>
+
+          {/* Reply Creativity */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-[#9CA3AF]">Reply Creativity (Temperature)</Label>
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                {settings.commentReplyTemperature || 0.7} - Balanced
+              </span>
+            </div>
+            <Slider
+              value={[settings.commentReplyTemperature || 0.7]}
+              onValueChange={(value) => {
+                haptics.light();
+                updateSetting('commentReplyTemperature', value[0]);
+              }}
+              min={0}
+              max={1}
+              step={0.1}
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-2">
+              Recommended: 0.7 — Balanced creativity for engaging yet relevant replies
+            </p>
+          </div>
+
+          {/* Reply Tone */}
+          <div>
+            <Label htmlFor="comment-reply-tone" className="text-[#9CA3AF]">Reply Tone</Label>
+            <Select
+              value={settings.commentReplyTone || 'Friendly'}
+              onValueChange={(value) => {
+                haptics.light();
+                updateSetting('commentReplyTone', value);
+              }}
+            >
+              <SelectTrigger id="comment-reply-tone" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Friendly">Friendly (Recommended)</SelectItem>
+                <SelectItem value="Professional">Professional</SelectItem>
+                <SelectItem value="Enthusiastic">Enthusiastic</SelectItem>
+                <SelectItem value="Casual">Casual</SelectItem>
+                <SelectItem value="Informative">Informative</SelectItem>
+                <SelectItem value="Witty">Witty</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+              Sets the overall tone and style for generated replies
+            </p>
+          </div>
+
+          {/* Max Reply Length */}
+          <div>
+            <Label htmlFor="comment-reply-length" className="text-[#9CA3AF]">Max Reply Length (Characters)</Label>
+            <Input
+              id="comment-reply-length"
+              type="number"
+              value={settings.commentReplyMaxLength || 280}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('commentReplyMaxLength', parseInt(e.target.value));
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+              280 for X/Twitter compatibility, 500 for most platforms
+            </p>
+          </div>
+
+          {/* Reply Generation Prompt */}
+          <div>
+            <Label htmlFor="comment-reply-prompt" className="text-[#9CA3AF]">Reply Generation Prompt</Label>
+            <textarea
+              id="comment-reply-prompt"
+              value={settings.commentReplyPrompt || `Automatically respond to user comments on Instagram, Facebook, and TikTok posts, using ChatGPT. Replies are human-like, concise, relevant, and context-aware. Do not reply to the bot's own comments.
+
+Behavior & Style:
+• Persona: Movie/TV social media manager who engages like a fan in the conversation.
+• Tone: Warm, conversational, friendly, approachable.
+
+Style:
+• Short sentences (1–2 sentences).
+• Use contractions and casual phrasing.
+• Light humor or relatable observations where appropriate.
+• React naturally to praise, excitement, jokes, or questions.
+
+Rules: 
+• Do not use greetings or salutations.
+• No follow-up questions unless context demands it.
+• Reply to "thanks" with minimal responses ("you're welcome", "any time").
+• Reply to emoji-only comments with a relevant emoji.
+• Search the web or use internal TMDb/IMDb data to verify titles and whether they are movies or TV shows.
+• Do not reply to the bot's own comment chain.
+• Avoid fluff, marketing-speak, or gimmicks.
+• Keep all replies short, end-to-end human-like.`}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('commentReplyPrompt', e.target.value);
+              }}
+              rows={18}
+              className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono mt-1 resize-none"
+            />
+            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+              Instructions for generating replies to user comments
+            </p>
           </div>
         </div>
       </div>

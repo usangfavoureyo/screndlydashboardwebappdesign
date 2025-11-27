@@ -52,13 +52,30 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           />
         </div>
         <div>
-          <Label className="text-gray-600 dark:text-[#9CA3AF]">Visla API Key</Label>
+          <Label className="text-gray-600 dark:text-[#9CA3AF]">Google Video Intelligence API Key</Label>
           <Input
             type="password"
-            value={settings.vislaKey}
-            onChange={(e) => updateSetting('vislaKey', e.target.value)}
+            value={settings.googleVideoIntelligenceKey}
+            onChange={(e) => updateSetting('googleVideoIntelligenceKey', e.target.value)}
+            placeholder="Enter your Google Cloud API key"
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            For AI-powered trailer scene analysis
+          </p>
+        </div>
+        <div>
+          <Label className="text-gray-600 dark:text-[#9CA3AF]">Shotstack API Key</Label>
+          <Input
+            type="password"
+            value={settings.shotstackKey}
+            onChange={(e) => updateSetting('shotstackKey', e.target.value)}
+            placeholder="Enter your Shotstack API key"
+            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            For programmatic video editing and rendering
+          </p>
         </div>
         <div>
           <Label className="text-gray-600 dark:text-[#9CA3AF]">AWS S3 Credentials</Label>

@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import { useEffect } from 'react';
+import { haptics } from '../utils/haptics';
 
 interface RecentActivityPageProps {
   onNavigate: (page: string) => void;
@@ -37,7 +38,10 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
     <div className="space-y-6">
       <div className="flex items-start gap-4">
         <button
-          onClick={() => onNavigate('dashboard')}
+          onClick={() => {
+            haptics.light();
+            onNavigate('dashboard');
+          }}
           className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2 mt-1"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
@@ -53,8 +57,12 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm p-6">
         <div className="space-y-3">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-center justify-between p-3 rounded-xl transition-colors duration-200">
-              <div className="flex-1">
+            <button
+              key={activity.id}
+              onClick={() => haptics.light()}
+              className="w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] cursor-pointer"
+            >
+              <div className="flex-1 text-left">
                 <p className="text-gray-900 dark:text-white">{activity.title}</p>
                 <p className="text-[#6B7280] dark:text-[#9CA3AF]">{activity.platform}</p>
               </div>
@@ -70,7 +78,7 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
                 </span>
                 <span className="text-[#6B7280] dark:text-[#9CA3AF] min-w-[80px] text-right">{activity.time}</span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </div>

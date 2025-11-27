@@ -19,7 +19,16 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
 
   const handleNavigation = (pageId: string) => {
     haptics.light();
-    onNavigate(pageId);
+    
+    // If clicking the already active page, scroll to top
+    if (currentPage === pageId) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      onNavigate(pageId);
+    }
   };
 
   const scrollDirection = useScrollDirection();

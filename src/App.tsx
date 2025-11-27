@@ -30,9 +30,13 @@ import { NotificationPanel } from "./components/NotificationPanel";
 import { SplashScreen } from "./components/SplashScreen";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { TMDbPostsProvider } from "./contexts/TMDbPostsContext";
+import { ToastContainer, ToastAction } from "./components/Toast";
+import { InstallPrompt } from "./components/InstallPrompt";
 import { setFavicon } from "./utils/favicon";
 import { useSwipeNavigation } from "./hooks/useSwipeNavigation";
 import { haptics } from "./utils/haptics";
+import { desktopNotifications } from "./utils/desktopNotifications";
+import { registerServiceWorker, setupInstallPrompt } from "./utils/pwa";
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +50,7 @@ export default function App() {
     useState(false);
   const [isCaptionEditorOpen, setIsCaptionEditorOpen] = useState(false);
   
+  // Notifications state
   const [notifications, setNotifications] = useState([
     {
       id: "1",
@@ -94,58 +99,31 @@ export default function App() {
       read: true,
       source: "tmdb" as const,
     },
-    {
-      id: "6",
-      type: "error" as const,
-      title: "Upload Failed",
-      message:
-        "Failed to upload Avatar 3 - Teaser to TikTok. Check API credentials.",
-      timestamp: "1 hour ago",
-      read: true,
-      source: "upload" as const,
-    },
-    {
-      id: "7",
-      type: "error" as const,
-      title: "Video Generation Failed",
-      message: "Wicked - Monthly Release video generation failed. LLM API error.",
-      timestamp: "2 hours ago",
-      read: true,
-      source: "videostudio" as const,
-    },
-    {
-      id: "8",
-      type: "info" as const,
-      title: "New Channel Detected",
-      message:
-        "Warner Bros. Pictures added to monitoring list",
-      timestamp: "3 hours ago",
-      read: true,
-      source: "system" as const,
-    },
-    {
-      id: "9",
-      type: "warning" as const,
-      title: "API Limit Warning",
-      message: "X API approaching daily limit (850/1000 requests)",
-      timestamp: "5 hours ago",
-      read: true,
-      source: "system" as const,
-    },
-    {
-      id: "10",
-      type: "info" as const,
-      title: "TMDb Weekly Digest",
-      message: "12 new movies releasing this week - feeds auto-generated",
-      timestamp: "6 hours ago",
-      read: true,
-      source: "tmdb" as const,
-    },
   ]);
   
+  // Toast notifications state
+  const [toasts, setToasts] = useState<Array<{
+    id: string;
+    type: 'success' | 'error' | 'info' | 'warning';
+    title: string;
+    message?: string;
+    action?: ToastAction;
+    duration?: number;
+  }>>([]);
+
   // Set favicon on app load
   useEffect(() => {
     setFavicon();
+    
+    // Register PWA service worker
+    registerServiceWorker().then((registration) => {
+      if (registration) {
+        console.log('PWA Service Worker registered successfully');
+      }
+    });
+    
+    // Setup install prompt
+    setupInstallPrompt();
   }, []);
 
   const handleLogin = () => {
@@ -251,11 +229,71 @@ export default function App() {
       source: source as const,
     };
     setNotifications([newNotification, ...notifications]);
+    
+    // Also send desktop notification if enabled
+    const savedSettings = localStorage.getItem('screndlySettings');
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        if (settings.desktopNotifications) {
+          desktopNotifications.sendTyped(type, title, message);
+        }
+      } catch (e) {
+        // Silently fail
+      }
+    }
   };
-
-  const unreadCount = notifications.filter(
-    (n) => !n.read,
-  ).length;
+  
+  // Toast notification helper
+  const showToast = (
+    type: 'success' | 'error' | 'info' | 'warning',
+    title: string,
+    message?: string,
+    action?: ToastAction,
+    duration?: number
+  ) => {
+    const toast = {
+      id: Date.now().toString(),
+      type,
+      title,
+      message,
+      action,
+      duration,
+    };
+    setToasts(prev => [...prev, toast]);
+  };
+  
+  const dismissToast = (id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+  
+  // Calculate unread notifications count
+  const unreadCount = notifications.filter(n => !n.read).length;
+  
+  // Handle notification actions (approve, schedule, view, dismiss)
+  const handleNotificationAction = (notificationId: string, actionType: string) => {
+    haptics.medium();
+    
+    // Handle different action types
+    switch (actionType) {
+      case 'approve':
+        showToast('success', 'Approved', 'Post has been approved and scheduled');
+        // Remove the notification after action
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        break;
+      case 'schedule':
+        showToast('info', 'Scheduling', 'Opening schedule dialog...');
+        // Navigate to appropriate page
+        break;
+      case 'view':
+        showToast('info', 'Opening details');
+        // Navigate to details page
+        break;
+      case 'dismiss':
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        break;
+    }
+  };
 
   // Bottom navigation pages in order
   const bottomNavPages = ['dashboard', 'channels', 'platforms', 'rss', 'tmdb', 'video-studio'];
@@ -444,7 +482,14 @@ export default function App() {
               onMarkAsRead={markAsRead}
               onMarkAllAsRead={markAllAsRead}
               onClearAll={clearAllNotifications}
+              onNotificationAction={handleNotificationAction}
             />
+            
+            {/* Toast Container */}
+            <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+            
+            {/* PWA Install Prompt */}
+            <InstallPrompt />
           </div>
         )}
       </TMDbPostsProvider>

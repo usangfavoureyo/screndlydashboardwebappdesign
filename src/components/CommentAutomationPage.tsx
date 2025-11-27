@@ -149,13 +149,17 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
             <div className="space-y-3">
               <h4 className="text-sm text-gray-900 dark:text-white">Recent Replies</h4>
               {data.recentReplies.map((item, idx) => (
-                <div key={idx} className="p-4 bg-gray-50 dark:bg-[#0A0A0A] rounded-xl border border-gray-200 dark:border-[#333333]">
+                <button
+                  key={idx}
+                  onClick={() => haptics.light()}
+                  className="w-full text-left p-4 bg-gray-50 dark:bg-[#0A0A0A] rounded-xl border border-gray-200 dark:border-[#333333] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all cursor-pointer"
+                >
                   <div className="flex items-start justify-between mb-2">
-                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF] italic flex-1">"{item.comment}"</p>
+                    <p className="text-sm text-gray-600 dark:text-[#9CA3AF] italic flex-1">\"{item.comment}\"</p>
                     <span className="text-xs text-gray-500 dark:text-[#6B7280] ml-2">{item.time}</span>
                   </div>
                   <p className="text-sm text-gray-900 dark:text-white">↳ {item.reply}</p>
-                </div>
+                </button>
               ))}
             </div>
           </div>

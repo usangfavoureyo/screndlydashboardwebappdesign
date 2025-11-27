@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Clapperboard, Calendar, Send, Trash2, MoreVertical } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Clapperboard, Calendar, Send, Trash2, MoreVertical, Edit3, Image as ImageIcon } from 'lucide-react';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
 import { DatePicker } from './ui/date-picker';
 import { TimePicker } from './ui/time-picker';
 import { haptics } from '../utils/haptics';
@@ -34,6 +35,11 @@ interface TMDbActivityItem {
   imageUrl?: string;
   scheduledDate?: string;
   scheduledTime?: string;
+  caption?: string;
+  imageType?: 'poster' | 'backdrop';
+  year?: number;
+  releaseDate?: string;
+  cast?: string[];
 }
 
 interface TMDbActivityPageProps {
@@ -42,14 +48,19 @@ interface TMDbActivityPageProps {
 }
 
 export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageProps) {
-  const { posts, reschedulePost, updatePostStatus, deletePost } = useTMDbPosts();
+  const { posts, reschedulePost, updatePostStatus, deletePost, updatePost } = useTMDbPosts();
   const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending' | 'scheduled'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isChangeDateOpen, setIsChangeDateOpen] = useState(false);
   const [isChangeTimeOpen, setIsChangeTimeOpen] = useState(false);
+  const [isEditCaptionOpen, setIsEditCaptionOpen] = useState(false);
+  const [isChangeImageOpen, setIsChangeImageOpen] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState('');
+  const [editedCaption, setEditedCaption] = useState('');
+  const [selectedImageType, setSelectedImageType] = useState<'poster' | 'backdrop'>('poster');
 
   const filteredItems = posts.filter((item) => {
     if (filter === 'failures') return item.status === 'failed';
@@ -96,10 +107,13 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
 
   const handlePostImmediately = (id: string, title: string) => {
     haptics.medium();
-    toast.success('Posting Immediately', {
-      description: `\"${title}\" will be posted now`,
+    
+    // Update post status to published
+    updatePostStatus(id, 'published');
+    
+    toast.success('Posted Successfully', {
+      description: `"${title}" has been published`,
     });
-    // Add logic to post immediately
   };
 
   const handleDelete = (id: string, title: string) => {
@@ -113,12 +127,29 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
   const handleChangeScheduleDate = (id: string, title: string) => {
     haptics.light();
     setSelectedItemId(id);
+    
+    // Initialize with current scheduled date
+    const selectedPost = posts.find(p => p.id === id);
+    if (selectedPost && selectedPost.scheduledTime) {
+      setSelectedDate(new Date(selectedPost.scheduledTime));
+    }
+    
     setIsChangeDateOpen(true);
   };
 
   const handleChangeScheduleTime = (id: string, title: string) => {
     haptics.light();
     setSelectedItemId(id);
+    
+    // Initialize with current scheduled time
+    const selectedPost = posts.find(p => p.id === id);
+    if (selectedPost && selectedPost.scheduledTime) {
+      const currentTime = new Date(selectedPost.scheduledTime);
+      const hours = currentTime.getHours().toString().padStart(2, '0');
+      const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+      setSelectedTime(`${hours}:${minutes}`);
+    }
+    
     setIsChangeTimeOpen(true);
   };
 
@@ -145,10 +176,16 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
     if (!selectedItemId) return;
 
     if (selectedDate && !selectedTime) {
-      // Only date changed
-      const newScheduledTime = new Date(`${selectedDate.toISOString().split('T')[0]}T12:00:00`).toISOString();
-      reschedulePost(selectedItemId, newScheduledTime);
-      toast.success('Schedule Updated');
+      // Only date changed - preserve the existing time
+      const selectedPost = posts.find(p => p.id === selectedItemId);
+      if (selectedPost) {
+        const existingDate = new Date(selectedPost.scheduledTime);
+        const hours = existingDate.getHours().toString().padStart(2, '0');
+        const minutes = existingDate.getMinutes().toString().padStart(2, '0');
+        const newScheduledTime = new Date(`${selectedDate.toISOString().split('T')[0]}T${hours}:${minutes}:00`).toISOString();
+        reschedulePost(selectedItemId, newScheduledTime);
+        toast.success('Schedule Updated');
+      }
     } else if (selectedTime && selectedDate) {
       // Both date and time changed
       const newScheduledTime = new Date(`${selectedDate.toISOString().split('T')[0]}T${selectedTime}:00`).toISOString();
@@ -164,11 +201,78 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
         toast.success('Schedule Updated');
       }
     }
-    
+
     setIsChangeDateOpen(false);
     setIsChangeTimeOpen(false);
-    setSelectedDate(undefined);
-    setSelectedTime('');
+    haptics.success();
+  };
+
+  const handleEditCaption = (id: string, title: string) => {
+    haptics.light();
+    setSelectedItemId(id);
+    const selectedPost = posts.find(p => p.id === id);
+    if (selectedPost) {
+      setEditedCaption(selectedPost.caption);
+    }
+    setIsEditCaptionOpen(true);
+  };
+
+  const handleSaveCaption = () => {
+    if (!selectedItemId) return;
+    if (editedCaption.trim().length === 0) {
+      toast.error('Caption cannot be empty');
+      return;
+    }
+    if (editedCaption.length > 200) {
+      toast.error('Caption too long (max 200 characters)');
+      return;
+    }
+    updatePost(selectedItemId, { caption: editedCaption });
+    haptics.success();
+    toast.success('Caption Updated');
+    setIsEditCaptionOpen(false);
+  };
+
+  const handleChangeImage = (id: string, title: string) => {
+    haptics.light();
+    setSelectedItemId(id);
+    const selectedPost = posts.find(p => p.id === id);
+    if (selectedPost) {
+      setSelectedImageType(selectedPost.imageType);
+    }
+    setIsChangeImageOpen(true);
+  };
+
+  const handleSaveImage = () => {
+    if (!selectedItemId) return;
+    updatePost(selectedItemId, { imageType: selectedImageType });
+    haptics.success();
+    toast.success(`Image changed to ${selectedImageType}`);
+    setIsChangeImageOpen(false);
+  };
+
+  const handleRegenerateCaption = async (id: string, title: string) => {
+    haptics.light();
+    setIsRegenerating(true);
+    
+    // Simulate AI caption generation
+    setTimeout(() => {
+      const selectedPost = posts.find(p => p.id === id);
+      if (selectedPost) {
+        const regeneratedCaptions = [
+          `🎬 ${selectedPost.title} (${selectedPost.year}) - An unforgettable cinematic experience! #NowWatching`,
+          `✨ Don't miss ${selectedPost.title}! Coming to theaters ${new Date(selectedPost.releaseDate).toLocaleDateString()}`,
+          `🍿 ${selectedPost.title} is here! Featuring ${selectedPost.cast[0]} and more incredible talent.`,
+          `🎥 Experience ${selectedPost.title} like never before. ${selectedPost.mediaType === 'movie' ? 'In theaters now!' : 'Streaming now!'}`,
+        ];
+        
+        const newCaption = regeneratedCaptions[Math.floor(Math.random() * regeneratedCaptions.length)];
+        updatePost(id, { caption: newCaption });
+        setIsRegenerating(false);
+        haptics.success();
+        toast.success('Caption regenerated with AI');
+      }
+    }, 1500);
   };
 
   return (
@@ -417,12 +521,42 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                       <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
                         <DropdownMenuItem
                           onClick={() => {
+                            haptics.medium();
+                            handlePostImmediately(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                        >
+                          <Send className="w-4 h-4 mr-2 text-[#ec1e24]" />
+                          Post Now
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            haptics.light();
+                            handleEditCaption(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                        >
+                          <Edit3 className="w-4 h-4 mr-2 text-[#ec1e24]" />
+                          Edit Caption
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            haptics.light();
+                            handleChangeImage(item.id, item.title);
+                          }}
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                        >
+                          <ImageIcon className="w-4 h-4 mr-2 text-[#ec1e24]" />
+                          Change Image
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
                             haptics.light();
                             handleChangeScheduleDate(item.id, item.title);
                           }}
                           className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
                         >
-                          <Calendar className="w-4 h-4 mr-2" />
+                          <Calendar className="w-4 h-4 mr-2 text-[#ec1e24]" />
                           Change Date
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -432,27 +566,17 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                           }}
                           className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
                         >
-                          <Clock className="w-4 h-4 mr-2" />
+                          <Clock className="w-4 h-4 mr-2 text-[#ec1e24]" />
                           Change Time
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            haptics.medium();
-                            handlePostImmediately(item.id, item.title);
-                          }}
-                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
-                        >
-                          <Send className="w-4 h-4 mr-2" />
-                          Post Now
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
                             haptics.medium();
                             handleDelete(item.id, item.title);
                           }}
-                          className="cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20"
+                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
+                          <Trash2 className="w-4 h-4 mr-2 text-[#ec1e24]" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -552,6 +676,139 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             </Button>
             <Button onClick={handleSaveSchedule}>
               Save Time
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Caption Dialog */}
+      <Dialog open={isEditCaptionOpen} onOpenChange={setIsEditCaptionOpen} modal={false}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Edit Caption</DialogTitle>
+            <DialogDescription>
+              Update the caption for the post
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="caption">Caption</Label>
+              <div className="mt-2">
+                <Textarea
+                  id="caption"
+                  value={editedCaption}
+                  onChange={(e) => setEditedCaption(e.target.value)}
+                  placeholder="Enter a new caption"
+                  className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
+                  disabled={isRegenerating}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                if (selectedItemId) {
+                  haptics.light();
+                  setIsRegenerating(true);
+                  
+                  // Simulate AI caption generation
+                  setTimeout(() => {
+                    const selectedPost = posts.find(p => p.id === selectedItemId);
+                    if (selectedPost) {
+                      const regeneratedCaptions = [
+                        `🎬 ${selectedPost.title} (${selectedPost.year}) - An unforgettable cinematic experience! #NowWatching`,
+                        `✨ Don't miss ${selectedPost.title}! Coming to theaters ${new Date(selectedPost.releaseDate).toLocaleDateString()}`,
+                        `🍿 ${selectedPost.title} is here! Featuring ${selectedPost.cast[0]} and more incredible talent.`,
+                        `🎥 Experience ${selectedPost.title} like never before. ${selectedPost.mediaType === 'movie' ? 'In theaters now!' : 'Streaming now!'}`,
+                      ];
+                      
+                      const newCaption = regeneratedCaptions[Math.floor(Math.random() * regeneratedCaptions.length)];
+                      setEditedCaption(newCaption);
+                      setIsRegenerating(false);
+                      haptics.success();
+                      toast.success('Caption regenerated with AI');
+                    }
+                  }, 1500);
+                }
+              }}
+              disabled={isRegenerating}
+              className="bg-white dark:bg-black border-gray-200 dark:border-[#333333] sm:flex-1"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
+              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
+            </Button>
+            <div className="flex gap-2 sm:flex-1">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsEditCaptionOpen(false)} 
+                className="bg-white dark:bg-black border-gray-200 dark:border-[#333333] flex-1"
+                disabled={isRegenerating}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveCaption}
+                disabled={isRegenerating}
+                className="flex-1"
+              >
+                Save Caption
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Image Dialog */}
+      <Dialog open={isChangeImageOpen} onOpenChange={setIsChangeImageOpen} modal={false}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Change Image Type</DialogTitle>
+            <DialogDescription>
+              Choose between poster (vertical) or backdrop (horizontal) image
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedImageType('poster');
+                }}
+                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                  selectedImageType === 'poster'
+                    ? 'border-[#ec1e24] bg-white dark:bg-black'
+                    : 'border-gray-200 dark:border-[#333333]'
+                }`}
+              >
+                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
+                <p className="text-sm">Poster</p>
+                <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">Vertical</p>
+              </button>
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setSelectedImageType('backdrop');
+                }}
+                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                  selectedImageType === 'backdrop'
+                    ? 'border-[#ec1e24] bg-white dark:bg-black'
+                    : 'border-gray-200 dark:border-[#333333]'
+                }`}
+              >
+                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
+                <p className="text-sm">Backdrop</p>
+                <p className="text-xs text-gray-500 dark:text-[#9CA3AF]">Horizontal</p>
+              </button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsChangeImageOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveImage}>
+              Change Image
             </Button>
           </DialogFooter>
         </DialogContent>

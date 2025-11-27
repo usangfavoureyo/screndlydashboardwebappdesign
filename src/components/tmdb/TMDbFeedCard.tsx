@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, Users, Star, Image as ImageIcon, Edit3, RefreshCw, Trash2, MoreVertical, Check, TrendingUp, X, Clock } from 'lucide-react';
+import { Calendar, Users, Star, Image as ImageIcon, Edit3, RefreshCw, Trash2, MoreVertical, Check, TrendingUp, X, Clock, Send } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
@@ -10,6 +10,9 @@ import { haptics } from '../../utils/haptics';
 import { toast } from 'sonner@2.0.3';
 import { logFeedUpdate, logFeedDeletion } from '../../utils/tmdbLogger';
 import { useTMDbPosts } from '../../contexts/TMDbPostsContext';
+import { XIcon } from '../icons/XIcon';
+import { ThreadsIcon } from '../icons/ThreadsIcon';
+import { FacebookIcon } from '../icons/FacebookIcon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,7 +63,6 @@ interface TMDbFeedCardProps {
 
 export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
   const { schedulePost } = useTMDbPosts();
-  const [isApproved, setIsApproved] = useState(false);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const [isEditCaptionOpen, setIsEditCaptionOpen] = useState(false);
   const [isChangeImageOpen, setIsChangeImageOpen] = useState(false);
@@ -68,6 +70,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isPlatformSelectOpen, setIsPlatformSelectOpen] = useState(false);
+  const [isPostNowMode, setIsPostNowMode] = useState(false);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
 
   const [editedCaption, setEditedCaption] = useState(feed.caption);
@@ -122,6 +125,22 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
     setIsPlatformSelectOpen(true);
   };
 
+  const handlePostNow = () => {
+    haptics.light();
+    setIsPlatformSelectOpen(true);
+    setIsPostNowMode(true);
+  };
+
+  const handleSchedule = () => {
+    haptics.light();
+    // Open schedule dialog
+    const date = new Date(feed.scheduledTime);
+    setScheduledDate(date);
+    const timeStr = date.toTimeString().slice(0, 5);
+    setScheduledTime(timeStr);
+    setIsRescheduleOpen(true);
+  };
+
   const handleSchedulePost = () => {
     if (selectedPlatforms.length === 0) {
       toast.error('Please select at least one platform');
@@ -136,8 +155,6 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
     });
 
     haptics.success();
-    setIsApproved(true);
-    setIsPlatformSelectOpen(false);
     toast.success('Post scheduled successfully');
 
     // Log the scheduling
@@ -153,6 +170,11 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
         platforms: selectedPlatforms,
       }
     );
+
+    // Remove from TMDb Feeds page
+    setTimeout(() => {
+      onDelete?.(feed.id);
+    }, 300);
   };
 
   const togglePlatform = (platform: string) => {
@@ -271,6 +293,10 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
   };
 
   const handleSaveSchedule = () => {
+    if (selectedPlatforms.length === 0) {
+      toast.error('Please select at least one platform');
+      return;
+    }
     if (!scheduledDate || !scheduledTime) {
       toast.error('Please select both date and time');
       return;
@@ -278,31 +304,37 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
     const newScheduledTime = new Date(`${scheduledDate.toISOString().split('T')[0]}T${scheduledTime}`).toISOString();
     haptics.success();
-    onUpdate?.(feed.id, { scheduledTime: newScheduledTime });
     
     // Schedule the post in the context
     schedulePost({
       ...feed,
       scheduledTime: newScheduledTime,
       status: 'scheduled',
+      platforms: selectedPlatforms,
     });
     
     setIsRescheduleOpen(false);
-    toast.success('Post rescheduled successfully');
+    toast.success('Post scheduled successfully');
     
     // Log the update
     logFeedUpdate(
       feed.id,
       feed.title,
-      'rescheduled',
+      'scheduled',
       'System',
       {
         tmdbId: feed.tmdbId,
         mediaType: feed.mediaType,
         year: feed.year,
         scheduledTime: newScheduledTime,
+        platforms: selectedPlatforms,
       }
     );
+
+    // Remove from TMDb Feeds page
+    setTimeout(() => {
+      onDelete?.(feed.id);
+    }, 300);
   };
 
   const handleDelete = () => {
@@ -336,11 +368,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
   return (
     <>
-      <div className={`bg-white dark:bg-black rounded-2xl border ${ 
-        isApproved
-          ? 'border-green-500 dark:border-green-500'
-          : 'border-gray-200 dark:border-[#333333]'
-      } overflow-hidden transition-all`}>
+      <div className="bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-[#333333] overflow-hidden transition-all">
         <div className="flex flex-col sm:flex-row">
           {/* Image Section */}
           <Dialog open={isImageExpanded} onOpenChange={setIsImageExpanded}>
@@ -398,12 +426,6 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
                   <span className={`px-3 py-1 rounded-lg text-xs ${getSourceColor(feed.source)}`}>
                     {getSourceLabel(feed.source)}
                   </span>
-                  {isApproved && (
-                    <span className="px-3 py-1 rounded-lg text-xs bg-green-500/10 text-green-500 flex items-center gap-1">
-                      <Check className="w-3 h-3" />
-                      Approved
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -425,10 +447,6 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
                   <DropdownMenuItem onClick={handleChangeImage}>
                     <ImageIcon className="w-4 h-4 mr-2 text-[#ec1e24]" />
                     Change Image
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleReschedule}>
-                    <Calendar className="w-4 h-4 mr-2 text-[#ec1e24]" />
-                    Reschedule
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDelete} className="text-red-500">
                     <Trash2 className="w-4 h-4 mr-2 text-[#ec1e24]" />
@@ -476,17 +494,19 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             {/* Actions */}
             <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-[#333333]">
               <Button
-                onClick={handleApprove}
-                className={isApproved ? 'bg-green-500 hover:bg-green-600' : ''}
+                onClick={handlePostNow}
+                variant="outline"
+                className="flex-1 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
               >
-                {isApproved ? (
-                  <>
-                    <Check className="w-4 h-4 mr-2" />
-                    Approved
-                  </>
-                ) : (
-                  'Approve for Posting'
-                )}
+                <Send className="w-4 h-4 mr-2" />
+                Post Now
+              </Button>
+              <Button
+                onClick={handleSchedule}
+                className="flex-1"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Schedule
               </Button>
             </div>
           </div>
@@ -587,12 +607,56 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
       <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen} modal={false}>
         <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle>Reschedule Post</DialogTitle>
+            <DialogTitle>Schedule Post</DialogTitle>
             <DialogDescription>
-              Change the scheduled time for this post
+              Set the scheduled time and select platforms for this post
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Platform Selection */}
+            <div>
+              <Label>Platforms</Label>
+              <div className="mt-2 flex justify-center">
+                <div className="grid grid-cols-3 gap-3 max-w-fit">
+                  <button
+                    onClick={() => togglePlatform('x')}
+                    className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                      selectedPlatforms.includes('x') 
+                        ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                        : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                    }`}
+                    title="X"
+                  >
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                  
+                  <button
+                    onClick={() => togglePlatform('threads')}
+                    className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                      selectedPlatforms.includes('threads') 
+                        ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                        : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                    }`}
+                    title="Threads"
+                  >
+                    <ThreadsIcon className="w-5 h-5" />
+                  </button>
+                  
+                  <button
+                    onClick={() => togglePlatform('facebook')}
+                    className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                      selectedPlatforms.includes('facebook') 
+                        ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                        : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                    }`}
+                    title="Facebook"
+                  >
+                    <FacebookIcon className="w-5.5 h-5.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="scheduled-date">Date</Label>
               <div className="mt-2">
@@ -628,7 +692,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
               Cancel
             </Button>
             <Button onClick={handleSaveSchedule}>
-              Reschedule
+              Schedule Post
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -662,58 +726,70 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
       {/* Platform Selection Dialog */}
       <Dialog open={isPlatformSelectOpen} onOpenChange={setIsPlatformSelectOpen}>
-        <DialogContent className="bg-white dark:bg-black">
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
           <DialogHeader>
-            <DialogTitle>Select Platforms</DialogTitle>
-            <DialogDescription>
-              Choose the platforms to schedule this post on
+            <DialogTitle className="text-gray-900 dark:text-white">Select Platforms</DialogTitle>
+            <DialogDescription className="text-[#6B7280] dark:text-[#9CA3AF]">
+              Choose the platforms to {isPostNowMode ? 'post on' : 'schedule this post on'}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex gap-4">
+          <div className="py-4 flex justify-center">
+            <div className="grid grid-cols-3 gap-3 max-w-fit">
+              <button
+                onClick={() => togglePlatform('x')}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.includes('x') 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="X"
+              >
+                <XIcon className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => togglePlatform('threads')}
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.includes('threads') 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
+                }`}
+                title="Threads"
+              >
+                <ThreadsIcon className="w-5 h-5" />
+              </button>
+              
               <button
                 onClick={() => togglePlatform('facebook')}
-                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                  selectedPlatforms.includes('facebook')
-                    ? 'border-[#ec1e24] bg-white dark:bg-black'
-                    : 'border-gray-200 dark:border-[#333333]'
+                className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
+                  selectedPlatforms.includes('facebook') 
+                    ? 'bg-[#ec1e24]/10 border-2 border-[#ec1e24]' 
+                    : 'bg-gray-100 dark:bg-[#111111] border-2 border-transparent opacity-40'
                 }`}
+                title="Facebook"
               >
-                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
-                <p className="text-sm">Facebook</p>
-              </button>
-              <button
-                onClick={() => togglePlatform('twitter')}
-                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                  selectedPlatforms.includes('twitter')
-                    ? 'border-[#ec1e24] bg-white dark:bg-black'
-                    : 'border-gray-200 dark:border-[#333333]'
-                }`}
-              >
-                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
-                <p className="text-sm">Twitter</p>
-              </button>
-              <button
-                onClick={() => togglePlatform('instagram')}
-                className={`flex-1 p-4 rounded-lg border-2 transition-all ${
-                  selectedPlatforms.includes('instagram')
-                    ? 'border-[#ec1e24] bg-white dark:bg-black'
-                    : 'border-gray-200 dark:border-[#333333]'
-                }`}
-              >
-                <ImageIcon className="w-6 h-6 mx-auto mb-2" />
-                <p className="text-sm">Instagram</p>
+                <FacebookIcon className="w-5.5 h-5.5" />
               </button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPlatformSelectOpen(false)} className="bg-white dark:bg-black">
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsPlatformSelectOpen(false);
+                setIsPostNowMode(false);
+              }} 
+              className="flex-1 border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSchedulePost}>
-              Schedule Post
+            <Button 
+              onClick={handleSchedulePost}
+              className="flex-1 bg-[#ec1e24] hover:bg-[#d01a20] text-white shadow-none hover:shadow-none active:shadow-none focus:shadow-none hover:scale-100 active:scale-100"
+            >
+              {isPostNowMode ? 'Post Now' : 'Schedule Post'}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>

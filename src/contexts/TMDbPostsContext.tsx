@@ -26,6 +26,7 @@ interface TMDbPostsContextType {
   schedulePost: (post: TMDbPost) => void;
   reschedulePost: (postId: string, newScheduledTime: string) => void;
   updatePostStatus: (postId: string, status: TMDbPost['status'], publishedTime?: string, errorMessage?: string) => void;
+  updatePost: (postId: string, updates: Partial<TMDbPost>) => void;
   deletePost: (postId: string) => void;
   getPostsByStatus: (status: TMDbPost['status']) => TMDbPost[];
 }
@@ -120,6 +121,16 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updatePost = (postId: string, updates: Partial<TMDbPost>) => {
+    setPosts(prev => 
+      prev.map(post => 
+        post.id === postId 
+          ? { ...post, ...updates }
+          : post
+      )
+    );
+  };
+
   const deletePost = (postId: string) => {
     setPosts(prev => prev.filter(post => post.id !== postId));
   };
@@ -135,6 +146,7 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
         schedulePost,
         reschedulePost,
         updatePostStatus,
+        updatePost,
         deletePost,
         getPostsByStatus,
       }}

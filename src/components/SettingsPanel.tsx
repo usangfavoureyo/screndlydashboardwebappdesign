@@ -1,4 +1,4 @@
-import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell, Film, Search } from 'lucide-react';
+import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell, Film, Search, Download } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Input } from './ui/input';
@@ -21,6 +21,7 @@ import { CleanupSettings } from './settings/CleanupSettings';
 import { HapticSettings } from './settings/HapticSettings';
 import { AppearanceSettings } from './settings/AppearanceSettings';
 import { NotificationsSettings } from './settings/NotificationsSettings';
+import { PWASettings } from './settings/PWASettings';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -208,6 +209,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
     { id: 'haptic', label: 'Haptic Feedback', icon: Smartphone, keywords: ['haptic', 'vibration', 'feedback', 'mobile', 'touch'] },
     { id: 'appearance', label: 'Appearance', icon: Palette, keywords: ['appearance', 'theme', 'dark', 'light', 'mode', 'color'] },
     { id: 'notifications', label: 'Notifications', icon: Bell, keywords: ['notifications', 'email', 'push', 'alert', 'notify'] },
+    { id: 'pwa', label: 'Progressive Web App', icon: Download, keywords: ['pwa', 'progressive', 'web', 'app', 'install', 'offline', 'cache', 'service', 'worker'] },
   ];
 
   const legalItems = [
@@ -371,6 +373,18 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
           onClick={() => setActiveSettingsPage(null)}
         />
         <NotificationsSettings settings={settings} updateSetting={updateSetting} onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'pwa') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <PWASettings onBack={() => setActiveSettingsPage(null)} />
       </>
     );
   }

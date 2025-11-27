@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize } from 'lucide-react';
+import { toast } from 'sonner@2.0.3';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
 import { Button } from './ui/button';
@@ -15,6 +16,14 @@ import { YouTubeIcon } from './icons/YouTubeIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
 import ColorPickerPopup from './ColorPickerPopup';
 import { VisuallyHidden } from './ui/visually-hidden';
+import { AutoAssignTitlesDialog } from './AutoAssignTitlesDialog';
+import { TrailerHooksPreview } from './TrailerHooksPreview';
+import { TrailerScenesDialog } from './TrailerScenesDialog';
+import { VideoRenderStatus } from './VideoRenderStatus';
+import { LetterboxControl } from './LetterboxControl';
+import { analyzeTrailer, TrailerAnalysis, VideoMoment } from '../lib/api/googleVideoIntelligence';
+import { generateShotstackJSON, generateAudioChoreography, renderVideo } from '../lib/api/shotstack';
+import { analyzeMultipleTrailers, MonthlyTrailerAnalysis, generateMonthlyCompilationJSON, getCompilationStats } from '../lib/api/monthlyCompilation';
 
 interface VideoStudioPageProps {
   onNavigate: (page: string) => void;
@@ -24,6 +33,7 @@ interface VideoStudioPageProps {
 type AspectRatio = '16:9' | '9:16' | '1:1';
 type MusicGenre = 'Hip-Hop' | 'Trap' | 'Rap' | 'Pop' | 'Electronic' | 'R&B';
 type DuckingMode = 'Partial' | 'Full Mute' | 'Adaptive';
+type VideoFitMode = 'contain' | 'cover'; // 'contain' = show letterbox, 'cover' = fill/crop
 
 export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStudioPageProps) {
   const [activeModule, setActiveModule] = useState<'review' | 'monthly'>('review');
@@ -48,10 +58,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   // Review Module State
   const [reviewYoutubeUrls, setReviewYoutubeUrls] = useState<string[]>(['']);
   const [reviewVideoFiles, setReviewVideoFiles] = useState<File[]>([]);
+  const [reviewVideoTitles, setReviewVideoTitles] = useState<{ [key: number]: { title: string; tmdbId?: number; year?: string; type?: 'movie' | 'tv' } }>({});
   const [reviewVoiceover, setReviewVoiceover] = useState<File | null>(null);
   const [reviewMusic, setReviewMusic] = useState<File | null>(null);
   const [reviewMusicGenre, setReviewMusicGenre] = useState<MusicGenre>('Hip-Hop');
   const [reviewAspectRatio, setReviewAspectRatio] = useState<AspectRatio>('16:9');
+  const [reviewRemoveLetterbox, setReviewRemoveLetterbox] = useState(true); // Auto-fill for 9:16 and 1:1
+  const [reviewEnableAutoframing, setReviewEnableAutoframing] = useState(true); // AI-powered intelligent cropping
   const [reviewVideoLength, setReviewVideoLength] = useState('auto');
   const [reviewIsGenerating, setReviewIsGenerating] = useState(false);
   const [reviewProgress, setReviewProgress] = useState(0);
@@ -66,10 +79,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [monthlyFilter, setMonthlyFilter] = useState<'Movies' | 'TV Shows'>('Movies');
   const [monthlyYoutubeUrls, setMonthlyYoutubeUrls] = useState<string[]>(['']);
   const [monthlyVideoFiles, setMonthlyVideoFiles] = useState<File[]>([]);
+  const [monthlyVideoTitles, setMonthlyVideoTitles] = useState<{ [key: number]: { title: string; tmdbId?: number; year?: string; type?: 'movie' | 'tv' } }>({});
   const [monthlyVoiceover, setMonthlyVoiceover] = useState<File | null>(null);
   const [monthlyMusic, setMonthlyMusic] = useState<File | null>(null);
   const [monthlyMusicGenre, setMonthlyMusicGenre] = useState<MusicGenre>('Hip-Hop');
   const [monthlyAspectRatio, setMonthlyAspectRatio] = useState<AspectRatio>('16:9');
+  const [monthlyRemoveLetterbox, setMonthlyRemoveLetterbox] = useState(true); // Auto-fill for 9:16 and 1:1
+  const [monthlyEnableAutoframing, setMonthlyEnableAutoframing] = useState(true); // AI-powered intelligent cropping
   const [monthlyVideoLength, setMonthlyVideoLength] = useState('auto');
   const [monthlyIsGenerating, setMonthlyIsGenerating] = useState(false);
   const [monthlyProgress, setMonthlyProgress] = useState(0);
@@ -87,10 +103,55 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [attackMs, setAttackMs] = useState(50);
   const [releaseMs, setReleaseMs] = useState(200);
   
+  // Trailer Audio Hooks State
+  const [enableTrailerAudioHooks, setEnableTrailerAudioHooks] = useState(true);
+  const [hookPlacements, setHookPlacements] = useState<string[]>(['opening', 'mid-video', 'ending']);
+  const [hookDuration, setHookDuration] = useState(3);
+  const [trailerAudioVolume, setTrailerAudioVolume] = useState(100);
+  const [crossfadeDuration, setCrossfadeDuration] = useState(0.5);
+  const [audioVariety, setAudioVariety] = useState<'balanced' | 'heavy-voiceover' | 'heavy-trailer'>('balanced');
+  
+  // Trailer Analysis State (Google Video Intelligence)
+  const [reviewTrailerAnalysis, setReviewTrailerAnalysis] = useState<TrailerAnalysis | null>(null);
+  const [reviewIsAnalyzingTrailer, setReviewIsAnalyzingTrailer] = useState(false);
+  const [showTrailerScenesDialog, setShowTrailerScenesDialog] = useState(false);
+  const [monthlyTrailerAnalyses, setMonthlyTrailerAnalyses] = useState<MonthlyTrailerAnalysis[]>([]);
+  const [monthlyIsAnalyzingTrailer, setMonthlyIsAnalyzingTrailer] = useState(false);
+  
+  // Custom Hook Selection State
+  const [customOpeningHook, setCustomOpeningHook] = useState<VideoMoment | null>(null);
+  const [customMidVideoHook, setCustomMidVideoHook] = useState<VideoMoment | null>(null);
+  const [customEndingHook, setCustomEndingHook] = useState<VideoMoment | null>(null);
+  
+  // Video Rendering State (Shotstack)
+  const [reviewRenderId, setReviewRenderId] = useState<string | null>(null);
+  const [monthlyRenderId, setMonthlyRenderId] = useState<string | null>(null);
+  
   // LLM Prompt State
   const [promptStatus, setPromptStatus] = useState<'empty' | 'ready' | 'outdated' | 'warning'>('empty');
   const [jsonData, setJsonData] = useState<any>(null);
   const [naturalPrompt, setNaturalPrompt] = useState('');
+
+  // Voiceover Analysis State
+  const [reviewDetectedTitles, setReviewDetectedTitles] = useState<Array<{
+    title: string;
+    releaseDate?: string;
+    timestamp: string;
+    confidence: number;
+    context: string;
+  }>>([]);
+  const [reviewIsAnalyzing, setReviewIsAnalyzing] = useState(false);
+  const [reviewShowAutoAssign, setReviewShowAutoAssign] = useState(false);
+  
+  const [monthlyDetectedTitles, setMonthlyDetectedTitles] = useState<Array<{
+    title: string;
+    releaseDate?: string;
+    timestamp: string;
+    confidence: number;
+    context: string;
+  }>>([]);
+  const [monthlyIsAnalyzing, setMonthlyIsAnalyzing] = useState(false);
+  const [monthlyShowAutoAssign, setMonthlyShowAutoAssign] = useState(false);
 
   // Caption Template State
   const [captionTemplate, setCaptionTemplate] = useState('Netflix Style');
@@ -199,6 +260,125 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Mock voiceover analysis function (simulates AI/LLM extraction)
+  const analyzeVoiceoverForTitles = async (file: File): Promise<Array<{
+    title: string;
+    releaseDate?: string;
+    timestamp: string;
+    confidence: number;
+    context: string;
+  }>> => {
+    // In production, this would:
+    // 1. Convert audio to text using Whisper API
+    // 2. Send transcript to GPT-4 to extract movie titles
+    // 3. Return structured data with timestamps
+    
+    // For demo, we'll simulate realistic analysis based on file name patterns
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing
+    
+    // Mock response - in production this comes from OpenAI
+    const mockResults = [
+      {
+        title: "A Minecraft Movie",
+        releaseDate: "April 4th",
+        timestamp: "0:15",
+        confidence: 0.98,
+        context: "Jason Momoa and Jack Black lead a ragtag crew..."
+      },
+      {
+        title: "Freaky Tales",
+        releaseDate: "April 4th",
+        timestamp: "0:42",
+        confidence: 0.95,
+        context: "Pedro Pascal and Ben Mendelsohn star in four twisted stories..."
+      },
+      {
+        title: "Sinners",
+        releaseDate: "April 18th",
+        timestamp: "1:08",
+        confidence: 0.99,
+        context: "Michael B. Jordan and Ryan Coogler team up for a vampire thriller..."
+      },
+      {
+        title: "Death of a Unicorn",
+        releaseDate: "April 18th",
+        timestamp: "1:25",
+        confidence: 0.92,
+        context: "Paul Rudd and Jenna Ortega accidentally offing a mythical beast..."
+      }
+    ];
+    
+    return mockResults;
+  };
+
+  // Auto-assign detected titles to uploaded videos
+  const autoAssignTitles = (
+    detectedTitles: Array<{ title: string; releaseDate?: string; timestamp: string }>,
+    module: 'review' | 'monthly'
+  ) => {
+    const assignments: { [key: number]: { title: string; tmdbId?: number; year?: string; type?: 'movie' | 'tv'; autoDetected: boolean; voiceoverTimestamp?: string; releaseDate?: string } } = {};
+    
+    // Assign titles to videos in chronological order (by voiceover mention)
+    detectedTitles.forEach((titleData, index) => {
+      assignments[index] = {
+        title: titleData.title,
+        releaseDate: titleData.releaseDate,
+        voiceoverTimestamp: titleData.timestamp,
+        autoDetected: true,
+        type: 'movie' // Could be enhanced with TMDb lookup
+      };
+    });
+    
+    if (module === 'review') {
+      setReviewVideoTitles(assignments);
+      setReviewShowAutoAssign(false);
+    } else {
+      setMonthlyVideoTitles(assignments);
+      setMonthlyShowAutoAssign(false);
+    }
+    
+    haptics.success();
+  };
+
+  // Handle voiceover upload with analysis
+  const handleVoiceoverUpload = async (file: File, module: 'review' | 'monthly') => {
+    if (module === 'review') {
+      setReviewVoiceover(file);
+      setReviewIsAnalyzing(true);
+      
+      try {
+        const detectedTitles = await analyzeVoiceoverForTitles(file);
+        setReviewDetectedTitles(detectedTitles);
+        
+        // Show auto-assign dialog if we have videos uploaded
+        if (reviewVideoFiles.length > 0) {
+          setReviewShowAutoAssign(true);
+        }
+      } catch (error) {
+        console.error('Error analyzing voiceover:', error);
+      } finally {
+        setReviewIsAnalyzing(false);
+      }
+    } else {
+      setMonthlyVoiceover(file);
+      setMonthlyIsAnalyzing(true);
+      
+      try {
+        const detectedTitles = await analyzeVoiceoverForTitles(file);
+        setMonthlyDetectedTitles(detectedTitles);
+        
+        // Show auto-assign dialog if we have videos uploaded
+        if (monthlyVideoFiles.length > 0) {
+          setMonthlyShowAutoAssign(true);
+        }
+      } catch (error) {
+        console.error('Error analyzing voiceover:', error);
+      } finally {
+        setMonthlyIsAnalyzing(false);
+      }
+    }
   };
 
   // Handle video download
@@ -523,11 +703,104 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     setIsRenaming(false);
   };
 
-  const handleGenerateReviewVideo = () => {
+  // Analyze trailer with Google Video Intelligence
+  const handleAnalyzeTrailer = async (module: 'review' | 'monthly') => {
+    const videoFiles = module === 'review' ? reviewVideoFiles : monthlyVideoFiles;
+    
+    if (videoFiles.length === 0) {
+      console.warn('No trailer video to analyze');
+      return;
+    }
+    
+    try {
+      if (module === 'review') {
+        setReviewIsAnalyzingTrailer(true);
+        haptics.light();
+        
+        // Analyze single trailer for review module
+        const analysis = await analyzeTrailer(videoFiles[0]);
+        setReviewTrailerAnalysis(analysis);
+        
+        console.log('Review trailer analysis complete:', analysis);
+        haptics.success();
+      } else {
+        // Monthly module - analyze multiple trailers
+        setMonthlyIsAnalyzingTrailer(true);
+        haptics.light();
+        
+        const movieTitles = Object.values(monthlyVideoTitles).map(t => t.title);
+        const analyses = await analyzeMultipleTrailers(videoFiles, movieTitles);
+        setMonthlyTrailerAnalyses(analyses);
+        
+        const stats = getCompilationStats(analyses);
+        console.log('Monthly compilation analysis complete:', stats);
+        haptics.success();
+      }
+    } catch (error) {
+      console.error('Error analyzing trailer:', error);
+      haptics.error();
+    } finally {
+      if (module === 'review') {
+        setReviewIsAnalyzingTrailer(false);
+      } else {
+        setMonthlyIsAnalyzingTrailer(false);
+      }
+    }
+  };
+
+  const handleGenerateReviewVideo = async () => {
     haptics.medium();
     setReviewIsGenerating(true);
     setReviewProgress(0);
     
+    try {
+      // Generate Shotstack JSON configuration
+      const reviewData = {
+        movieTitle: reviewVideoTitles[0]?.title || 'Movie Review',
+        trailerVideoUrl: 'https://example.com/trailer.mp4', // In production, upload to CDN first
+        voiceoverUrl: 'https://example.com/voiceover.mp3',
+        voiceoverDuration: 60, // In production, get actual duration
+        voiceoverTranscript: 'Sample transcript...',
+        backgroundMusicUrl: 'https://example.com/music.mp3',
+        rating: '8',
+        commentKeyword: 'PLAYDIRTY',
+        aspectRatio: reviewAspectRatio,
+        removeLetterbox: reviewRemoveLetterbox,
+        enableAutoframing: reviewEnableAutoframing,
+        trailerAnalysis: reviewTrailerAnalysis
+      };
+      
+      const audioSettings = {
+        enableTrailerAudioHooks,
+        hookPlacements,
+        hookDuration,
+        trailerVolume: trailerAudioVolume,
+        crossfadeDuration,
+        audioVariety,
+        backgroundMusicVolume: 85
+      };
+      
+      if (reviewTrailerAnalysis) {
+        // Generate Shotstack configuration with AI-selected scenes
+        const shotstackConfig = generateShotstackJSON(
+          reviewData,
+          reviewTrailerAnalysis,
+          audioSettings
+        );
+        
+        console.log('Shotstack Config:', shotstackConfig);
+        
+        // Render video
+        const renderResult = await renderVideo(shotstackConfig);
+        setReviewRenderId(renderResult.id);
+        
+        console.log('Render started:', renderResult);
+      }
+    } catch (error) {
+      console.error('Error generating video:', error);
+    }
+    
+    // Simulate progress
     const interval = setInterval(() => {
       setReviewProgress(prev => {
         if (prev >= 100) {
@@ -540,11 +813,71 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     }, 500);
   };
 
-  const handleGenerateMonthlyVideo = () => {
+  const handleGenerateMonthlyVideo = async () => {
     haptics.medium();
     setMonthlyIsGenerating(true);
     setMonthlyProgress(0);
     
+    try {
+      // For monthly releases, we compile multiple trailers
+      const monthlyData = {
+        movieTitles: Object.values(monthlyVideoTitles).map(t => t.title),
+        trailerVideoUrls: monthlyVideoFiles.map((_, i) => `https://example.com/trailer${i}.mp4`),
+        voiceoverUrl: 'https://example.com/voiceover.mp3',
+        voiceoverDuration: 240, // ~4 minutes for monthly compilation
+        backgroundMusicUrl: 'https://example.com/music.mp3',
+      };
+      
+      const audioSettings = {
+        enableTrailerAudioHooks,
+        hookPlacements,
+        hookDuration,
+        trailerVolume: trailerAudioVolume,
+        crossfadeDuration,
+        audioVariety,
+        backgroundMusicVolume: 85
+      };
+      
+      // For monthly, we'll create a compilation using clips from all trailers
+      // Each trailer gets a segment in the final video
+      if (monthlyTrailerAnalyses.length > 0) {
+        const compilationConfig = {
+          trailers: monthlyVideoFiles.map((file, i) => ({
+            title: monthlyVideoTitles[i]?.title || `Movie ${i + 1}`,
+            videoUrl: `https://example.com/trailer${i}.mp4`,
+            file
+          })),
+          voiceoverUrl: 'https://example.com/voiceover.mp3',
+          voiceoverDuration: 240,
+          backgroundMusicUrl: 'https://example.com/music.mp3',
+          aspectRatio: monthlyAspectRatio,
+          removeLetterbox: monthlyRemoveLetterbox,
+          enableAutoframing: monthlyEnableAutoframing
+        };
+        
+        const shotstackConfig = generateMonthlyCompilationJSON(
+          compilationConfig,
+          monthlyTrailerAnalyses,
+          {
+            backgroundMusicVolume: 85,
+            trailerVolume: trailerAudioVolume,
+            crossfadeDuration
+          }
+        );
+        
+        console.log('Monthly Shotstack Config:', shotstackConfig);
+        
+        const renderResult = await renderVideo(shotstackConfig);
+        setMonthlyRenderId(renderResult.id);
+        console.log('Monthly render started:', renderResult);
+      } else {
+        console.warn('No trailer analyses available. Please analyze trailers first.');
+      }
+    } catch (error) {
+      console.error('Error generating monthly video:', error);
+    }
+    
+    // Simulate progress
     const interval = setInterval(() => {
       setMonthlyProgress(prev => {
         if (prev >= 100) {
@@ -580,6 +913,87 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       animation: captionAnimation,
       words_per_line: captionWordsPerLine
     };
+
+    // Build audio choreography segments (with AI-selected scenes if available)
+    const analysis = activeModule === 'review' 
+      ? reviewTrailerAnalysis 
+      : (monthlyTrailerAnalyses.length > 0 ? monthlyTrailerAnalyses[0].analysis : null);
+    const audioSegments = [];
+    
+    if (enableTrailerAudioHooks) {
+      if (hookPlacements.includes('opening')) {
+        const openingScene = analysis?.suggestedHooks.opening;
+        audioSegments.push({
+          type: 'trailer_audio',
+          placement: 'opening',
+          startTime: 0,
+          duration: hookDuration,
+          scene: openingScene?.type || 'opening_action_hook',
+          sceneTimestamp: openingScene?.startTime,
+          sceneLabels: openingScene?.labels,
+          fadeOut: crossfadeDuration,
+          volume: trailerAudioVolume,
+          description: openingScene?.reason || 'Opening hook with trailer original audio (dialogue/voice)'
+        });
+        audioSegments.push({
+          type: 'voiceover_with_music',
+          startTime: hookDuration,
+          duration: 12,
+          fadeIn: crossfadeDuration,
+          description: 'Main voiceover section with background music'
+        });
+      }
+      
+      if (hookPlacements.includes('mid-video')) {
+        const midStart = hookDuration + 12;
+        const midScene = analysis?.suggestedHooks.midVideo;
+        audioSegments.push({
+          type: 'trailer_audio',
+          placement: 'mid-video',
+          startTime: midStart,
+          duration: hookDuration,
+          scene: midScene?.type || 'dramatic_moment',
+          sceneTimestamp: midScene?.startTime,
+          sceneLabels: midScene?.labels,
+          fadeOut: crossfadeDuration,
+          volume: trailerAudioVolume,
+          description: midScene?.reason || 'Mid-video hook before rating reveal'
+        });
+        audioSegments.push({
+          type: 'voiceover_with_music',
+          startTime: midStart + hookDuration,
+          duration: 8,
+          fadeIn: crossfadeDuration,
+          includeRating: true,
+          description: 'Voiceover continues with rating number'
+        });
+      }
+      
+      if (hookPlacements.includes('ending')) {
+        const endStart = hookDuration + 12 + hookDuration + 8;
+        const endingScene = analysis?.suggestedHooks.ending;
+        audioSegments.push({
+          type: 'trailer_audio',
+          placement: 'ending',
+          startTime: endStart,
+          duration: hookDuration,
+          scene: endingScene?.type || 'closing_scene',
+          sceneTimestamp: endingScene?.startTime,
+          sceneLabels: endingScene?.labels,
+          fadeOut: 0.3,
+          volume: trailerAudioVolume,
+          description: endingScene?.reason || 'Ending hook to close the video'
+        });
+      }
+    } else {
+      // Standard voiceover with music throughout
+      audioSegments.push({
+        type: 'voiceover_with_music',
+        startTime: 0,
+        duration: 30,
+        description: 'Continuous voiceover with background music'
+      });
+    }
     
     setJsonData({
       voice_over_segments: [
@@ -589,6 +1003,36 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       trailer_dialog_segments: [
         { start: 4.0, end: 7.8, text: "Character dialogue detected" }
       ],
+      audio_choreography: {
+        enabled: enableTrailerAudioHooks,
+        variety: audioVariety,
+        hook_placements: hookPlacements,
+        segments: audioSegments,
+        trailer_audio_volume: trailerAudioVolume,
+        crossfade_duration: crossfadeDuration,
+        hook_duration: hookDuration,
+        ai_analysis: analysis ? {
+          total_scenes_detected: analysis.moments.length,
+          total_duration: analysis.totalDuration,
+          selected_hooks: {
+            opening: {
+              timestamp: analysis.suggestedHooks.opening.startTime,
+              type: analysis.suggestedHooks.opening.type,
+              labels: analysis.suggestedHooks.opening.labels
+            },
+            midVideo: {
+              timestamp: analysis.suggestedHooks.midVideo.startTime,
+              type: analysis.suggestedHooks.midVideo.type,
+              labels: analysis.suggestedHooks.midVideo.labels
+            },
+            ending: {
+              timestamp: analysis.suggestedHooks.ending.startTime,
+              type: analysis.suggestedHooks.ending.type,
+              labels: analysis.suggestedHooks.ending.labels
+            }
+          }
+        } : null
+      },
       audio_dynamics: {
         auto_ducking: enableAutoDucking,
         mode: duckingMode,
@@ -602,7 +1046,22 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       video_length: activeModule === 'review' ? reviewVideoLength : monthlyVideoLength
     });
     
-    setNaturalPrompt(`Create a cinematic ${activeModule === 'review' ? reviewAspectRatio : monthlyAspectRatio} video compilation with dynamic audio mixing. Apply ${duckingMode.toLowerCase()} ducking at ${duckLevel}dB when voiceover is active. Use ${captionTemplate} caption style with ${captionFontFamily} font (${captionFontSize}px, ${captionFontWeight}) positioned at ${captionPosition} with ${captionAnimation} animation. Music genre: ${activeModule === 'review' ? reviewMusicGenre : monthlyMusicGenre}. Total duration: ${activeModule === 'review' ? reviewVideoLength : monthlyVideoLength}.`);
+    let trailerHooksText = '';
+    if (enableTrailerAudioHooks) {
+      if (analysis) {
+        // With AI analysis - use custom hooks if available
+        const opening = customOpeningHook || analysis.suggestedHooks.opening;
+        const mid = customMidVideoHook || analysis.suggestedHooks.midVideo;
+        const ending = customEndingHook || analysis.suggestedHooks.ending;
+        const customNote = (customOpeningHook || customMidVideoHook || customEndingHook) ? ' (custom selected)' : '';
+        trailerHooksText = ` Include AI-selected trailer audio hooks${customNote} at: ${hookPlacements.join(', ')}. Opening hook (${opening.startTime.toFixed(1)}s): ${opening.reason}. Mid-video hook (${mid.startTime.toFixed(1)}s): ${mid.reason}. Ending hook (${ending.startTime.toFixed(1)}s): ${ending.reason}. Each hook lasts ${hookDuration}s with ${crossfadeDuration}s crossfade. Variety style: ${audioVariety}.`;
+      } else {
+        // Without AI analysis
+        trailerHooksText = ` Include trailer audio hooks (original dialogue/voice) at: ${hookPlacements.join(', ')}. Each hook lasts ${hookDuration}s with ${crossfadeDuration}s crossfade. Variety style: ${audioVariety}.`;
+      }
+    }
+    
+    setNaturalPrompt(`Create a cinematic ${activeModule === 'review' ? reviewAspectRatio : monthlyAspectRatio} video compilation with dynamic audio mixing.${trailerHooksText} Apply ${duckingMode.toLowerCase()} ducking at ${duckLevel}dB when voiceover is active. Use ${captionTemplate} caption style with ${captionFontFamily} font (${captionFontSize}px, ${captionFontWeight}) positioned at ${captionPosition} with ${captionAnimation} animation. Music genre: ${activeModule === 'review' ? reviewMusicGenre : monthlyMusicGenre}. Total duration: ${activeModule === 'review' ? reviewVideoLength : monthlyVideoLength}.`);
   };
 
   const copyPromptToClipboard = () => {
@@ -769,6 +1228,31 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               )}
             </div>
 
+            {/* Auto-Assign Dialog */}
+            {reviewShowAutoAssign && reviewDetectedTitles.length > 0 && (
+              <AutoAssignTitlesDialog
+                detectedTitles={reviewDetectedTitles}
+                videoCount={reviewVideoFiles.length}
+                onAutoAssign={() => autoAssignTitles(reviewDetectedTitles, 'review')}
+                onDismiss={() => setReviewShowAutoAssign(false)}
+              />
+            )}
+
+            {/* Info Banner */}
+            {reviewVideoFiles.length > 0 && !reviewShowAutoAssign && (
+              <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
+                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-blue-900 dark:text-blue-300 mb-1">
+                    <strong>Important:</strong> Add a title for each video
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-400">
+                    This helps the AI identify which scenes belong to which movie/show. For example, if you upload 5 trailers, label each one (e.g., "Gladiator II", "Wicked", "Red One") so the AI can correctly extract and organize scenes for the final video.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* File Uploaders */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -781,29 +1265,67 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 
                 {/* Uploaded Videos List */}
                 {reviewVideoFiles.length > 0 && (
-                  <div className="mb-3 space-y-2">
+                  <div className="mb-3 space-y-3">
                     {reviewVideoFiles.map((file, index) => (
                       <div 
                         key={index}
-                        className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl"
+                        className="px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl space-y-2"
                       >
-                        <Film className="w-4 h-4 text-[#ec1e24] flex-shrink-0" />
-                        <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
-                          {file.name}
-                        </span>
-                        <span className="text-xs text-gray-500 dark:text-[#6B7280] flex-shrink-0">
-                          {(file.size / 1024 / 1024).toFixed(1)} MB
-                        </span>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            haptics.light();
-                            setReviewVideoFiles(reviewVideoFiles.filter((_, i) => i !== index));
-                          }}
-                          className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-[#111111] rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-900 transition-all duration-200"
-                        >
-                          <X className="w-4 h-4 text-gray-500 dark:text-[#6B7280] hover:text-red-600 dark:hover:text-red-400" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <Film className="w-4 h-4 text-[#ec1e24] flex-shrink-0" />
+                          <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
+                            {file.name}
+                          </span>
+                          <span className="text-xs text-gray-500 dark:text-[#6B7280] flex-shrink-0">
+                            {(file.size / 1024 / 1024).toFixed(1)} MB
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              haptics.light();
+                              setReviewVideoFiles(reviewVideoFiles.filter((_, i) => i !== index));
+                              // Also remove the title mapping
+                              const newTitles = { ...reviewVideoTitles };
+                              delete newTitles[index];
+                              setReviewVideoTitles(newTitles);
+                            }}
+                            className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-[#111111] rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-900 transition-all duration-200"
+                          >
+                            <X className="w-4 h-4 text-gray-500 dark:text-[#6B7280] hover:text-red-600 dark:hover:text-red-400" />
+                          </button>
+                        </div>
+                        {/* Movie Title Input */}
+                        <div className="pl-7">
+                          <input
+                            type="text"
+                            placeholder="Enter movie/show title (e.g., Gladiator II)"
+                            value={reviewVideoTitles[index]?.title || ''}
+                            onChange={(e) => {
+                              setReviewVideoTitles({
+                                ...reviewVideoTitles,
+                                [index]: { 
+                                  ...reviewVideoTitles[index],
+                                  title: e.target.value 
+                                }
+                              });
+                            }}
+                            className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:border-[#ec1e24]"
+                          />
+                          {reviewVideoTitles[index]?.title && (
+                            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+                              {(reviewVideoTitles[index] as any).autoDetected ? (
+                                <>
+                                  ✓ <span className="text-purple-600 dark:text-purple-400">Auto-detected:</span> {reviewVideoTitles[index].title}
+                                  {(reviewVideoTitles[index] as any).voiceoverTimestamp && (
+                                    <span className="text-gray-400 dark:text-[#6B7280]"> @ {(reviewVideoTitles[index] as any).voiceoverTimestamp}</span>
+                                  )}
+                                </>
+                              ) : (
+                                <>✓ Title set: {reviewVideoTitles[index].title}</>
+                              )}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -826,8 +1348,14 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         const remainingSlots = 10 - reviewVideoFiles.length;
                         const filesToAdd = files.slice(0, remainingSlots);
                         if (filesToAdd.length > 0) {
-                          setReviewVideoFiles([...reviewVideoFiles, ...filesToAdd]);
+                          const newFiles = [...reviewVideoFiles, ...filesToAdd];
+                          setReviewVideoFiles(newFiles);
                           haptics.light();
+                          
+                          // If we have detected titles and video count now matches, show auto-assign
+                          if (reviewDetectedTitles.length > 0 && newFiles.length === reviewDetectedTitles.length) {
+                            setReviewShowAutoAssign(true);
+                          }
                         }
                         e.target.value = '';
                       }}
@@ -846,21 +1374,41 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               </div>
 
               <div>
-                <label className="text-gray-900 dark:text-white mb-2 block">
+                <label className="text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                   Voice-over
+                  {reviewIsAnalyzing && (
+                    <span className="text-xs text-[#ec1e24]">Analyzing...</span>
+                  )}
                 </label>
                 <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl cursor-pointer hover:border-[#ec1e24] transition-all duration-200">
                   <Upload className="w-6 h-6 text-[#ec1e24]" />
                   <span className="text-sm text-gray-600 dark:text-[#9CA3AF] text-center">
                     {reviewVoiceover ? reviewVoiceover.name : 'Upload Audio'}
                   </span>
+                  {reviewIsAnalyzing && (
+                    <span className="text-xs text-gray-500 dark:text-[#6B7280]">
+                      Extracting movie titles...
+                    </span>
+                  )}
                   <input
                     type="file"
                     accept="audio/*"
                     className="hidden"
-                    onChange={(e) => setReviewVoiceover(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleVoiceoverUpload(file, 'review');
+                      }
+                    }}
                   />
                 </label>
+                {reviewDetectedTitles.length > 0 && (
+                  <div className="mt-2 px-3 py-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
+                    <p className="text-xs text-green-700 dark:text-green-400">
+                      ✓ Detected {reviewDetectedTitles.length} {reviewDetectedTitles.length === 1 ? 'title' : 'titles'} from voiceover
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -991,6 +1539,24 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 <Settings2 className="w-5 h-5 mr-2" />
                 Generate LLM Prompt
               </Button>
+            )}
+
+            {/* Letterbox Removal Control - Only for 9:16 and 1:1 */}
+            {(reviewAspectRatio === '9:16' || reviewAspectRatio === '1:1') && (
+              <LetterboxControl
+                id="review-letterbox"
+                aspectRatio={reviewAspectRatio}
+                removeLetterbox={reviewRemoveLetterbox}
+                onToggle={(checked) => {
+                  setReviewRemoveLetterbox(checked);
+                  setPromptStatus('outdated');
+                }}
+                enableAutoframing={reviewEnableAutoframing}
+                onAutoframingToggle={(checked) => {
+                  setReviewEnableAutoframing(checked);
+                  setPromptStatus('outdated');
+                }}
+              />
             )}
           </div>
         </div>
@@ -1314,6 +1880,21 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               </div>
             </div>
 
+            {/* Info Banner */}
+            {monthlyVideoFiles.length > 0 && (
+              <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
+                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-blue-900 dark:text-blue-300 mb-1">
+                    <strong>Important:</strong> Add a title for each video
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-400">
+                    When uploading multiple trailers for different {monthlyFilter === 'Movies' ? 'movies' : 'TV shows'} releasing this month, label each video with its title. This allows the AI to correctly match scenes to each title in the final monthly releases compilation.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* YouTube URLs */}
             <div>
               <label className="text-gray-900 dark:text-white mb-2 flex items-center justify-between">
@@ -1379,6 +1960,16 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               )}
             </div>
 
+            {/* Auto-Assign Dialog */}
+            {monthlyShowAutoAssign && monthlyDetectedTitles.length > 0 && (
+              <AutoAssignTitlesDialog
+                detectedTitles={monthlyDetectedTitles}
+                videoCount={monthlyVideoFiles.length}
+                onAutoAssign={() => autoAssignTitles(monthlyDetectedTitles, 'monthly')}
+                onDismiss={() => setMonthlyShowAutoAssign(false)}
+              />
+            )}
+
             {/* Local Video Upload */}
             <div>
               <label className="text-gray-900 dark:text-white mb-2 flex items-center justify-between">
@@ -1390,29 +1981,67 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               
               {/* Uploaded Videos List */}
               {monthlyVideoFiles.length > 0 && (
-                <div className="mb-3 space-y-2">
+                <div className="mb-3 space-y-3">
                   {monthlyVideoFiles.map((file, index) => (
                     <div 
                       key={index}
-                      className="flex items-center gap-3 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl"
+                      className="px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl space-y-2"
                     >
-                      <Film className="w-4 h-4 text-[#ec1e24] flex-shrink-0" />
-                      <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
-                        {file.name}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-[#6B7280] flex-shrink-0">
-                        {(file.size / 1024 / 1024).toFixed(1)} MB
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          haptics.light();
-                          setMonthlyVideoFiles(monthlyVideoFiles.filter((_, i) => i !== index));
-                        }}
-                        className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-[#111111] rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-900 transition-all duration-200"
-                      >
-                        <X className="w-4 h-4 text-gray-500 dark:text-[#6B7280] hover:text-red-600 dark:hover:text-red-400" />
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <Film className="w-4 h-4 text-[#ec1e24] flex-shrink-0" />
+                        <span className="text-sm text-gray-900 dark:text-white flex-1 truncate">
+                          {file.name}
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-[#6B7280] flex-shrink-0">
+                          {(file.size / 1024 / 1024).toFixed(1)} MB
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            haptics.light();
+                            setMonthlyVideoFiles(monthlyVideoFiles.filter((_, i) => i !== index));
+                            // Also remove the title mapping
+                            const newTitles = { ...monthlyVideoTitles };
+                            delete newTitles[index];
+                            setMonthlyVideoTitles(newTitles);
+                          }}
+                          className="flex-shrink-0 w-7 h-7 flex items-center justify-center bg-gray-100 dark:bg-[#111111] rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-900 transition-all duration-200"
+                        >
+                          <X className="w-4 h-4 text-gray-500 dark:text-[#6B7280] hover:text-red-600 dark:hover:text-red-400" />
+                        </button>
+                      </div>
+                      {/* Movie Title Input */}
+                      <div className="pl-7">
+                        <input
+                          type="text"
+                          placeholder="Enter movie/show title (e.g., Wicked)"
+                          value={monthlyVideoTitles[index]?.title || ''}
+                          onChange={(e) => {
+                            setMonthlyVideoTitles({
+                              ...monthlyVideoTitles,
+                              [index]: { 
+                                ...monthlyVideoTitles[index],
+                                title: e.target.value 
+                              }
+                            });
+                          }}
+                          className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:border-[#ec1e24]"
+                        />
+                        {monthlyVideoTitles[index]?.title && (
+                          <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+                            {(monthlyVideoTitles[index] as any).autoDetected ? (
+                              <>
+                                ✓ <span className="text-purple-600 dark:text-purple-400">Auto-detected:</span> {monthlyVideoTitles[index].title}
+                                {(monthlyVideoTitles[index] as any).voiceoverTimestamp && (
+                                  <span className="text-gray-400 dark:text-[#6B7280]"> @ {(monthlyVideoTitles[index] as any).voiceoverTimestamp}</span>
+                                )}
+                              </>
+                            ) : (
+                              <>✓ Title set: {monthlyVideoTitles[index].title}</>
+                            )}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1435,8 +2064,14 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                       const remainingSlots = 10 - monthlyVideoFiles.length;
                       const filesToAdd = files.slice(0, remainingSlots);
                       if (filesToAdd.length > 0) {
-                        setMonthlyVideoFiles([...monthlyVideoFiles, ...filesToAdd]);
+                        const newFiles = [...monthlyVideoFiles, ...filesToAdd];
+                        setMonthlyVideoFiles(newFiles);
                         haptics.light();
+                        
+                        // If we have detected titles and video count now matches, show auto-assign
+                        if (monthlyDetectedTitles.length > 0 && newFiles.length === monthlyDetectedTitles.length) {
+                          setMonthlyShowAutoAssign(true);
+                        }
                       }
                       e.target.value = '';
                     }}
@@ -1457,21 +2092,41 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
             {/* File Uploaders */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-gray-900 dark:text-white mb-2 block">
+                <label className="text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                   Voice-over
+                  {monthlyIsAnalyzing && (
+                    <span className="text-xs text-[#ec1e24]">Analyzing...</span>
+                  )}
                 </label>
                 <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl cursor-pointer hover:border-[#ec1e24] transition-all duration-200">
                   <Upload className="w-6 h-6 text-[#ec1e24]" />
                   <span className="text-sm text-gray-600 dark:text-[#9CA3AF] text-center">
                     {monthlyVoiceover ? monthlyVoiceover.name : 'Upload Audio'}
                   </span>
+                  {monthlyIsAnalyzing && (
+                    <span className="text-xs text-gray-500 dark:text-[#6B7280]">
+                      Extracting movie titles...
+                    </span>
+                  )}
                   <input
                     type="file"
                     accept="audio/*"
                     className="hidden"
-                    onChange={(e) => setMonthlyVoiceover(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleVoiceoverUpload(file, 'monthly');
+                      }
+                    }}
                   />
                 </label>
+                {monthlyDetectedTitles.length > 0 && (
+                  <div className="mt-2 px-3 py-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
+                    <p className="text-xs text-green-700 dark:text-green-400">
+                      ✓ Detected {monthlyDetectedTitles.length} {monthlyDetectedTitles.length === 1 ? 'title' : 'titles'} from voiceover
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1602,6 +2257,24 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 <Settings2 className="w-5 h-5 mr-2" />
                 Generate LLM Prompt
               </Button>
+            )}
+
+            {/* Letterbox Removal Control - Only for 9:16 and 1:1 */}
+            {(monthlyAspectRatio === '9:16' || monthlyAspectRatio === '1:1') && (
+              <LetterboxControl
+                id="monthly-letterbox"
+                aspectRatio={monthlyAspectRatio}
+                removeLetterbox={monthlyRemoveLetterbox}
+                onToggle={(checked) => {
+                  setMonthlyRemoveLetterbox(checked);
+                  setPromptStatus('outdated');
+                }}
+                enableAutoframing={monthlyEnableAutoframing}
+                onAutoframingToggle={(checked) => {
+                  setMonthlyEnableAutoframing(checked);
+                  setPromptStatus('outdated');
+                }}
+              />
             )}
           </div>
         </div>
@@ -1902,6 +2575,21 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
           {isAudioPanelOpen && (
             <div className="space-y-4">
+              {/* Info Banner for Trailer Audio Hooks */}
+              {enableTrailerAudioHooks && (
+                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
+                  <Film className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-blue-900 dark:text-blue-300 mb-1">
+                      <strong>Cinematic Audio Hooks Enabled</strong>
+                    </p>
+                    <p className="text-xs text-blue-700 dark:text-blue-400">
+                      Your video will start with a hook-catching scene using the trailer's original audio (dialogue/voice), then transition to your voiceover with music. Mid-video and ending hooks can be added for dramatic effect.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Auto-Ducking Toggle */}
               <div className="flex items-center justify-between p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
                 <span className="text-gray-900 dark:text-white">
@@ -1999,6 +2687,344 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 </div>
               </div>
 
+              <Separator className="bg-gray-200 dark:bg-[#333333]" />
+
+              {/* Trailer Audio Hooks Section */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-gray-900 dark:text-white mb-2">Trailer Audio Hooks</h4>
+                  <p className="text-xs text-gray-500 dark:text-[#6B7280] mb-4">
+                    Use original trailer audio (dialogue/voice) as cinematic hooks at key moments
+                  </p>
+                </div>
+
+                {/* Enable Trailer Audio Hooks Toggle */}
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
+                  <span className="text-gray-900 dark:text-white">
+                    Enable Trailer Audio Hooks
+                  </span>
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setEnableTrailerAudioHooks(!enableTrailerAudioHooks);
+                      setPromptStatus('outdated');
+                    }}
+                    className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${
+                      enableTrailerAudioHooks ? 'bg-[#ec1e24]' : 'bg-gray-300 dark:bg-[#333333]'
+                    }`}
+                  >
+                    <div
+                      className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${
+                        enableTrailerAudioHooks ? 'translate-x-6' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {enableTrailerAudioHooks && (
+                  <>
+                    {/* Hook Placements */}
+                    <div>
+                      <label className="text-gray-900 dark:text-white mb-2 block">
+                        Hook Placements
+                      </label>
+                      <div className="space-y-2">
+                        {[
+                          { value: 'opening', label: 'Opening Hook', desc: 'Start video with trailer audio' },
+                          { value: 'mid-video', label: 'Mid-Video Hook', desc: 'Before rating reveal' },
+                          { value: 'ending', label: 'Ending Hook', desc: 'Close with trailer audio' }
+                        ].map((placement) => (
+                          <div
+                            key={placement.value}
+                            className="flex items-start gap-3 p-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl"
+                          >
+                            <Checkbox
+                              id={placement.value}
+                              checked={hookPlacements.includes(placement.value)}
+                              onCheckedChange={(checked) => {
+                                haptics.light();
+                                if (checked) {
+                                  setHookPlacements([...hookPlacements, placement.value]);
+                                } else {
+                                  setHookPlacements(hookPlacements.filter(p => p !== placement.value));
+                                }
+                                setPromptStatus('outdated');
+                              }}
+                            />
+                            <div className="flex-1">
+                              <label
+                                htmlFor={placement.value}
+                                className="text-sm text-gray-900 dark:text-white cursor-pointer"
+                              >
+                                {placement.label}
+                              </label>
+                              <p className="text-xs text-gray-500 dark:text-[#6B7280]">
+                                {placement.desc}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Trailer Analysis - AI Selected Scenes */}
+                    {(activeModule === 'review' && reviewVideoFiles.length > 0) || (activeModule === 'monthly' && monthlyVideoFiles.length > 0) ? (
+                      <div className="space-y-3">
+                        {!reviewTrailerAnalysis && monthlyTrailerAnalyses.length === 0 && !reviewIsAnalyzingTrailer && !monthlyIsAnalyzingTrailer && (
+                          <Button
+                            onClick={() => handleAnalyzeTrailer(activeModule)}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                            size="sm"
+                          >
+                            <Film className="w-4 h-4 mr-2" />
+                            {activeModule === 'review' ? 'Analyze Trailer with AI' : `Analyze ${monthlyVideoFiles.length} Trailers with AI`}
+                          </Button>
+                        )}
+                        
+                        {(reviewIsAnalyzingTrailer || monthlyIsAnalyzingTrailer) && (
+                          <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
+                            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm text-blue-900 dark:text-blue-300">
+                              Analyzing trailer scenes...
+                            </span>
+                          </div>
+                        )}
+                        
+                        {(activeModule === 'review' ? reviewTrailerAnalysis : (monthlyTrailerAnalyses.length > 0)) && (
+                          activeModule === 'review' ? (
+                            <TrailerHooksPreview
+                              analysis={reviewTrailerAnalysis!}
+                              onShowAllMoments={() => setShowTrailerScenesDialog(true)}
+                              customOpeningHook={customOpeningHook}
+                              customMidVideoHook={customMidVideoHook}
+                              customEndingHook={customEndingHook}
+                              onResetHook={(hookType) => {
+                                switch (hookType) {
+                                  case 'opening':
+                                    setCustomOpeningHook(null);
+                                    toast.success('Opening hook reset to AI default');
+                                    break;
+                                  case 'midVideo':
+                                    setCustomMidVideoHook(null);
+                                    toast.success('Mid-video hook reset to AI default');
+                                    break;
+                                  case 'ending':
+                                    setCustomEndingHook(null);
+                                    toast.success('Ending hook reset to AI default');
+                                    break;
+                                }
+                                setPromptStatus('outdated');
+                                haptics.light();
+                              }}
+                            />
+                          ) : (
+                            <div className="space-y-3">
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <CheckCircle className="w-5 h-5 text-green-600" />
+                                  <h4 className="font-semibold text-green-900">
+                                    {monthlyTrailerAnalyses.length} Trailers Analyzed
+                                  </h4>
+                                </div>
+                                <p className="text-sm text-green-700">
+                                  Total scenes detected: {monthlyTrailerAnalyses.reduce((sum, t) => sum + t.analysis.moments.length, 0)}
+                                </p>
+                                <p className="text-xs text-green-600 mt-1">
+                                  Best moments selected from each trailer for compilation
+                                </p>
+                              </div>
+                              {monthlyTrailerAnalyses.map((trailer, index) => (
+                                <div key={index} className="bg-white border border-gray-200 rounded-lg p-3">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h5 className="text-sm font-medium text-gray-900">{trailer.movieTitle}</h5>
+                                    <span className="text-xs text-gray-500">
+                                      {trailer.analysis.moments.length} scenes
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1 flex-wrap">
+                                    {trailer.bestMoments.slice(0, 3).map((moment, i) => (
+                                      <span key={i} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                        {moment.type.replace(/_/g, ' ')}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : null}
+
+                    {/* Audio Variety */}
+                    <div>
+                      <label className="text-gray-900 dark:text-white mb-2 block">
+                        Audio Variety Style
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { value: 'balanced', label: 'Balanced' },
+                          { value: 'heavy-voiceover', label: 'Heavy Voiceover' },
+                          { value: 'heavy-trailer', label: 'Heavy Trailer' }
+                        ].map((style) => (
+                          <button
+                            key={style.value}
+                            onClick={() => {
+                              haptics.light();
+                              setAudioVariety(style.value as any);
+                              setPromptStatus('outdated');
+                            }}
+                            className={`px-3 py-2 rounded-xl text-sm transition-all duration-300 ${
+                              audioVariety === style.value
+                                ? 'bg-[#ec1e24] text-white'
+                                : 'bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] text-gray-600 dark:text-[#9CA3AF] hover:border-[#ec1e24]'
+                            }`}
+                          >
+                            {style.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Hook Controls Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-gray-900 dark:text-white mb-2 block">
+                          Hook Duration (s)
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          step="0.5"
+                          value={hookDuration}
+                          onChange={(e) => {
+                            setHookDuration(parseFloat(e.target.value));
+                            setPromptStatus('outdated');
+                          }}
+                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-gray-900 dark:text-white mb-2 block">
+                          Trailer Audio Volume (%)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={trailerAudioVolume}
+                          onChange={(e) => {
+                            setTrailerAudioVolume(parseInt(e.target.value));
+                            setPromptStatus('outdated');
+                          }}
+                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-gray-900 dark:text-white mb-2 block">
+                          Crossfade Duration (s)
+                        </label>
+                        <input
+                          type="number"
+                          min="0.1"
+                          max="2"
+                          step="0.1"
+                          value={crossfadeDuration}
+                          onChange={(e) => {
+                            setCrossfadeDuration(parseFloat(e.target.value));
+                            setPromptStatus('outdated');
+                          }}
+                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Audio Segment Timeline */}
+                    <div>
+                      <label className="text-gray-900 dark:text-white mb-2 block">
+                        Audio Segment Timeline
+                      </label>
+                      <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
+                        <div className="space-y-3">
+                          {/* Timeline Labels */}
+                          <div className="flex justify-between text-xs text-gray-500 dark:text-[#6B7280] mb-1">
+                            <span>0:00</span>
+                            <span>0:15</span>
+                            <span>0:30</span>
+                          </div>
+                          
+                          {/* Visual Timeline */}
+                          <div className="relative h-16 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl overflow-hidden">
+                            <div className="absolute inset-0 flex items-center px-2">
+                              {hookPlacements.includes('opening') && (
+                                <div 
+                                  className="h-12 bg-blue-500/40 rounded flex items-center justify-center border-2 border-blue-500"
+                                  style={{ width: `${(hookDuration / 30) * 100}%` }}
+                                  title="Opening Trailer Hook"
+                                >
+                                  <span className="text-xs text-white font-medium">🎬 Hook</span>
+                                </div>
+                              )}
+                              <div 
+                                className="h-10 bg-[#ec1e24]/30 rounded flex items-center justify-center mx-1"
+                                style={{ width: `${((12 - crossfadeDuration) / 30) * 100}%` }}
+                                title="Voiceover + Music"
+                              >
+                                <span className="text-xs text-gray-600 dark:text-gray-400">🎤 Voiceover</span>
+                              </div>
+                              {hookPlacements.includes('mid-video') && (
+                                <>
+                                  <div 
+                                    className="h-12 bg-blue-500/40 rounded flex items-center justify-center border-2 border-blue-500 mx-1"
+                                    style={{ width: `${(hookDuration / 30) * 100}%` }}
+                                    title="Mid-Video Trailer Hook"
+                                  >
+                                    <span className="text-xs text-white font-medium">🎬</span>
+                                  </div>
+                                  <div 
+                                    className="h-10 bg-[#ec1e24]/30 rounded flex items-center justify-center mx-1"
+                                    style={{ width: `${(8 / 30) * 100}%` }}
+                                    title="Rating Section"
+                                  >
+                                    <span className="text-xs text-gray-600 dark:text-gray-400">⭐</span>
+                                  </div>
+                                </>
+                              )}
+                              {hookPlacements.includes('ending') && (
+                                <div 
+                                  className="h-12 bg-blue-500/40 rounded flex items-center justify-center border-2 border-blue-500 ml-auto"
+                                  style={{ width: `${(hookDuration / 30) * 100}%` }}
+                                  title="Ending Trailer Hook"
+                                >
+                                  <span className="text-xs text-white font-medium">🎬 End</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Legend */}
+                          <div className="flex gap-4 text-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-blue-500/40 border-2 border-blue-500 rounded"></div>
+                              <span className="text-gray-600 dark:text-[#9CA3AF]">Trailer Audio</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-[#ec1e24]/30 rounded"></div>
+                              <span className="text-gray-600 dark:text-[#9CA3AF]">Voiceover + Music</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <Separator className="bg-gray-200 dark:bg-[#333333]" />
+
               {/* Waveform Visualization */}
               <div>
                 <label className="text-gray-900 dark:text-white mb-2 block">
@@ -2006,30 +3032,71 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 </label>
                 <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
                   <div className="space-y-4">
-                    {/* Voice-over waveform */}
-                    <div>
-                      <span className="text-xs text-gray-500 dark:text-[#6B7280] mb-2 block">
-                        Voice-over Segments
-                      </span>
-                      <div className="h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl relative overflow-hidden">
-                        <div className="absolute inset-0 flex items-center px-2 gap-2">
-                          <div className="h-8 bg-[#ec1e24]/30 rounded" style={{ width: '20%' }} />
-                          <div className="h-8 bg-[#ec1e24]/30 rounded" style={{ width: '25%', marginLeft: '15%' }} />
+                    {/* Combined Audio Visualization */}
+                    {enableTrailerAudioHooks ? (
+                      <div>
+                        <span className="text-xs text-gray-500 dark:text-[#6B7280] mb-2 block">
+                          Layered Audio Mix (Trailer Hooks + Voiceover + Music)
+                        </span>
+                        <div className="h-16 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl relative overflow-hidden">
+                          <div className="absolute inset-0 flex items-center px-2 gap-1">
+                            {/* Opening Hook */}
+                            {hookPlacements.includes('opening') && (
+                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500" style={{ width: `${(hookDuration / 30) * 100}%` }} />
+                            )}
+                            {/* First Voiceover */}
+                            <div className="h-10 bg-[#ec1e24]/30 rounded" style={{ width: '35%' }} />
+                            {/* Mid Hook */}
+                            {hookPlacements.includes('mid-video') && (
+                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500" style={{ width: `${(hookDuration / 30) * 100}%` }} />
+                            )}
+                            {/* Second Voiceover */}
+                            <div className="h-10 bg-[#ec1e24]/30 rounded" style={{ width: '25%' }} />
+                            {/* Ending Hook */}
+                            {hookPlacements.includes('ending') && (
+                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500 ml-auto" style={{ width: `${(hookDuration / 30) * 100}%` }} />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex gap-3 text-xs mt-2">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 bg-blue-500/40 border border-blue-500 rounded"></div>
+                            <span className="text-gray-500 dark:text-[#6B7280]">Trailer Audio</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-3 bg-[#ec1e24]/30 rounded"></div>
+                            <span className="text-gray-500 dark:text-[#6B7280]">Voiceover</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Voice-over waveform */}
+                        <div>
+                          <span className="text-xs text-gray-500 dark:text-[#6B7280] mb-2 block">
+                            Voice-over Segments
+                          </span>
+                          <div className="h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl relative overflow-hidden">
+                            <div className="absolute inset-0 flex items-center px-2 gap-2">
+                              <div className="h-8 bg-[#ec1e24]/30 rounded" style={{ width: '20%' }} />
+                              <div className="h-8 bg-[#ec1e24]/30 rounded" style={{ width: '25%', marginLeft: '15%' }} />
+                            </div>
+                          </div>
+                        </div>
 
-                    {/* Trailer waveform */}
-                    <div>
-                      <span className="text-xs text-gray-500 dark:text-[#6B7280] mb-2 block">
-                        Trailer Dialog Segments
-                      </span>
-                      <div className="h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl relative overflow-hidden">
-                        <div className="absolute inset-0 flex items-center px-2">
-                          <div className="h-8 bg-blue-500/30 rounded" style={{ width: '18%', marginLeft: '22%' }} />
+                        {/* Trailer waveform */}
+                        <div>
+                          <span className="text-xs text-gray-500 dark:text-[#6B7280] mb-2 block">
+                            Trailer Dialog Segments
+                          </span>
+                          <div className="h-12 bg-gray-100 dark:bg-[#1A1A1A] rounded-xl relative overflow-hidden">
+                            <div className="absolute inset-0 flex items-center px-2">
+                              <div className="h-8 bg-blue-500/30 rounded" style={{ width: '18%', marginLeft: '22%' }} />
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-[#6B7280] italic mt-2">
@@ -2839,6 +3906,68 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
           setCaptionStrokeColor(color);
         }}
       />
+
+      {/* Trailer Scenes Dialog */}
+      {(reviewTrailerAnalysis || (monthlyTrailerAnalyses.length > 0)) && (
+        <TrailerScenesDialog
+          open={showTrailerScenesDialog}
+          onOpenChange={setShowTrailerScenesDialog}
+          analysis={activeModule === 'review' 
+            ? reviewTrailerAnalysis! 
+            : monthlyTrailerAnalyses[0].analysis
+          }
+          onSelectScene={(moment, hookType) => {
+            // Update custom hook selections
+            switch (hookType) {
+              case 'opening':
+                setCustomOpeningHook(moment);
+                toast.success(`Opening hook set to ${moment.startTime.toFixed(1)}s - ${moment.type.replace('_', ' ')}`);
+                break;
+              case 'midVideo':
+                setCustomMidVideoHook(moment);
+                toast.success(`Mid-video hook set to ${moment.startTime.toFixed(1)}s - ${moment.type.replace('_', ' ')}`);
+                break;
+              case 'ending':
+                setCustomEndingHook(moment);
+                toast.success(`Ending hook set to ${moment.startTime.toFixed(1)}s - ${moment.type.replace('_', ' ')}`);
+                break;
+            }
+            setPromptStatus('outdated'); // Mark prompt for regeneration
+            haptics.light();
+            setShowTrailerScenesDialog(false);
+          }}
+        />
+      )}
+
+      {/* Video Render Status - Review */}
+      {reviewRenderId && (
+        <VideoRenderStatus
+          renderId={reviewRenderId}
+          onComplete={(videoUrl) => {
+            console.log('Review video ready:', videoUrl);
+            haptics.success();
+          }}
+          onError={(error) => {
+            console.error('Review video failed:', error);
+            haptics.error();
+          }}
+        />
+      )}
+
+      {/* Video Render Status - Monthly */}
+      {monthlyRenderId && (
+        <VideoRenderStatus
+          renderId={monthlyRenderId}
+          onComplete={(videoUrl) => {
+            console.log('Monthly video ready:', videoUrl);
+            haptics.success();
+          }}
+          onError={(error) => {
+            console.error('Monthly video failed:', error);
+            haptics.error();
+          }}
+        />
+      )}
     </div>
   );
 }

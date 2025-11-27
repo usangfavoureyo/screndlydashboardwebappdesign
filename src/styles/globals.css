@@ -338,9 +338,21 @@ main {
   .hover-scale {
     transition: transform 0.2s ease-in-out;
   }
-
-  .hover-scale:hover {
-    transform: scale(1.02);
+  
+  /* Toast slide-in animation */
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Glow effect for primary actions */
@@ -378,22 +390,6 @@ main {
 
   .animate-slide-in-left {
     animation: slideInLeft 0.4s ease-out;
-  }
-
-  /* Slide in from right */
-  @keyframes slideInRight {
-    from {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .animate-slide-in-right {
-    animation: slideInRight 0.4s ease-out;
   }
 
   /* Pulse animation for notifications */

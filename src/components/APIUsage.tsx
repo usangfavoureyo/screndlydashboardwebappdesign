@@ -35,7 +35,10 @@ export function APIUsage({ onBack }: APIUsageProps) {
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {/* OpenAI */}
-          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg">
                 <Zap className="w-5 h-5 text-[#ec1e24]" />
@@ -44,10 +47,13 @@ export function APIUsage({ onBack }: APIUsageProps) {
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-1">1,247</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
-          </div>
+          </button>
 
           {/* Serper */}
-          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg">
                 <Globe className="w-5 h-5 text-[#ec1e24]" />
@@ -56,10 +62,13 @@ export function APIUsage({ onBack }: APIUsageProps) {
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-1">892</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
-          </div>
+          </button>
 
           {/* TMDb */}
-          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg">
                 <Clapperboard className="w-5 h-5 text-[#ec1e24]" />
@@ -68,10 +77,13 @@ export function APIUsage({ onBack }: APIUsageProps) {
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-1">3,451</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
-          </div>
+          </button>
 
           {/* Vizla */}
-          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg">
                 <Film className="w-5 h-5 text-[#ec1e24]" />
@@ -80,10 +92,13 @@ export function APIUsage({ onBack }: APIUsageProps) {
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-1">127</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
-          </div>
+          </button>
 
           {/* Total */}
-          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-[#ec1e24]" />
@@ -92,7 +107,7 @@ export function APIUsage({ onBack }: APIUsageProps) {
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-1">5,717</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
-          </div>
+          </button>
         </div>
 
         {/* Usage Breakdown Table */}

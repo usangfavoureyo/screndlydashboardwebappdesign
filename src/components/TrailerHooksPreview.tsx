@@ -51,11 +51,11 @@ export function TrailerHooksPreview({
   const endingHook = customEndingHook || analysis.suggestedHooks.ending;
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-lg p-4">
       <div className="flex items-start gap-3">
-        <Sparkles className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+        <Sparkles className="w-5 h-5 text-[#ec1e24] mt-0.5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-blue-900 mb-3">
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
             AI-Selected Hook Scenes
           </h4>
           
@@ -63,8 +63,8 @@ export function TrailerHooksPreview({
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">Opening Hook</span>
+                <Film className="w-4 h-4 text-[#ec1e24]" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Opening Hook</span>
                 {customOpeningHook && (
                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
                     Custom ✓
@@ -72,8 +72,8 @@ export function TrailerHooksPreview({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-blue-600" />
-                <span className="text-xs font-mono text-blue-600">
+                <Clock className="w-3 h-3 text-[#ec1e24]" />
+                <span className="text-xs font-mono text-[#ec1e24]">
                   {formatTime(openingHook.startTime)}
                 </span>
               </div>
@@ -114,8 +114,8 @@ export function TrailerHooksPreview({
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">Mid-Video Hook</span>
+                <Film className="w-4 h-4 text-[#ec1e24]" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Mid-Video Hook</span>
                 {customMidVideoHook && (
                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
                     Custom ✓
@@ -123,8 +123,8 @@ export function TrailerHooksPreview({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-blue-600" />
-                <span className="text-xs font-mono text-blue-600">
+                <Clock className="w-3 h-3 text-[#ec1e24]" />
+                <span className="text-xs font-mono text-[#ec1e24]">
                   {formatTime(midVideoHook.startTime)}
                 </span>
               </div>
@@ -165,8 +165,8 @@ export function TrailerHooksPreview({
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-2">
-                <Film className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">Ending Hook</span>
+                <Film className="w-4 h-4 text-[#ec1e24]" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Ending Hook</span>
                 {customEndingHook && (
                   <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
                     Custom ✓
@@ -174,8 +174,8 @@ export function TrailerHooksPreview({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="w-3 h-3 text-blue-600" />
-                <span className="text-xs font-mono text-blue-600">
+                <Clock className="w-3 h-3 text-[#ec1e24]" />
+                <span className="text-xs font-mono text-[#ec1e24]">
                   {formatTime(endingHook.startTime)}
                 </span>
               </div>
@@ -215,7 +215,7 @@ export function TrailerHooksPreview({
           {onShowAllMoments && (
             <button
               onClick={onShowAllMoments}
-              className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+              className="text-sm text-[#ec1e24] hover:text-[#c01a1f] hover:underline"
             >
               Browse all {analysis.moments.length} detected scenes →
             </button>

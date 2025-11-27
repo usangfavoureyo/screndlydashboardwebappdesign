@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Label } from './ui/label';
@@ -36,6 +36,9 @@ type DuckingMode = 'Partial' | 'Full Mute' | 'Adaptive';
 type VideoFitMode = 'contain' | 'cover'; // 'contain' = show letterbox, 'cover' = fill/crop
 
 export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStudioPageProps) {
+  const isMountedRef = useRef(true);
+  const reviewMusicInputRef = useRef<HTMLInputElement>(null);
+  const monthlyMusicInputRef = useRef<HTMLInputElement>(null);
   const [activeModule, setActiveModule] = useState<'review' | 'monthly'>('review');
   const [isPromptPanelOpen, setIsPromptPanelOpen] = useState(false);
   const [isPromptGenerated, setIsPromptGenerated] = useState(false);
@@ -59,8 +62,8 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [reviewYoutubeUrls, setReviewYoutubeUrls] = useState<string[]>(['']);
   const [reviewVideoFiles, setReviewVideoFiles] = useState<File[]>([]);
   const [reviewVideoTitles, setReviewVideoTitles] = useState<{ [key: number]: { title: string; tmdbId?: number; year?: string; type?: 'movie' | 'tv' } }>({});
-  const [reviewVoiceover, setReviewVoiceover] = useState<File | null>(null);
-  const [reviewMusic, setReviewMusic] = useState<File | null>(null);
+  const [reviewVoiceover, setReviewVoiceover] = useState<{ name: string; size: number; url: string } | null>(null);
+  const [reviewMusic, setReviewMusic] = useState<{ name: string; size: number; url: string } | null>(null);
   const [reviewMusicGenre, setReviewMusicGenre] = useState<MusicGenre>('Hip-Hop');
   const [reviewAspectRatio, setReviewAspectRatio] = useState<AspectRatio>('16:9');
   const [reviewRemoveLetterbox, setReviewRemoveLetterbox] = useState(true); // Auto-fill for 9:16 and 1:1
@@ -80,8 +83,8 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [monthlyYoutubeUrls, setMonthlyYoutubeUrls] = useState<string[]>(['']);
   const [monthlyVideoFiles, setMonthlyVideoFiles] = useState<File[]>([]);
   const [monthlyVideoTitles, setMonthlyVideoTitles] = useState<{ [key: number]: { title: string; tmdbId?: number; year?: string; type?: 'movie' | 'tv' } }>({});
-  const [monthlyVoiceover, setMonthlyVoiceover] = useState<File | null>(null);
-  const [monthlyMusic, setMonthlyMusic] = useState<File | null>(null);
+  const [monthlyVoiceover, setMonthlyVoiceover] = useState<{ name: string; size: number; url: string } | null>(null);
+  const [monthlyMusic, setMonthlyMusic] = useState<{ name: string; size: number; url: string } | null>(null);
   const [monthlyMusicGenre, setMonthlyMusicGenre] = useState<MusicGenre>('Hip-Hop');
   const [monthlyAspectRatio, setMonthlyAspectRatio] = useState<AspectRatio>('16:9');
   const [monthlyRemoveLetterbox, setMonthlyRemoveLetterbox] = useState(true); // Auto-fill for 9:16 and 1:1
@@ -107,6 +110,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [enableTrailerAudioHooks, setEnableTrailerAudioHooks] = useState(true);
   const [hookPlacements, setHookPlacements] = useState<string[]>(['opening', 'mid-video', 'ending']);
   const [hookDuration, setHookDuration] = useState(3);
+  const [isHookDurationAuto, setIsHookDurationAuto] = useState(false);
   const [trailerAudioVolume, setTrailerAudioVolume] = useState(100);
   const [crossfadeDuration, setCrossfadeDuration] = useState(0.5);
   const [audioVariety, setAudioVariety] = useState<'balanced' | 'heavy-voiceover' | 'heavy-trailer'>('balanced');
@@ -193,6 +197,34 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const animations = ['None', 'Fade In', 'Slide Up', 'Word Highlight'];
   const presetColors = ['#FFFFFF', '#000000', '#ec1e24', '#FFFF00', '#00FF00', '#0066FF', '#FF00FF', '#FFA500'];
 
+  // Calculate effective hook duration (auto or manual)
+  const effectiveHookDuration = React.useMemo(() => {
+    if (!isHookDurationAuto) {
+      return hookDuration;
+    }
+    
+    // Auto mode: Calculate based on trailer analysis or use smart defaults
+    const currentAnalysis = activeModule === 'review' ? reviewTrailerAnalysis : null;
+    
+    if (currentAnalysis?.suggestedHooks) {
+      // Calculate average duration from suggested hooks
+      const hooks = [
+        currentAnalysis.suggestedHooks.opening,
+        currentAnalysis.suggestedHooks.midVideo,
+        currentAnalysis.suggestedHooks.ending
+      ].filter(Boolean);
+      
+      if (hooks.length > 0) {
+        // Use 2-4 seconds based on scene intensity/confidence
+        const avgConfidence = hooks.reduce((sum, hook) => sum + (hook.confidence || 0.5), 0) / hooks.length;
+        return avgConfidence > 0.7 ? 3.5 : 2.5; // Higher confidence = longer hooks
+      }
+    }
+    
+    // Default auto duration based on video type
+    return 3; // Standard 3 second hooks
+  }, [isHookDurationAuto, hookDuration, reviewTrailerAnalysis, activeModule]);
+
   // Load saved templates from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('screndly_saved_caption_templates');
@@ -254,6 +286,27 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     }
     return () => clearInterval(interval);
   }, [monthlyIsPlaying, monthlyVideoTime, monthlyVideoDuration]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Cleanup blob URLs on unmount to prevent memory leaks
+      if (reviewVoiceover?.url) {
+        URL.revokeObjectURL(reviewVoiceover.url);
+      }
+      if (monthlyVoiceover?.url) {
+        URL.revokeObjectURL(monthlyVoiceover.url);
+      }
+      if (reviewMusic?.url) {
+        URL.revokeObjectURL(reviewMusic.url);
+      }
+      if (monthlyMusic?.url) {
+        URL.revokeObjectURL(monthlyMusic.url);
+      }
+    };
+  }, [reviewVoiceover, monthlyVoiceover, reviewMusic, monthlyMusic]);
 
   // Helper function to format time
   const formatTime = (seconds: number) => {
@@ -344,41 +397,312 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
   // Handle voiceover upload with analysis
   const handleVoiceoverUpload = async (file: File, module: 'review' | 'monthly') => {
+    // Prevent multiple simultaneous uploads
+    if ((module === 'review' && reviewIsAnalyzing) || (module === 'monthly' && monthlyIsAnalyzing)) {
+      toast.error('Please wait for the current upload to finish.');
+      return;
+    }
+
+    // Stricter file size limit for mobile devices (20MB for mobile, 50MB for desktop)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const maxSize = isMobile ? 20 * 1024 * 1024 : 50 * 1024 * 1024; // 20MB mobile / 50MB desktop
+    
+    if (file.size > maxSize) {
+      const maxSizeMB = isMobile ? '20MB' : '50MB';
+      toast.error(`Audio file is too large. Please upload a file smaller than ${maxSizeMB}.`);
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('audio/')) {
+      toast.error('Please upload a valid audio file.');
+      return;
+    }
+
+    // Warn for large files on mobile (over 5MB)
+    const warnSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > warnSize && isMobile) {
+      toast('Processing audio file. This may take a moment...', {
+        duration: 3000,
+      });
+    }
+
+    // Set analyzing state first
     if (module === 'review') {
-      setReviewVoiceover(file);
       setReviewIsAnalyzing(true);
-      
-      try {
-        const detectedTitles = await analyzeVoiceoverForTitles(file);
-        setReviewDetectedTitles(detectedTitles);
-        
-        // Show auto-assign dialog if we have videos uploaded
-        if (reviewVideoFiles.length > 0) {
-          setReviewShowAutoAssign(true);
-        }
-      } catch (error) {
-        console.error('Error analyzing voiceover:', error);
-      } finally {
-        setReviewIsAnalyzing(false);
-      }
     } else {
-      setMonthlyVoiceover(file);
       setMonthlyIsAnalyzing(true);
-      
-      try {
-        const detectedTitles = await analyzeVoiceoverForTitles(file);
-        setMonthlyDetectedTitles(detectedTitles);
+    }
+
+    // Create blob URL for memory-efficient file handling
+    let blobUrl: string | null = null;
+
+    try {
+      if (module === 'review') {
+        if (!isMountedRef.current) return;
         
-        // Show auto-assign dialog if we have videos uploaded
-        if (monthlyVideoFiles.length > 0) {
-          setMonthlyShowAutoAssign(true);
+        // Clean up previous blob URL if exists
+        if (reviewVoiceover?.url) {
+          URL.revokeObjectURL(reviewVoiceover.url);
         }
-      } catch (error) {
-        console.error('Error analyzing voiceover:', error);
-      } finally {
-        setMonthlyIsAnalyzing(false);
+        
+        try {
+          // Create blob URL instead of storing File object
+          blobUrl = URL.createObjectURL(file);
+          
+          // Analyze the file (in production, this would use the blob URL)
+          const detectedTitles = await analyzeVoiceoverForTitles(file);
+          
+          // Check if component is still mounted before updating state
+          if (!isMountedRef.current) {
+            if (blobUrl) URL.revokeObjectURL(blobUrl);
+            return;
+          }
+          
+          // Store only metadata and blob URL, not the File object
+          setReviewVoiceover({
+            name: file.name,
+            size: file.size,
+            url: blobUrl
+          });
+          setReviewDetectedTitles(detectedTitles);
+          
+          // Show auto-assign dialog if we have videos uploaded
+          if (reviewVideoFiles.length > 0) {
+            setReviewShowAutoAssign(true);
+          }
+          
+          toast.success(`Detected ${detectedTitles.length} titles from voiceover`);
+          haptics.success();
+        } catch (error) {
+          console.error('Error analyzing voiceover:', error);
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          if (!isMountedRef.current) return;
+          toast.error('Failed to analyze voiceover. Please try again.');
+          haptics.error();
+        } finally {
+          if (isMountedRef.current) {
+            setReviewIsAnalyzing(false);
+          }
+        }
+      } else {
+        if (!isMountedRef.current) return;
+        
+        // Clean up previous blob URL if exists
+        if (monthlyVoiceover?.url) {
+          URL.revokeObjectURL(monthlyVoiceover.url);
+        }
+        
+        try {
+          // Create blob URL instead of storing File object
+          blobUrl = URL.createObjectURL(file);
+          
+          // Analyze the file (in production, this would use the blob URL)
+          const detectedTitles = await analyzeVoiceoverForTitles(file);
+          
+          // Check if component is still mounted before updating state
+          if (!isMountedRef.current) {
+            if (blobUrl) URL.revokeObjectURL(blobUrl);
+            return;
+          }
+          
+          // Store only metadata and blob URL, not the File object
+          setMonthlyVoiceover({
+            name: file.name,
+            size: file.size,
+            url: blobUrl
+          });
+          setMonthlyDetectedTitles(detectedTitles);
+          
+          // Show auto-assign dialog if we have videos uploaded
+          if (monthlyVideoFiles.length > 0) {
+            setMonthlyShowAutoAssign(true);
+          }
+          
+          toast.success(`Detected ${detectedTitles.length} titles from voiceover`);
+          haptics.success();
+        } catch (error) {
+          console.error('Error analyzing voiceover:', error);
+          if (blobUrl) URL.revokeObjectURL(blobUrl);
+          if (!isMountedRef.current) return;
+          toast.error('Failed to analyze voiceover. Please try again.');
+          haptics.error();
+        } finally {
+          if (isMountedRef.current) {
+            setMonthlyIsAnalyzing(false);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error handling voiceover upload:', error);
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      if (isMountedRef.current) {
+        toast.error('An unexpected error occurred. Please try again.');
+        // Reset analyzing state on error
+        if (module === 'review') {
+          setReviewIsAnalyzing(false);
+        } else {
+          setMonthlyIsAnalyzing(false);
+        }
+        haptics.error();
       }
     }
+  };
+
+  // Handle voiceover removal with proper cleanup
+  const handleRemoveVoiceover = (module: 'review' | 'monthly') => {
+    if (module === 'review') {
+      if (reviewVoiceover?.url) {
+        URL.revokeObjectURL(reviewVoiceover.url);
+      }
+      setReviewVoiceover(null);
+      setReviewDetectedTitles([]);
+    } else {
+      if (monthlyVoiceover?.url) {
+        URL.revokeObjectURL(monthlyVoiceover.url);
+      }
+      setMonthlyVoiceover(null);
+      setMonthlyDetectedTitles([]);
+    }
+    haptics.light();
+    toast.success('Voice-over removed');
+  };
+
+  // Handle music upload with memory-efficient blob URL approach
+  const handleMusicUpload = async (file: File | null, module: 'review' | 'monthly') => {
+    try {
+      if (!file) {
+        // Clear music if no file
+        if (module === 'review') {
+          if (reviewMusic?.url) {
+            URL.revokeObjectURL(reviewMusic.url);
+          }
+          setReviewMusic(null);
+          if (reviewMusicInputRef.current) {
+            reviewMusicInputRef.current.value = '';
+          }
+        } else {
+          if (monthlyMusic?.url) {
+            URL.revokeObjectURL(monthlyMusic.url);
+          }
+          setMonthlyMusic(null);
+          if (monthlyMusicInputRef.current) {
+            monthlyMusicInputRef.current.value = '';
+          }
+        }
+        return;
+      }
+
+      // Stricter file size limit for mobile devices (20MB for mobile, 50MB for desktop)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const maxSize = isMobile ? 20 * 1024 * 1024 : 50 * 1024 * 1024; // 20MB mobile / 50MB desktop
+      
+      if (file.size > maxSize) {
+        const maxSizeMB = isMobile ? '20MB' : '50MB';
+        toast.error(`Music file is too large. Please upload a file smaller than ${maxSizeMB}.`);
+        // Reset the file input
+        if (module === 'review' && reviewMusicInputRef.current) {
+          reviewMusicInputRef.current.value = '';
+        } else if (module === 'monthly' && monthlyMusicInputRef.current) {
+          monthlyMusicInputRef.current.value = '';
+        }
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('audio/')) {
+        toast.error('Please upload a valid audio file.');
+        // Reset the file input
+        if (module === 'review' && reviewMusicInputRef.current) {
+          reviewMusicInputRef.current.value = '';
+        } else if (module === 'monthly' && monthlyMusicInputRef.current) {
+          monthlyMusicInputRef.current.value = '';
+        }
+        return;
+      }
+
+      // Warn for large files on mobile (over 5MB)
+      const warnSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > warnSize && isMobile) {
+        toast('Processing music file. This may take a moment...', {
+          duration: 3000,
+        });
+      }
+
+      // Clean up previous blob URL if exists and create new one
+      if (module === 'review') {
+        if (reviewMusic?.url) {
+          URL.revokeObjectURL(reviewMusic.url);
+        }
+        
+        // Create blob URL instead of storing File object
+        const blobUrl = URL.createObjectURL(file);
+        
+        // Store only metadata and blob URL, not the File object
+        setReviewMusic({
+          name: file.name,
+          size: file.size,
+          url: blobUrl
+        });
+        
+        // Reset the file input to prevent holding reference
+        if (reviewMusicInputRef.current) {
+          reviewMusicInputRef.current.value = '';
+        }
+        
+        toast.success('Music uploaded successfully');
+        haptics.success();
+      } else {
+        if (monthlyMusic?.url) {
+          URL.revokeObjectURL(monthlyMusic.url);
+        }
+        
+        // Create blob URL instead of storing File object
+        const blobUrl = URL.createObjectURL(file);
+        
+        // Store only metadata and blob URL, not the File object
+        setMonthlyMusic({
+          name: file.name,
+          size: file.size,
+          url: blobUrl
+        });
+        
+        // Reset the file input to prevent holding reference
+        if (monthlyMusicInputRef.current) {
+          monthlyMusicInputRef.current.value = '';
+        }
+        
+        toast.success('Music uploaded successfully');
+        haptics.success();
+      }
+    } catch (error) {
+      console.error('Error uploading music:', error);
+      toast.error('Failed to upload music. Please try again.');
+      haptics.error();
+      // Reset the file input on error
+      if (module === 'review' && reviewMusicInputRef.current) {
+        reviewMusicInputRef.current.value = '';
+      } else if (module === 'monthly' && monthlyMusicInputRef.current) {
+        monthlyMusicInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Handle music removal with proper cleanup
+  const handleRemoveMusic = (module: 'review' | 'monthly') => {
+    if (module === 'review') {
+      if (reviewMusic?.url) {
+        URL.revokeObjectURL(reviewMusic.url);
+      }
+      setReviewMusic(null);
+    } else {
+      if (monthlyMusic?.url) {
+        URL.revokeObjectURL(monthlyMusic.url);
+      }
+      setMonthlyMusic(null);
+    }
+    haptics.light();
+    toast.success('Music removed');
   };
 
   // Handle video download
@@ -927,7 +1251,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
           type: 'trailer_audio',
           placement: 'opening',
           startTime: 0,
-          duration: hookDuration,
+          duration: effectiveHookDuration,
           scene: openingScene?.type || 'opening_action_hook',
           sceneTimestamp: openingScene?.startTime,
           sceneLabels: openingScene?.labels,
@@ -937,7 +1261,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         });
         audioSegments.push({
           type: 'voiceover_with_music',
-          startTime: hookDuration,
+          startTime: effectiveHookDuration,
           duration: 12,
           fadeIn: crossfadeDuration,
           description: 'Main voiceover section with background music'
@@ -945,13 +1269,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       }
       
       if (hookPlacements.includes('mid-video')) {
-        const midStart = hookDuration + 12;
+        const midStart = effectiveHookDuration + 12;
         const midScene = analysis?.suggestedHooks.midVideo;
         audioSegments.push({
           type: 'trailer_audio',
           placement: 'mid-video',
           startTime: midStart,
-          duration: hookDuration,
+          duration: effectiveHookDuration,
           scene: midScene?.type || 'dramatic_moment',
           sceneTimestamp: midScene?.startTime,
           sceneLabels: midScene?.labels,
@@ -961,7 +1285,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         });
         audioSegments.push({
           type: 'voiceover_with_music',
-          startTime: midStart + hookDuration,
+          startTime: midStart + effectiveHookDuration,
           duration: 8,
           fadeIn: crossfadeDuration,
           includeRating: true,
@@ -970,13 +1294,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       }
       
       if (hookPlacements.includes('ending')) {
-        const endStart = hookDuration + 12 + hookDuration + 8;
+        const endStart = effectiveHookDuration + 12 + effectiveHookDuration + 8;
         const endingScene = analysis?.suggestedHooks.ending;
         audioSegments.push({
           type: 'trailer_audio',
           placement: 'ending',
           startTime: endStart,
-          duration: hookDuration,
+          duration: effectiveHookDuration,
           scene: endingScene?.type || 'closing_scene',
           sceneTimestamp: endingScene?.startTime,
           sceneLabels: endingScene?.labels,
@@ -1010,7 +1334,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         segments: audioSegments,
         trailer_audio_volume: trailerAudioVolume,
         crossfade_duration: crossfadeDuration,
-        hook_duration: hookDuration,
+        hook_duration: effectiveHookDuration,
         ai_analysis: analysis ? {
           total_scenes_detected: analysis.moments.length,
           total_duration: analysis.totalDuration,
@@ -1054,10 +1378,10 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         const mid = customMidVideoHook || analysis.suggestedHooks.midVideo;
         const ending = customEndingHook || analysis.suggestedHooks.ending;
         const customNote = (customOpeningHook || customMidVideoHook || customEndingHook) ? ' (custom selected)' : '';
-        trailerHooksText = ` Include AI-selected trailer audio hooks${customNote} at: ${hookPlacements.join(', ')}. Opening hook (${opening.startTime.toFixed(1)}s): ${opening.reason}. Mid-video hook (${mid.startTime.toFixed(1)}s): ${mid.reason}. Ending hook (${ending.startTime.toFixed(1)}s): ${ending.reason}. Each hook lasts ${hookDuration}s with ${crossfadeDuration}s crossfade. Variety style: ${audioVariety}.`;
+        trailerHooksText = ` Include AI-selected trailer audio hooks${customNote} at: ${hookPlacements.join(', ')}. Opening hook (${opening.startTime.toFixed(1)}s): ${opening.reason}. Mid-video hook (${mid.startTime.toFixed(1)}s): ${mid.reason}. Ending hook (${ending.startTime.toFixed(1)}s): ${ending.reason}. Each hook lasts ${effectiveHookDuration}s with ${crossfadeDuration}s crossfade. Variety style: ${audioVariety}.`;
       } else {
         // Without AI analysis
-        trailerHooksText = ` Include trailer audio hooks (original dialogue/voice) at: ${hookPlacements.join(', ')}. Each hook lasts ${hookDuration}s with ${crossfadeDuration}s crossfade. Variety style: ${audioVariety}.`;
+        trailerHooksText = ` Include trailer audio hooks (original dialogue/voice) at: ${hookPlacements.join(', ')}. Each hook lasts ${effectiveHookDuration}s with ${crossfadeDuration}s crossfade. Variety style: ${audioVariety}.`;
       }
     }
     
@@ -1399,12 +1723,14 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                       if (file) {
                         handleVoiceoverUpload(file, 'review');
                       }
+                      // Reset input to allow re-upload of same file
+                      e.target.value = '';
                     }}
                   />
                 </label>
                 {reviewDetectedTitles.length > 0 && (
-                  <div className="mt-2 px-3 py-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
-                    <p className="text-xs text-green-700 dark:text-green-400">
+                  <div className="mt-2 px-3 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <p className="text-xs text-black dark:text-white">
                       ✓ Detected {reviewDetectedTitles.length} {reviewDetectedTitles.length === 1 ? 'title' : 'titles'} from voiceover
                     </p>
                   </div>
@@ -1421,10 +1747,14 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                     {reviewMusic ? reviewMusic.name : 'Upload Music'}
                   </span>
                   <input
+                    ref={reviewMusicInputRef}
                     type="file"
                     accept="audio/*"
                     className="hidden"
-                    onChange={(e) => setReviewMusic(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      haptics.light();
+                      handleMusicUpload(e.target.files?.[0] || null, 'review');
+                    }}
                   />
                 </label>
               </div>
@@ -2117,12 +2447,14 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                       if (file) {
                         handleVoiceoverUpload(file, 'monthly');
                       }
+                      // Reset input to allow re-upload of same file
+                      e.target.value = '';
                     }}
                   />
                 </label>
                 {monthlyDetectedTitles.length > 0 && (
-                  <div className="mt-2 px-3 py-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-lg">
-                    <p className="text-xs text-green-700 dark:text-green-400">
+                  <div className="mt-2 px-3 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg">
+                    <p className="text-xs text-black dark:text-white">
                       ✓ Detected {monthlyDetectedTitles.length} {monthlyDetectedTitles.length === 1 ? 'title' : 'titles'} from voiceover
                     </p>
                   </div>
@@ -2139,10 +2471,14 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                     {monthlyMusic ? monthlyMusic.name : 'Upload Music'}
                   </span>
                   <input
+                    ref={monthlyMusicInputRef}
                     type="file"
                     accept="audio/*"
                     className="hidden"
-                    onChange={(e) => setMonthlyMusic(e.target.files?.[0] || null)}
+                    onChange={(e) => {
+                      haptics.light();
+                      handleMusicUpload(e.target.files?.[0] || null, 'monthly');
+                    }}
                   />
                 </label>
               </div>
@@ -2773,7 +3109,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         {!reviewTrailerAnalysis && monthlyTrailerAnalyses.length === 0 && !reviewIsAnalyzingTrailer && !monthlyIsAnalyzingTrailer && (
                           <Button
                             onClick={() => handleAnalyzeTrailer(activeModule)}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                            className="w-full bg-[#ec1e24] hover:bg-[#d11a20] text-white"
                             size="sm"
                           >
                             <Film className="w-4 h-4 mr-2" />
@@ -2782,9 +3118,9 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         )}
                         
                         {(reviewIsAnalyzingTrailer || monthlyIsAnalyzingTrailer) && (
-                          <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
-                            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                            <span className="text-sm text-blue-900 dark:text-blue-300">
+                          <div className="flex items-center justify-center gap-3 p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-xl">
+                            <div className="w-5 h-5 border-2 border-black dark:border-white border-t-transparent rounded-full animate-spin" />
+                            <span className="text-sm text-black dark:text-white">
                               Analyzing trailer scenes...
                             </span>
                           </div>
@@ -2892,18 +3228,37 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         <label className="text-gray-900 dark:text-white mb-2 block">
                           Hook Duration (s)
                         </label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="10"
-                          step="0.5"
-                          value={hookDuration}
-                          onChange={(e) => {
-                            setHookDuration(parseFloat(e.target.value));
-                            setPromptStatus('outdated');
-                          }}
-                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
-                        />
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsHookDurationAuto(!isHookDurationAuto);
+                              setPromptStatus('outdated');
+                            }}
+                            className={`px-4 py-3 rounded-xl transition-all ${
+                              isHookDurationAuto
+                                ? 'bg-[#ec1e24] text-white'
+                                : 'bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]'
+                            }`}
+                          >
+                            Auto
+                          </button>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            step="0.5"
+                            value={hookDuration}
+                            disabled={isHookDurationAuto}
+                            onChange={(e) => {
+                              setHookDuration(parseFloat(e.target.value));
+                              setPromptStatus('outdated');
+                            }}
+                            className={`flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24] ${
+                              isHookDurationAuto ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
+                          />
+                        </div>
                       </div>
 
                       <div>
@@ -2962,7 +3317,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                               {hookPlacements.includes('opening') && (
                                 <div 
                                   className="h-12 bg-blue-500/40 rounded flex items-center justify-center border-2 border-blue-500"
-                                  style={{ width: `${(hookDuration / 30) * 100}%` }}
+                                  style={{ width: `${(effectiveHookDuration / 30) * 100}%` }}
                                   title="Opening Trailer Hook"
                                 >
                                   <span className="text-xs text-white font-medium">🎬 Hook</span>
@@ -2979,7 +3334,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                                 <>
                                   <div 
                                     className="h-12 bg-blue-500/40 rounded flex items-center justify-center border-2 border-blue-500 mx-1"
-                                    style={{ width: `${(hookDuration / 30) * 100}%` }}
+                                    style={{ width: `${(effectiveHookDuration / 30) * 100}%` }}
                                     title="Mid-Video Trailer Hook"
                                   >
                                     <span className="text-xs text-white font-medium">🎬</span>
@@ -2996,7 +3351,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                               {hookPlacements.includes('ending') && (
                                 <div 
                                   className="h-12 bg-blue-500/40 rounded flex items-center justify-center border-2 border-blue-500 ml-auto"
-                                  style={{ width: `${(hookDuration / 30) * 100}%` }}
+                                  style={{ width: `${(effectiveHookDuration / 30) * 100}%` }}
                                   title="Ending Trailer Hook"
                                 >
                                   <span className="text-xs text-white font-medium">🎬 End</span>
@@ -3042,19 +3397,19 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                           <div className="absolute inset-0 flex items-center px-2 gap-1">
                             {/* Opening Hook */}
                             {hookPlacements.includes('opening') && (
-                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500" style={{ width: `${(hookDuration / 30) * 100}%` }} />
+                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500" style={{ width: `${(effectiveHookDuration / 30) * 100}%` }} />
                             )}
                             {/* First Voiceover */}
                             <div className="h-10 bg-[#ec1e24]/30 rounded" style={{ width: '35%' }} />
                             {/* Mid Hook */}
                             {hookPlacements.includes('mid-video') && (
-                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500" style={{ width: `${(hookDuration / 30) * 100}%` }} />
+                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500" style={{ width: `${(effectiveHookDuration / 30) * 100}%` }} />
                             )}
                             {/* Second Voiceover */}
                             <div className="h-10 bg-[#ec1e24]/30 rounded" style={{ width: '25%' }} />
                             {/* Ending Hook */}
                             {hookPlacements.includes('ending') && (
-                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500 ml-auto" style={{ width: `${(hookDuration / 30) * 100}%` }} />
+                              <div className="h-12 bg-blue-500/40 rounded border border-blue-500 ml-auto" style={{ width: `${(effectiveHookDuration / 30) * 100}%` }} />
                             )}
                           </div>
                         </div>

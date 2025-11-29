@@ -299,29 +299,19 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
                     </div>
                   )}
 
-                  {/* Download & Publishing Status */}
-                  {activity.status === 'completed' && (
+                  {/* Publishing Status */}
+                  {activity.status === 'completed' && activity.published && activity.platforms.length > 0 && (
                     <div className="flex flex-wrap items-center gap-2 mt-2">
-                      {/* Download Count */}
-                      {activity.downloads > 0 && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg">
-                          <Download className="w-3.5 h-3.5 text-gray-600 dark:text-[#9CA3AF]" />
-                          <span className="text-xs text-gray-600 dark:text-[#9CA3AF]">{activity.downloads} download{activity.downloads !== 1 ? 's' : ''}</span>
-                        </div>
-                      )}
-
-                      {/* Publishing Status */}
-                      {activity.published && activity.platforms.length > 0 ? (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#ec1e24]/10 border border-[#ec1e24]/30 rounded-lg">
-                          <Share2 className="w-3.5 h-3.5 text-[#ec1e24]" />
-                          <span className="text-xs text-[#ec1e24]">Published to {activity.platforms.join(', ')}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg">
-                          <Download className="w-3.5 h-3.5 text-gray-600 dark:text-[#9CA3AF]" />
-                          <span className="text-xs text-gray-600 dark:text-[#9CA3AF]">Download only</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {activity.platforms.map((platform) => (
+                          <span 
+                            key={platform}
+                            className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-[#1F1F1F] text-gray-700 dark:text-[#9CA3AF]"
+                          >
+                            {platform}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

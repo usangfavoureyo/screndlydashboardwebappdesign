@@ -591,28 +591,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
         )}
       </div>
 
-      {/* Timezone */}
-      <div>
-        <Label htmlFor="timezone" className="text-[#9CA3AF]">Generation Timezone</Label>
-        <Select
-          value={tmdbSettings.timezone}
-          onValueChange={(value) => updateSetting('timezone', value)}
-        >
-          <SelectTrigger id="timezone" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Africa/Lagos">Africa/Lagos (WAT)</SelectItem>
-            <SelectItem value="America/New_York">America/New_York (EST/EDT)</SelectItem>
-            <SelectItem value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</SelectItem>
-            <SelectItem value="Europe/London">Europe/London (GMT/BST)</SelectItem>
-            <SelectItem value="UTC">UTC</SelectItem>
-          </SelectContent>
-        </Select>
-        <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
-          All feed generation times will use this timezone
-        </p>
-      </div>
+
     </div>
   );
 }

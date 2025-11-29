@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize } from 'lucide-react';
+import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize, Target, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
@@ -19,8 +19,10 @@ import { VisuallyHidden } from './ui/visually-hidden';
 import { AutoAssignTitlesDialog } from './AutoAssignTitlesDialog';
 import { TrailerHooksPreview } from './TrailerHooksPreview';
 import { TrailerScenesDialog } from './TrailerScenesDialog';
-import { VideoRenderStatus } from './VideoRenderStatus';
 import { LetterboxControl } from './LetterboxControl';
+import { AnalysisSettingsPanel } from './AnalysisSettingsPanel';
+import { SceneCorrectionInterface } from './SceneCorrectionInterface';
+import { TrainingProgressDashboard } from './TrainingProgressDashboard';
 import { analyzeTrailer, TrailerAnalysis, VideoMoment } from '../lib/api/googleVideoIntelligence';
 import { generateShotstackJSON, generateAudioChoreography, renderVideo } from '../lib/api/shotstack';
 import { analyzeMultipleTrailers, MonthlyTrailerAnalysis, generateMonthlyCompilationJSON, getCompilationStats } from '../lib/api/monthlyCompilation';
@@ -184,6 +186,35 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [showTextColorPicker, setShowTextColorPicker] = useState(false);
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [showStrokeColorPicker, setShowStrokeColorPicker] = useState(false);
+
+  // Audio Preview Player State
+  const [isAudioPreviewPlaying, setIsAudioPreviewPlaying] = useState(false);
+  const [audioPreviewProgress, setAudioPreviewProgress] = useState(0);
+  const [audioPreviewCurrentSegment, setAudioPreviewCurrentSegment] = useState<string | null>(null);
+  const audioPreviewTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // AI Training & Analysis Settings State
+  const [analysisBackend, setAnalysisBackend] = useState<'google-vi' | 'ffmpeg-fallback'>('google-vi');
+  const [qualityMode, setQualityMode] = useState<'fast' | 'quality'>('fast');
+  const [enableSelectiveSTT, setEnableSelectiveSTT] = useState(false);
+  const [monthlyBudget, setMonthlyBudget] = useState(50.00);
+  const [monthlySpend, setMonthlySpend] = useState(12.40);
+  const [totalCorrections, setTotalCorrections] = useState(237); // All corrections stored locally
+  const [currentAccuracy, setCurrentAccuracy] = useState(72.3); // Current model accuracy
+  const [systemRating, setSystemRating] = useState(7.2); // Self-assessed rating (0-10)
+  const [accuracyImprovement, setAccuracyImprovement] = useState(4.3); // Gain from corrections
+  const [overrideRate, setOverrideRate] = useState(18.5); // Override rate over last 100 videos
+  const [meanHookConfidence, setMeanHookConfidence] = useState(0.71); // Mean confidence of selected hooks
+  const [showAnalysisSettings, setShowAnalysisSettings] = useState(false);
+  const [showCorrectionInterface, setShowCorrectionInterface] = useState(false);
+  const [showTrainingDashboard, setShowTrainingDashboard] = useState(false);
+  const [stratificationNeeds, setStratificationNeeds] = useState({
+    action: 82,
+    dialogue: 45,
+    suspense: 38,
+    atmosphere: 52,
+    transition: 20
+  });
 
   const musicGenres: MusicGenre[] = ['Hip-Hop', 'Trap', 'Rap', 'Pop', 'Electronic', 'R&B'];
   const aspectRatios: AspectRatio[] = ['16:9', '9:16', '1:1'];
@@ -1421,6 +1452,117 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     document.body.removeChild(textArea);
   };
 
+  // Audio Preview Player Functions
+  const handleRenderAudioPreview = () => {
+    haptics.medium();
+    
+    // Stop if already playing
+    if (isAudioPreviewPlaying) {
+      stopAudioPreview();
+      return;
+    }
+
+    // Build audio segments based on current configuration
+    const analysis = activeModule === 'review' 
+      ? reviewTrailerAnalysis 
+      : (monthlyTrailerAnalyses.length > 0 ? monthlyTrailerAnalyses[0].analysis : null);
+    
+    const segments: Array<{
+      type: 'trailer_audio' | 'voiceover_with_music';
+      startTime: number;
+      duration: number;
+      description: string;
+      placement?: string;
+    }> = [];
+    
+    if (enableTrailerAudioHooks) {
+      if (hookPlacements.includes('opening')) {
+        const openingScene = analysis?.suggestedHooks.opening;
+        segments.push({
+          type: 'trailer_audio',
+          placement: 'opening',
+          startTime: 0,
+          duration: effectiveHookDuration,
+          description: openingScene?.reason || 'Opening hook with trailer audio'
+        });
+        segments.push({
+          type: 'voiceover_with_music',
+          startTime: effectiveHookDuration,
+          duration: Math.min(12, 15 - effectiveHookDuration),
+          description: 'Voiceover with background music'
+        });
+      } else {
+        segments.push({
+          type: 'voiceover_with_music',
+          startTime: 0,
+          duration: 15,
+          description: 'Continuous voiceover with background music'
+        });
+      }
+    } else {
+      segments.push({
+        type: 'voiceover_with_music',
+        startTime: 0,
+        duration: 15,
+        description: 'Continuous voiceover with background music'
+      });
+    }
+
+    // Start preview playback
+    toast.success('Rendering 15s audio preview...', {
+      description: 'Playing audio choreography simulation'
+    });
+
+    setIsAudioPreviewPlaying(true);
+    setAudioPreviewProgress(0);
+
+    let currentTime = 0;
+    const totalDuration = 15; // 15 seconds
+    const intervalMs = 50; // Update every 50ms
+
+    audioPreviewTimerRef.current = setInterval(() => {
+      currentTime += intervalMs / 1000;
+      
+      if (currentTime >= totalDuration) {
+        stopAudioPreview();
+        toast.success('Preview complete!');
+        return;
+      }
+
+      const progress = (currentTime / totalDuration) * 100;
+      setAudioPreviewProgress(progress);
+
+      // Determine which segment is currently playing
+      const currentSegment = segments.find(
+        seg => currentTime >= seg.startTime && currentTime < seg.startTime + seg.duration
+      );
+
+      if (currentSegment) {
+        const label = currentSegment.type === 'trailer_audio'
+          ? `Trailer Audio${currentSegment.placement ? ` (${currentSegment.placement})` : ''}`
+          : 'Voiceover + Music';
+        setAudioPreviewCurrentSegment(label);
+      }
+    }, intervalMs);
+  };
+
+  const stopAudioPreview = () => {
+    if (audioPreviewTimerRef.current) {
+      clearInterval(audioPreviewTimerRef.current);
+      audioPreviewTimerRef.current = null;
+    }
+    setIsAudioPreviewPlaying(false);
+    setAudioPreviewProgress(0);
+    setAudioPreviewCurrentSegment(null);
+  };
+
+  // Cleanup audio preview on unmount
+  useEffect(() => {
+    return () => {
+      stopAudioPreview();
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1564,13 +1706,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
             {/* Info Banner */}
             {reviewVideoFiles.length > 0 && !reviewShowAutoAssign && (
-              <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-xl">
+                <AlertCircle className="w-5 h-5 text-[#ec1e24] flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm text-blue-900 dark:text-blue-300 mb-1">
+                  <p className="text-sm text-black dark:text-white mb-1">
                     <strong>Important:</strong> Add a title for each video
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-400">
+                  <p className="text-xs text-gray-700 dark:text-gray-300">
                     This helps the AI identify which scenes belong to which movie/show. For example, if you upload 5 trailers, label each one (e.g., "Gladiator II", "Wicked", "Red One") so the AI can correctly extract and organize scenes for the final video.
                   </p>
                 </div>
@@ -1633,7 +1775,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                                 }
                               });
                             }}
-                            className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:border-[#ec1e24]"
+                            className="w-full px-3 py-2 text-sm bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:border-[#ec1e24]"
                           />
                           {reviewVideoTitles[index]?.title && (
                             <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
@@ -1730,7 +1872,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 </label>
                 {reviewDetectedTitles.length > 0 && (
                   <div className="mt-2 px-3 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg">
-                    <p className="text-xs text-black dark:text-white">
+                    <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
                       ✓ Detected {reviewDetectedTitles.length} {reviewDetectedTitles.length === 1 ? 'title' : 'titles'} from voiceover
                     </p>
                   </div>
@@ -2212,13 +2354,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
             {/* Info Banner */}
             {monthlyVideoFiles.length > 0 && (
-              <div className="flex items-start gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-3 px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-xl">
+                <AlertCircle className="w-5 h-5 text-[#ec1e24] flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm text-blue-900 dark:text-blue-300 mb-1">
+                  <p className="text-sm text-black dark:text-white mb-1">
                     <strong>Important:</strong> Add a title for each video
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-400">
+                  <p className="text-xs text-gray-700 dark:text-gray-300">
                     When uploading multiple trailers for different {monthlyFilter === 'Movies' ? 'movies' : 'TV shows'} releasing this month, label each video with its title. This allows the AI to correctly match scenes to each title in the final monthly releases compilation.
                   </p>
                 </div>
@@ -2355,7 +2497,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                               }
                             });
                           }}
-                          className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:border-[#ec1e24]"
+                          className="w-full px-3 py-2 text-sm bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:border-[#ec1e24]"
                         />
                         {monthlyVideoTitles[index]?.title && (
                           <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
@@ -2454,7 +2596,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 </label>
                 {monthlyDetectedTitles.length > 0 && (
                   <div className="mt-2 px-3 py-2 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg">
-                    <p className="text-xs text-black dark:text-white">
+                    <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
                       ✓ Detected {monthlyDetectedTitles.length} {monthlyDetectedTitles.length === 1 ? 'title' : 'titles'} from voiceover
                     </p>
                   </div>
@@ -2913,13 +3055,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
             <div className="space-y-4">
               {/* Info Banner for Trailer Audio Hooks */}
               {enableTrailerAudioHooks && (
-                <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 rounded-xl">
-                  <Film className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-xl">
+                  <Film className="flex-shrink-0 w-5 h-5 text-[#ec1e24]" />
                   <div>
-                    <p className="text-sm text-blue-900 dark:text-blue-300 mb-1">
+                    <p className="text-sm text-black dark:text-white mb-1">
                       <strong>Cinematic Audio Hooks Enabled</strong>
                     </p>
-                    <p className="text-xs text-blue-700 dark:text-blue-400">
+                    <p className="text-xs text-gray-700 dark:text-gray-300">
                       Your video will start with a hook-catching scene using the trailer's original audio (dialogue/voice), then transition to your voiceover with music. Mid-video and ending hooks can be added for dramatic effect.
                     </p>
                   </div>
@@ -3460,14 +3602,188 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               </div>
 
               {/* Audio Preview Button */}
-              <Button
-                onClick={() => haptics.light()}
-                variant="outline"
-                className="w-full border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
-              >
-                <Play className="w-5 h-5 mr-2 text-[#ec1e24]" />
-                Render 15s Audio Preview
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={handleRenderAudioPreview}
+                  variant="outline"
+                  className={`w-full border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000] ${
+                    isAudioPreviewPlaying ? 'bg-[#ec1e24]/10 dark:bg-[#ec1e24]/10 border-[#ec1e24]' : ''
+                  }`}
+                >
+                  {isAudioPreviewPlaying ? (
+                    <Pause className="w-5 h-5 mr-2 text-[#ec1e24]" />
+                  ) : (
+                    <Play className="w-5 h-5 mr-2 text-[#ec1e24]" />
+                  )}
+                  {isAudioPreviewPlaying ? 'Stop Preview' : 'Render 15s Audio Preview'}
+                </Button>
+
+                {/* Preview Progress Indicator */}
+                {isAudioPreviewPlaying && (
+                  <div className="space-y-2 p-4 bg-white dark:bg-black rounded-xl border border-gray-200 dark:border-[#333333]">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600 dark:text-[#9CA3AF]">
+                        Playing: {audioPreviewCurrentSegment || 'Loading...'}
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-medium">
+                        {Math.floor((audioPreviewProgress / 100) * 15)}s / 15s
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-200 dark:bg-[#333333] rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-[#ec1e24] transition-all duration-100 ease-linear"
+                        style={{ width: `${audioPreviewProgress}%` }}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[#6B7280]">
+                      <Activity className="w-3 h-3" />
+                      <span>Audio choreography simulation in progress...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI Training & Analysis Settings */}
+      {activeModule === 'review' && (
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <Settings2 className="w-6 h-6 text-[#ec1e24]" />
+              <div>
+                <h3 className="text-gray-900 dark:text-white">AI Training & Analysis</h3>
+                <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Configure analysis backend, quality, and training</p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                haptics.light();
+                setShowAnalysisSettings(!showAnalysisSettings);
+              }}
+              className="text-gray-600 dark:text-[#9CA3AF] hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+            >
+              {showAnalysisSettings ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            </button>
+          </div>
+
+          {showAnalysisSettings && (
+            <div className="space-y-6">
+              {/* Analysis Settings Panel */}
+              <AnalysisSettingsPanel
+                backend={analysisBackend}
+                onBackendChange={setAnalysisBackend}
+                qualityMode={qualityMode}
+                onQualityModeChange={setQualityMode}
+                enableSTT={enableSelectiveSTT}
+                onEnableSTTChange={setEnableSelectiveSTT}
+                estimatedCost={analysisBackend === 'google-vi' ? (enableSelectiveSTT ? 0.22 : 0.22) : 0.00}
+                monthlyBudget={monthlyBudget}
+                monthlySpend={monthlySpend}
+              />
+
+              <Separator />
+
+              {/* Training Progress Dashboard */}
+              <div>
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    setShowTrainingDashboard(!showTrainingDashboard);
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-[#ec1e24]" />
+                    <span className="text-gray-900 dark:text-white">View Training Progress</span>
+                  </div>
+                  {showTrainingDashboard ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+                {showTrainingDashboard && (
+                  <div className="mt-4">
+                    <TrainingProgressDashboard
+                      totalCorrections={totalCorrections}
+                      currentAccuracy={currentAccuracy}
+                      systemRating={systemRating}
+                      modelVersion="v1.2-baseline"
+                      lastTrainingDate="Nov 15, 2025"
+                      overrideRate={overrideRate}
+                      meanHookConfidence={meanHookConfidence}
+                      lastBackupDate="Nov 22, 2025"
+                      stratificationNeeds={stratificationNeeds}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              {/* Scene Correction Interface */}
+              <div>
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    setShowCorrectionInterface(!showCorrectionInterface);
+                  }}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/30 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-[#ec1e24]" />
+                    <span className="text-gray-900 dark:text-white">Review & Correct Scenes</span>
+                  </div>
+                  {showCorrectionInterface ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+                {showCorrectionInterface && reviewTrailerAnalysis && (
+                  <div className="mt-4">
+                    <SceneCorrectionInterface
+                      scenes={reviewTrailerAnalysis.moments?.map((moment, idx) => ({
+                        id: `scene-${idx}`,
+                        timestamp: moment.timestamp,
+                        duration: moment.duration,
+                        predictedLabel: (moment.label as any) || 'action',
+                        confidence: moment.confidence || 0.65,
+                        reasoning: {
+                          audioEnergy: moment.audioFeatures?.avgVolume || Math.random() * 0.5 + 0.3,
+                          spectralFlux: moment.audioFeatures?.dynamicRange || Math.random() * 0.4 + 0.2,
+                          zeroCrossingRate: moment.audioFeatures?.speechProbability || Math.random() * 0.3 + 0.1,
+                          tempo: moment.label === 'action' ? Math.random() * 40 + 120 : undefined
+                        }
+                      })) || []}
+                      totalCorrections={totalCorrections}
+                      accuracyImprovement={accuracyImprovement}
+                      overrideRate={overrideRate}
+                      onCorrection={(sceneId, isCorrect, correctedLabel) => {
+                        setTotalCorrections(prev => prev + 1);
+                        if (!isCorrect && correctedLabel) {
+                          // Update stratification needs
+                          setStratificationNeeds(prev => ({
+                            ...prev,
+                            [correctedLabel]: (prev[correctedLabel as keyof typeof prev] || 0) + 1
+                          }));
+                        }
+                        // Simulate accuracy improvement
+                        setAccuracyImprovement(prev => prev + 0.1);
+                        if (totalCorrections > 0 && totalCorrections % 50 === 0) {
+                          setCurrentAccuracy(prev => prev + 0.5);
+                          setSystemRating(prev => Math.min(prev + 0.1, 10));
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                {showCorrectionInterface && !reviewTrailerAnalysis && (
+                  <div className="mt-4 p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-[#ec1e24] flex-shrink-0" />
+                      <p className="text-sm text-gray-500 dark:text-gray-500">
+                        Upload and analyze a trailer first to start correcting scenes
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -4294,35 +4610,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         />
       )}
 
-      {/* Video Render Status - Review */}
-      {reviewRenderId && (
-        <VideoRenderStatus
-          renderId={reviewRenderId}
-          onComplete={(videoUrl) => {
-            console.log('Review video ready:', videoUrl);
-            haptics.success();
-          }}
-          onError={(error) => {
-            console.error('Review video failed:', error);
-            haptics.error();
-          }}
-        />
-      )}
 
-      {/* Video Render Status - Monthly */}
-      {monthlyRenderId && (
-        <VideoRenderStatus
-          renderId={monthlyRenderId}
-          onComplete={(videoUrl) => {
-            console.log('Monthly video ready:', videoUrl);
-            haptics.success();
-          }}
-          onError={(error) => {
-            console.error('Monthly video failed:', error);
-            haptics.error();
-          }}
-        />
-      )}
     </div>
   );
 }

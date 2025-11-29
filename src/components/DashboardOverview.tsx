@@ -481,6 +481,65 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
         </div>
       </div>
 
+      {/* Upload Manager */}
+      <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <HardDrive className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <h3 className="text-gray-900 dark:text-white">Upload Manager</h3>
+              <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Video upload pipeline</p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+            onClick={() => {
+              haptics.light();
+              onNavigate('upload-manager', 'dashboard');
+            }}
+          >
+            View all
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <p className="text-2xl text-gray-900 dark:text-white mb-1">8</p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Active Uploads</p>
+          </div>
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <p className="text-2xl text-gray-900 dark:text-white mb-1">47</p>
+            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Completed Today</p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <h4 className="text-sm text-gray-900 dark:text-white">Pipeline Status</h4>
+          {[
+            { title: 'Dune_Part_Three_Trailer.mp4', stage: 'Encoding', progress: 78 },
+            { title: 'Gladiator_II_Final_Trailer.mp4', stage: 'Generating Metadata', progress: 45 },
+            { title: 'Avatar_3_Teaser.mp4', stage: 'Uploading', progress: 92 },
+          ].map((item, index) => (
+            <div key={index} className="p-3 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-sm text-gray-900 dark:text-white">{item.title}</p>
+                  <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">{item.stage}</p>
+                </div>
+                <span className="text-xs text-gray-900 dark:text-white">{item.progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 dark:bg-[#0A0A0A] rounded-full h-1.5">
+                <div 
+                  className="bg-[#ec1e24] h-1.5 rounded-full transition-all duration-500" 
+                  style={{ width: `${item.progress}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* API Usage */}
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
         <div className="flex items-center justify-between mb-6">

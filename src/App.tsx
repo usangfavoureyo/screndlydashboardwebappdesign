@@ -23,6 +23,7 @@ import { DataDeletionPage } from "./components/DataDeletionPage";
 import { AppInfoPage } from "./components/AppInfoPage";
 import { APIUsage } from "./components/APIUsage";
 import { CommentAutomationPage } from "./components/CommentAutomationPage";
+import { UploadManagerPage } from "./components/jobs/UploadManagerPage";
 import { Navigation } from "./components/Navigation";
 import { MobileBottomNav } from "./components/MobileBottomNav";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -458,6 +459,7 @@ export default function App() {
                 {currentPage === "app-info" && <AppInfoPage onNavigate={handleNavigate} />}
                 {currentPage === "api-usage" && <APIUsage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} />}
                 {currentPage === "comment-automation" && <CommentAutomationPage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} />}
+                {currentPage === "upload-manager" && <UploadManagerPage onBack={() => handleNavigate(previousPage || "dashboard")} />}
               </div>
             </main>
             <MobileBottomNav

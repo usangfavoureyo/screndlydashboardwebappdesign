@@ -1,6 +1,7 @@
 import { Sparkles, Clock, Film, RotateCcw } from 'lucide-react';
 import { TrailerAnalysis, VideoMoment } from '../lib/api/googleVideoIntelligence';
 import { Button } from './ui/button';
+import { getSceneTypeLabel, getSceneTypeBadgeColor } from '../lib/analysis/sceneClassification';
 
 interface TrailerHooksPreviewProps {
   analysis: TrailerAnalysis;
@@ -34,15 +35,15 @@ export function TrailerHooksPreview({
 
   const getTypeColor = (type: string): string => {
     const colors: { [key: string]: string} = {
-      'action_peak': 'bg-red-500',
-      'dramatic_dialogue': 'bg-purple-500',
-      'character_moment': 'bg-blue-500',
-      'title_card': 'bg-yellow-500',
-      'establishing_shot': 'bg-green-500',
-      'suspense_moment': 'bg-orange-500',
-      'general': 'bg-gray-500'
+      'action_peak': 'bg-[#ec1e24]',
+      'dramatic_dialogue': 'bg-[#ec1e24]',
+      'character_moment': 'bg-[#ec1e24]',
+      'title_card': 'bg-[#ec1e24]',
+      'establishing_shot': 'bg-[#ec1e24]',
+      'suspense_moment': 'bg-[#ec1e24]',
+      'general': 'bg-[#ec1e24]'
     };
-    return colors[type] || 'bg-gray-500';
+    return colors[type] || 'bg-[#ec1e24]';
   };
   
   // Use custom hooks if available, otherwise use AI suggestions
@@ -65,11 +66,6 @@ export function TrailerHooksPreview({
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#ec1e24]" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Opening Hook</span>
-                {customOpeningHook && (
-                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
-                    Custom ✓
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 text-[#ec1e24]" />
@@ -79,13 +75,18 @@ export function TrailerHooksPreview({
               </div>
             </div>
             
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`${getTypeColor(openingHook.type)} text-white text-xs px-2 py-0.5 rounded`}>
-                {formatType(openingHook.type)}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className={`${getSceneTypeBadgeColor(openingHook.type as any)} text-xs px-2 py-0.5 rounded font-medium`}>
+                {getSceneTypeLabel(openingHook.type as any)}
               </span>
-              <span className="text-xs text-gray-600">
-                {openingHook.labels.slice(0, 3).join(', ')}
+              <span className="bg-gray-100 dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 text-xs px-2 py-0.5 rounded">
+                {Math.round(openingHook.confidence * 100)}%
               </span>
+              {openingHook.reason && (
+                <span className="text-xs text-gray-600 dark:text-gray-400 italic">
+                  {openingHook.reason}
+                </span>
+              )}
             </div>
             
             <div className="relative h-20 bg-gray-900 rounded overflow-hidden">
@@ -116,11 +117,6 @@ export function TrailerHooksPreview({
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#ec1e24]" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Mid-Video Hook</span>
-                {customMidVideoHook && (
-                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
-                    Custom ✓
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 text-[#ec1e24]" />
@@ -130,13 +126,18 @@ export function TrailerHooksPreview({
               </div>
             </div>
             
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`${getTypeColor(midVideoHook.type)} text-white text-xs px-2 py-0.5 rounded`}>
-                {formatType(midVideoHook.type)}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className={`${getSceneTypeBadgeColor(midVideoHook.type as any)} text-xs px-2 py-0.5 rounded font-medium`}>
+                {getSceneTypeLabel(midVideoHook.type as any)}
               </span>
-              <span className="text-xs text-gray-600">
-                {midVideoHook.labels.slice(0, 3).join(', ')}
+              <span className="bg-gray-100 dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 text-xs px-2 py-0.5 rounded">
+                {Math.round(midVideoHook.confidence * 100)}%
               </span>
+              {midVideoHook.reason && (
+                <span className="text-xs text-gray-600 dark:text-gray-400 italic">
+                  {midVideoHook.reason}
+                </span>
+              )}
             </div>
             
             <div className="relative h-20 bg-gray-900 rounded overflow-hidden">
@@ -167,11 +168,6 @@ export function TrailerHooksPreview({
               <div className="flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#ec1e24]" />
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Ending Hook</span>
-                {customEndingHook && (
-                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">
-                    Custom ✓
-                  </span>
-                )}
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-3 h-3 text-[#ec1e24]" />
@@ -181,13 +177,18 @@ export function TrailerHooksPreview({
               </div>
             </div>
             
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`${getTypeColor(endingHook.type)} text-white text-xs px-2 py-0.5 rounded`}>
-                {formatType(endingHook.type)}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className={`${getSceneTypeBadgeColor(endingHook.type as any)} text-xs px-2 py-0.5 rounded font-medium`}>
+                {getSceneTypeLabel(endingHook.type as any)}
               </span>
-              <span className="text-xs text-gray-600">
-                {endingHook.labels.slice(0, 3).join(', ')}
+              <span className="bg-gray-100 dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 text-xs px-2 py-0.5 rounded">
+                {Math.round(endingHook.confidence * 100)}%
               </span>
+              {endingHook.reason && (
+                <span className="text-xs text-gray-600 dark:text-gray-400 italic">
+                  {endingHook.reason}
+                </span>
+              )}
             </div>
             
             <div className="relative h-20 bg-gray-900 rounded overflow-hidden">

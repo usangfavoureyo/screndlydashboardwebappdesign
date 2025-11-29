@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { TrailerAnalysis, VideoMoment } from '../lib/api/googleVideoIntelligence';
-import { Clock, Tag, Zap } from 'lucide-react';
+import { Clock, Tag, Zap, Volume2, Activity } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 import { useState } from 'react';
+import { getSceneTypeLabel, getSceneTypeBadgeColor } from '../lib/analysis/sceneClassification';
 
 interface TrailerScenesDialogProps {
   open: boolean;
@@ -32,15 +33,15 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
 
   const getTypeColor = (type: string): string => {
     const colors: { [key: string]: string } = {
-      'action_peak': 'bg-red-500',
-      'dramatic_dialogue': 'bg-purple-500',
-      'character_moment': 'bg-blue-500',
-      'title_card': 'bg-yellow-500',
-      'establishing_shot': 'bg-green-500',
-      'suspense_moment': 'bg-orange-500',
-      'general': 'bg-gray-500'
+      'action_peak': 'bg-[#ec1e24]',
+      'dramatic_dialogue': 'bg-[#ec1e24]',
+      'character_moment': 'bg-[#ec1e24]',
+      'title_card': 'bg-[#ec1e24]',
+      'establishing_shot': 'bg-[#ec1e24]',
+      'suspense_moment': 'bg-[#ec1e24]',
+      'general': 'bg-[#ec1e24]'
     };
-    return colors[type] || 'bg-gray-500';
+    return colors[type] || 'bg-[#ec1e24]';
   };
 
   const getIntensityLabel = (score: number): string => {
@@ -51,10 +52,10 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
   };
 
   const getIntensityColor = (score: number): string => {
-    if (score >= 0.8) return 'text-red-600';
-    if (score >= 0.6) return 'text-orange-600';
-    if (score >= 0.4) return 'text-yellow-600';
-    return 'text-green-600';
+    if (score >= 0.8) return 'text-[#ec1e24]';
+    if (score >= 0.6) return 'text-[#ec1e24]';
+    if (score >= 0.4) return 'text-[#ec1e24]';
+    return 'text-[#ec1e24]';
   };
 
   const handleSelectHook = (moment: VideoMoment, hookType: 'opening' | 'midVideo' | 'ending') => {
@@ -110,7 +111,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#000000]">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">All Detected Scenes</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
+          <DialogDescription className="text-xs sm:text-sm text-gray-600 dark:text-[#9CA3AF]">
             Browse {analysis.moments.length} scenes detected by AI. Select hooks and click Save.
           </DialogDescription>
         </DialogHeader>
@@ -142,7 +143,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
                     hasPendingSelection
                       ? 'border-[#ec1e24] bg-red-50 dark:bg-[#000000] dark:border-[#ec1e24]'
                       : isSelectedHook 
-                      ? 'border-blue-500 bg-blue-50 dark:bg-[#000000] dark:border-blue-600' 
+                      ? 'border-[#ec1e24] bg-red-50 dark:bg-[#000000] dark:border-[#ec1e24]' 
                       : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-[#000000] hover:bg-gray-50 dark:hover:bg-[#000000]'
                   }`}
                 >
@@ -159,7 +160,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
                         <div className="absolute inset-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50"></div>
                         {(isSelectedHook || hasPendingSelection) && (
                           <div className={`absolute top-1 right-1 text-white text-xs px-2 py-0.5 rounded ${
-                            hasPendingSelection ? 'bg-[#ec1e24]' : 'bg-blue-600'
+                            hasPendingSelection ? 'bg-[#ec1e24]' : 'bg-[#ec1e24]'
                           }`}>
                             {(isPendingOpening || isOpeningHook) && 'Opening'}
                             {(isPendingMid || isMidHook) && 'Mid'}
@@ -191,29 +192,53 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
                         </div>
                       </div>
                       
-                      {/* Type and Dialogue Badge */}
+                      {/* Type Badge with Confidence */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`${getTypeColor(moment.type)} text-white text-xs px-2 py-1 rounded whitespace-nowrap`}>
-                          {formatType(moment.type)}
+                        <span className={`${getSceneTypeBadgeColor(moment.type as any)} text-xs px-2 py-1 rounded whitespace-nowrap font-medium`}>
+                          {getSceneTypeLabel(moment.type as any)}
+                        </span>
+                        <span className="bg-gray-100 dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded whitespace-nowrap">
+                          {Math.round(moment.confidence * 100)}% confident
                         </span>
                         {moment.hasDialogue && (
-                          <span className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-200 text-xs px-2 py-1 rounded whitespace-nowrap">
-                            Has Dialogue
+                          <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs px-2 py-1 rounded whitespace-nowrap flex items-center gap-1">
+                            <Volume2 className="w-3 h-3" />
+                            Speech
                           </span>
                         )}
                       </div>
                       
-                      {/* Labels */}
-                      <div className="flex items-start gap-2">
-                        <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
-                        <div className="flex flex-wrap gap-1">
-                          {moment.labels.map((label, i) => (
-                            <span key={i} className="text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">
-                              {label}
-                            </span>
-                          ))}
+                      {/* Audio Features (if available) */}
+                      {moment.audioFeatures && (
+                        <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                          <div className="flex items-center gap-1">
+                            <Volume2 className="w-3 h-3" />
+                            <span>Vol: {Math.round(moment.audioFeatures.avgVolume * 100)}%</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Activity className="w-3 h-3" />
+                            <span>Range: {Math.round(moment.audioFeatures.dynamicRange * 100)}%</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Volume2 className="w-3 h-3" />
+                            <span>Speech: {Math.round(moment.audioFeatures.speechProbability * 100)}%</span>
+                          </div>
                         </div>
-                      </div>
+                      )}
+                      
+                      {/* Labels */}
+                      {moment.labels && moment.labels.length > 0 && (
+                        <div className="flex items-start gap-2">
+                          <Tag className="w-4 h-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex flex-wrap gap-1">
+                            {moment.labels.map((label, i) => (
+                              <span key={i} className="text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-[#1a1a1a] px-2 py-0.5 rounded">
+                                {label}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       
                       {/* Action Buttons - Stack on mobile, horizontal on desktop */}
                       {onSelectScene && (
@@ -226,7 +251,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
                                 ? 'bg-[#ec1e24] border-[#ec1e24] text-white hover:bg-[#d11a20]'
                                 : isAssignedToAnyHook
                                 ? 'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                : 'bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800'
+                                : 'bg-white dark:bg-black border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800'
                             }`}
                           >
                             {isPendingOpening ? '✓ Opening Hook (click to unselect)' : 'Use as Opening Hook'}
@@ -239,7 +264,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
                                 ? 'bg-[#ec1e24] border-[#ec1e24] text-white hover:bg-[#d11a20]'
                                 : isAssignedToAnyHook
                                 ? 'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                : 'bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800'
+                                : 'bg-white dark:bg-black border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800'
                             }`}
                           >
                             {isPendingMid ? '✓ Mid Hook (click to unselect)' : 'Use as Mid Hook'}
@@ -252,7 +277,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
                                 ? 'bg-[#ec1e24] border-[#ec1e24] text-white hover:bg-[#d11a20]'
                                 : isAssignedToAnyHook
                                 ? 'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
-                                : 'bg-white dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800'
+                                : 'bg-white dark:bg-black border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 active:bg-gray-100 dark:active:bg-gray-800'
                             }`}
                           >
                             {isPendingEnding ? '✓ End Hook (click to unselect)' : 'Use as End Hook'}
@@ -270,14 +295,14 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
         <DialogFooter className="flex-shrink-0 pt-4 border-t border-gray-200 dark:border-gray-800">
           <button
             onClick={handleCancel}
-            className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-950 rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+            className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 bg-white dark:bg-black rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={Object.keys(pendingSelections).length === 0}
-            className="px-4 py-2 text-sm bg-[#ec1e24] text-white rounded hover:bg-[#d11a20] active:bg-[#c01018] transition-colors disabled:bg-[#ec1e24]/50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm bg-[#ec1e24] text-white rounded hover:bg-[#ec1e24] active:bg-[#ec1e24] transition-colors disabled:bg-[#ec1e24] disabled:cursor-not-allowed"
           >
             Save Hooks
           </button>

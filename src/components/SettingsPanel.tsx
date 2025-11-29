@@ -1,4 +1,4 @@
-import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell, Film, Search, Download } from 'lucide-react';
+import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell, Film, Search, Download, Globe } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Input } from './ui/input';
@@ -22,6 +22,7 @@ import { HapticSettings } from './settings/HapticSettings';
 import { AppearanceSettings } from './settings/AppearanceSettings';
 import { NotificationsSettings } from './settings/NotificationsSettings';
 import { PWASettings } from './settings/PWASettings';
+import { TimezoneSettings } from './settings/TimezoneSettings';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -68,9 +69,13 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
       openaiKey: '••••••••••••••••',
       serperKey: '••••••••••••••••',
       tmdbKey: '••••••••••••••••',
+      googleVideoIntelligenceKey: '••••••••••••••••',
+      shotstackKey: '••••••••••••••••',
       s3Key: '••••••••••••••••',
       redisUrl: 'redis://localhost:6379',
       databaseUrl: 'postgresql://localhost/screndly',
+      videoGoogleSearchApiKey: '',
+      videoGoogleSearchCx: '',
       
       // Video
       fetchInterval: '10',
@@ -204,6 +209,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
     { id: 'rss', label: 'RSS Feeds', icon: Rss, keywords: ['rss', 'feed', 'posting', 'image', 'platform', 'deduplication', 'fetch'] },
     { id: 'tmdb', label: 'TMDb Feeds', icon: Clapperboard, keywords: ['tmdb', 'movie', 'database', 'feeds', 'anniversary', 'scheduler'] },
     { id: 'videostudio', label: 'Video Studio', icon: Film, keywords: ['video', 'studio', 'generation', 'llm', 'vizla', 'gpt', 'openai', 'caption'] },
+    { id: 'timezone', label: 'Timezone', icon: Globe, keywords: ['timezone', 'time', 'zone', 'schedule', 'scheduling', 'generation', 'feeds', 'utc', 'gmt'] },
     { id: 'error', label: 'Error Handling', icon: AlertCircle, keywords: ['error', 'handling', 'retry', 'logging', 'failure', 'alert'] },
     { id: 'cleanup', label: 'Cleanup', icon: Trash2, keywords: ['cleanup', 'storage', 'retention', 'maintenance', 'delete', 'purge'] },
     { id: 'haptic', label: 'Haptic Feedback', icon: Smartphone, keywords: ['haptic', 'vibration', 'feedback', 'mobile', 'touch'] },
@@ -385,6 +391,18 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
           onClick={() => setActiveSettingsPage(null)}
         />
         <PWASettings onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
+  if (activeSettingsPage === 'timezone') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <TimezoneSettings onBack={() => setActiveSettingsPage(null)} />
       </>
     );
   }

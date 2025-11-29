@@ -27,7 +27,7 @@ export function LetterboxControl({
   return (
     <div className="space-y-3">
       {/* Remove Letterbox Toggle */}
-      <div className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border border-gray-200 dark:border-[#333333]">
+      <div className="flex items-start gap-3 p-3 bg-white dark:bg-[#000000] rounded-lg border border-gray-200 dark:border-[#333333]">
         <Checkbox
           id={id}
           checked={removeLetterbox}
@@ -41,7 +41,6 @@ export function LetterboxControl({
           className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1"
         >
           <div className="flex items-center gap-2 mb-1">
-            <Maximize className="w-4 h-4 text-[#ec1e24]" />
             <span className="font-medium">Remove Letterbox (Scale to Fill)</span>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -52,7 +51,7 @@ export function LetterboxControl({
 
       {/* Autoframing Toggle - Only shows when letterbox removal is enabled */}
       {removeLetterbox && onAutoframingToggle !== undefined && (
-        <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800/30 ml-6">
+        <div className="flex items-start gap-3 p-3 bg-white dark:bg-[#000000] rounded-lg border border-gray-200 dark:border-[#333333] ml-6">
           <Checkbox
             id={`${id}-autoframing`}
             checked={enableAutoframing}
@@ -66,7 +65,7 @@ export function LetterboxControl({
             className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1"
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium">🎯 AI Autoframing (Beta)</span>
+              <span className="font-medium">AI Autoframing (Beta)</span>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               Intelligently centers faces and action when cropping. Uses AI to detect and track important subjects.

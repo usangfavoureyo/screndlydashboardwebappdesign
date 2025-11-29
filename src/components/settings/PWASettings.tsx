@@ -166,11 +166,9 @@ export function PWASettings({ onBack }: PWASettingsProps) {
       <div className="p-6 space-y-6">
         {/* Development Notice */}
         {isDevelopment && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-500/10">
-                <Bell className="w-5 h-5 text-yellow-600 dark:text-yellow-500" />
-              </div>
+              <Bell className="w-5 h-5 text-[#ec1e24]" />
               <div className="flex-1">
                 <h4 className="text-sm text-gray-900 dark:text-white mb-2">
                   Development Mode
@@ -189,17 +187,11 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         {/* Installation Status */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-              isInstalled 
-                ? 'bg-green-500/10' 
-                : 'bg-[#ec1e24]/10'
-            }`}>
-              {isInstalled ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <Smartphone className="w-5 h-5 text-[#ec1e24]" />
-              )}
-            </div>
+            {isInstalled ? (
+              <CheckCircle className="w-5 h-5 text-[#ec1e24]" />
+            ) : (
+              <Smartphone className="w-5 h-5 text-[#ec1e24]" />
+            )}
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
                 <Label className="text-gray-900 dark:text-white">
@@ -234,17 +226,11 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         {/* Network Status */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-              offline 
-                ? 'bg-red-500/10' 
-                : 'bg-green-500/10'
-            }`}>
-              {offline ? (
-                <WifiOff className="w-5 h-5 text-red-500" />
-              ) : (
-                <Wifi className="w-5 h-5 text-green-500" />
-              )}
-            </div>
+            {offline ? (
+              <WifiOff className="w-5 h-5 text-[#ec1e24]" />
+            ) : (
+              <Wifi className="w-5 h-5 text-[#ec1e24]" />
+            )}
             <div className="flex-1">
               <Label className="text-gray-900 dark:text-white">
                 {offline ? 'Offline Mode' : 'Online'}
@@ -263,9 +249,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 flex-1">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#ec1e24]/10">
-                <Bell className="w-5 h-5 text-[#ec1e24]" />
-              </div>
+              <Bell className="w-5 h-5 text-[#ec1e24]" />
               <div className="flex-1">
                 <Label htmlFor="pwa-notifications" className="text-gray-900 dark:text-white cursor-pointer">
                   Push Notifications
@@ -292,9 +276,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         {/* Cache Management */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-[#ec1e24]/10">
-              <Trash2 className="w-5 h-5 text-[#ec1e24]" />
-            </div>
+            <Trash2 className="w-5 h-5 text-[#ec1e24]" />
             <div className="flex-1">
               <Label className="text-gray-900 dark:text-white">
                 Clear Cache
@@ -307,7 +289,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
                 size="sm"
                 variant="outline"
                 disabled={isClearing}
-                className="border-gray-200 dark:border-[#333333]"
+                className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]"
               >
                 {isClearing ? (
                   <>
@@ -328,17 +310,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         {/* Service Worker Status */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${
-              swRegistered 
-                ? 'bg-green-500/10' 
-                : 'bg-gray-100 dark:bg-[#1A1A1A]'
-            }`}>
-              <RefreshCw className={`w-5 h-5 ${
-                swRegistered 
-                  ? 'text-green-500' 
-                  : 'text-gray-400 dark:text-[#6B7280]'
-              }`} />
-            </div>
+            <RefreshCw className="w-5 h-5 text-[#ec1e24]" />
             <div className="flex-1">
               <Label className="text-gray-900 dark:text-white">
                 Service Worker
@@ -353,7 +325,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
                 onClick={handleReinstallServiceWorker}
                 size="sm"
                 variant="outline"
-                className="border-gray-200 dark:border-[#333333]"
+                className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 {swRegistered ? 'Reinstall' : 'Install'} Service Worker
@@ -363,7 +335,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         </div>
 
         {/* PWA Info */}
-        <div className="bg-[#ec1e24]/5 border border-[#ec1e24]/20 rounded-xl p-4">
+        <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
           <h4 className="text-sm text-gray-900 dark:text-white mb-2">
             What is a PWA?
           </h4>

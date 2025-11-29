@@ -470,7 +470,6 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                     {/* Platforms */}
                     {item.platforms && item.platforms.length > 0 && (
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xs text-gray-500 dark:text-[#9CA3AF]">{item.status === 'scheduled' ? 'Post to:' : 'Posted to:'}</span>
                         <div className="flex flex-wrap gap-1.5">
                           {item.platforms.map((platform) => (
                             <span 

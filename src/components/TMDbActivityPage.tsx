@@ -309,28 +309,39 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="space-y-4">
+        {/* Total Posts - Full Width */}
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Total Posts</p>
           <p className="text-gray-900 dark:text-white text-2xl">{posts.length}</p>
         </div>
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Published</p>
-          <p className="text-gray-900 dark:text-white text-2xl">
-            {posts.filter(item => item.status === 'published').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Pending</p>
-          <p className="text-gray-900 dark:text-white text-2xl">
-            {posts.filter(item => item.status === 'queued').length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
-          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Failures</p>
-          <p className="text-gray-900 dark:text-white text-2xl">
-            {posts.filter(item => item.status === 'failed').length}
-          </p>
+
+        {/* 2x2 Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
+            <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Published</p>
+            <p className="text-gray-900 dark:text-white text-2xl">
+              {posts.filter(item => item.status === 'published').length}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
+            <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Scheduled</p>
+            <p className="text-gray-900 dark:text-white text-2xl">
+              {posts.filter(item => item.status === 'scheduled').length}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
+            <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Pending</p>
+            <p className="text-gray-900 dark:text-white text-2xl">
+              {posts.filter(item => item.status === 'queued').length}
+            </p>
+          </div>
+          <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5">
+            <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Failures</p>
+            <p className="text-gray-900 dark:text-white text-2xl">
+              {posts.filter(item => item.status === 'failed').length}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -353,19 +364,6 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
           <button
             onClick={() => {
               haptics.light();
-              setFilter('scheduled');
-            }}
-            className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
-              filter === 'scheduled'
-                ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
-            }`}
-          >
-            Scheduled
-          </button>
-          <button
-            onClick={() => {
-              haptics.light();
               setFilter('published');
             }}
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
@@ -375,6 +373,19 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             }`}
           >
             Published
+          </button>
+          <button
+            onClick={() => {
+              haptics.light();
+              setFilter('scheduled');
+            }}
+            className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
+              filter === 'scheduled'
+                ? 'bg-[#ec1e24] text-white'
+                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+            }`}
+          >
+            Scheduled
           </button>
           <button
             onClick={() => {
@@ -497,7 +508,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                 {item.status === 'scheduled' && (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-[#333333] flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-500 dark:text-[#9CA3AF]" />
+                      <Calendar className="w-4 h-4 text-[#ec1e24]" />
                       <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
                         Scheduled: <span className="text-gray-900 dark:text-white">
                           {new Date(item.scheduledTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -526,7 +537,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                           className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
                         >
                           <Send className="w-4 h-4 mr-2 text-[#ec1e24]" />
-                          Post Now
+                          Publish
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {

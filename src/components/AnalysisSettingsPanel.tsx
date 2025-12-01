@@ -179,15 +179,13 @@ export function AnalysisSettingsPanel({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-600 dark:text-gray-400">Monthly Spend</span>
-            <span className={budgetColor}>
+            <span className="text-[#ec1e24]">
               ${monthlySpend.toFixed(2)} / ${monthlyBudget.toFixed(2)} ({budgetPercentage.toFixed(0)}%)
             </span>
           </div>
           <div className="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all ${
-                budgetPercentage > 90 ? 'bg-[#ec1e24]' : budgetPercentage > 70 ? 'bg-amber-500' : 'bg-green-500'
-              }`}
+              className="h-full bg-[#ec1e24] transition-all"
               style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
             />
           </div>

@@ -8,21 +8,21 @@ import { FeedEditor } from './rss/FeedEditor';
 import { FeedPreview } from './rss/FeedPreview';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface RSSPageProps {
   onNavigate?: (page: string) => void;
 }
 
 export function RSSPage({ onNavigate }: RSSPageProps) {
-  const [globalEnabled, setGlobalEnabled] = useState(false);
-  const [postingInterval, setPostingInterval] = useState('10');
-  const [deduplication, setDeduplication] = useState(true);
+  const { settings, updateSetting } = useSettings();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFeed, setSelectedFeed] = useState<Feed | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [previewData, setPreviewData] = useState<any>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
+  // Use feeds from local state (could be moved to context later if needed)
   const [feeds, setFeeds] = useState<Feed[]>([
     {
       id: 'feed-1',
@@ -341,10 +341,10 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
             <div className="flex items-center gap-2">
               <span className="text-gray-900 dark:text-white text-sm whitespace-nowrap">Global RSS Posting</span>
               <Switch
-                checked={globalEnabled}
+                checked={settings.globalEnabled}
                 onCheckedChange={(checked) => {
                   haptics.light();
-                  setGlobalEnabled(checked);
+                  updateSetting('globalEnabled', checked);
                   toast.info(checked ? 'RSS posting enabled globally' : 'RSS posting disabled globally');
                 }}
               />
@@ -352,7 +352,7 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
 
             <div className="flex items-center gap-2">
               <span className="text-gray-900 dark:text-white text-sm whitespace-nowrap">Posting Interval</span>
-              <Select value={postingInterval} onValueChange={setPostingInterval}>
+              <Select value={settings.postingInterval} onValueChange={(value) => updateSetting('postingInterval', value)}>
                 <SelectTrigger className="w-32 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -368,10 +368,10 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
             <div className="flex items-center gap-2">
               <span className="text-gray-900 dark:text-white text-sm whitespace-nowrap">Deduplication</span>
               <Switch
-                checked={deduplication}
+                checked={settings.rssDeduplication}
                 onCheckedChange={(checked) => {
                   haptics.light();
-                  setDeduplication(checked);
+                  updateSetting('rssDeduplication', checked);
                 }}
               />
             </div>

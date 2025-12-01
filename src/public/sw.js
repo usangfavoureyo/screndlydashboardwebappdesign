@@ -1,6 +1,22 @@
-// Screndly PWA Service Worker
-const CACHE_NAME = 'screndly-v1.0.0';
+// Screndly PWA Service Worker - Enhanced with Advanced Caching Strategies
+const CACHE_NAME = 'screndly-v1.1.0';
 const RUNTIME_CACHE = 'screndly-runtime';
+const IMAGE_CACHE = 'screndly-images';
+const API_CACHE = 'screndly-api';
+
+// Cache expiration times (in milliseconds)
+const CACHE_EXPIRATION = {
+  images: 7 * 24 * 60 * 60 * 1000, // 7 days
+  api: 5 * 60 * 1000, // 5 minutes
+  runtime: 24 * 60 * 60 * 1000, // 24 hours
+};
+
+// Maximum cache sizes
+const MAX_CACHE_SIZE = {
+  images: 50,
+  api: 30,
+  runtime: 100,
+};
 
 // Core assets to cache on install
 const CORE_ASSETS = [
@@ -11,7 +27,7 @@ const CORE_ASSETS = [
 
 // Install event - cache core assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  console.log('[SW] Installing service worker v1.1.0...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[SW] Caching core assets');
@@ -30,7 +46,10 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+          if (cacheName !== CACHE_NAME && 
+              cacheName !== RUNTIME_CACHE && 
+              cacheName !== IMAGE_CACHE && 
+              cacheName !== API_CACHE) {
             console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
@@ -43,10 +62,112 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - network first, then cache
+// Helper: Trim cache to max size
+async function trimCache(cacheName, maxSize) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  if (keys.length > maxSize) {
+    const keysToDelete = keys.slice(0, keys.length - maxSize);
+    await Promise.all(keysToDelete.map(key => cache.delete(key)));
+    console.log(`[SW] Trimmed ${cacheName} cache to ${maxSize} items`);
+  }
+}
+
+// Helper: Check if cache entry is expired
+function isCacheExpired(response, maxAge) {
+  const cachedDate = new Date(response.headers.get('sw-cache-date'));
+  const now = new Date();
+  return (now - cachedDate) > maxAge;
+}
+
+// Helper: Add metadata to cached response
+function createCachedResponse(response) {
+  const clonedResponse = response.clone();
+  const headers = new Headers(clonedResponse.headers);
+  headers.set('sw-cache-date', new Date().toISOString());
+  
+  return clonedResponse.blob().then(body => {
+    return new Response(body, {
+      status: clonedResponse.status,
+      statusText: clonedResponse.statusText,
+      headers: headers
+    });
+  });
+}
+
+// Strategy: Cache First (for images)
+async function cacheFirst(request, cacheName, maxAge) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  
+  if (cachedResponse && !isCacheExpired(cachedResponse, maxAge)) {
+    console.log('[SW] Serving from cache (cache-first):', request.url);
+    return cachedResponse;
+  }
+  
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.status === 200) {
+      const responseToCache = await createCachedResponse(networkResponse);
+      await cache.put(request, responseToCache);
+      await trimCache(cacheName, MAX_CACHE_SIZE.images);
+    }
+    return networkResponse;
+  } catch (error) {
+    return cachedResponse || new Response('Offline', { status: 503 });
+  }
+}
+
+// Strategy: Network First (for API calls)
+async function networkFirst(request, cacheName, maxAge) {
+  try {
+    const networkResponse = await fetch(request);
+    if (networkResponse.status === 200) {
+      const cache = await caches.open(cacheName);
+      const responseToCache = await createCachedResponse(networkResponse);
+      await cache.put(request, responseToCache);
+      await trimCache(cacheName, MAX_CACHE_SIZE.api);
+    }
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] Network failed, trying cache:', request.url);
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse && !isCacheExpired(cachedResponse, maxAge)) {
+      console.log('[SW] Serving from cache (network-first fallback):', request.url);
+      return cachedResponse;
+    }
+    
+    throw error;
+  }
+}
+
+// Strategy: Stale While Revalidate (for runtime assets)
+async function staleWhileRevalidate(request, cacheName, maxAge) {
+  const cache = await caches.open(cacheName);
+  const cachedResponse = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then(async (networkResponse) => {
+    if (networkResponse.status === 200) {
+      const responseToCache = await createCachedResponse(networkResponse);
+      await cache.put(request, responseToCache);
+      await trimCache(cacheName, MAX_CACHE_SIZE.runtime);
+    }
+    return networkResponse;
+  }).catch(() => cachedResponse);
+  
+  return cachedResponse || fetchPromise;
+}
+
+// Fetch event - intelligent caching strategies
 self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
+    // Exception: Allow TMDb images
+    if (event.request.url.includes('image.tmdb.org')) {
+      event.respondWith(cacheFirst(event.request, IMAGE_CACHE, CACHE_EXPIRATION.images));
+    }
     return;
   }
 
@@ -55,44 +176,33 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const url = new URL(event.request.url);
+  
+  // Strategy 1: Cache First for images
+  if (event.request.destination === 'image' || url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
+    event.respondWith(cacheFirst(event.request, IMAGE_CACHE, CACHE_EXPIRATION.images));
+    return;
+  }
+  
+  // Strategy 2: Network First for API calls
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(networkFirst(event.request, API_CACHE, CACHE_EXPIRATION.api));
+    return;
+  }
+  
+  // Strategy 3: Stale While Revalidate for everything else
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Clone the response before caching
-        const responseToCache = response.clone();
-        
-        // Cache successful responses
-        if (response.status === 200) {
-          caches.open(RUNTIME_CACHE).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        
-        return response;
-      })
-      .catch(() => {
-        // Network failed, try cache
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) {
-            console.log('[SW] Serving from cache:', event.request.url);
-            return cachedResponse;
-          }
-          
-          // Return offline page for navigation requests
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-          
-          // Return a basic response for other requests
-          return new Response('Offline', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({
-              'Content-Type': 'text/plain'
-            })
-          });
-        });
-      })
+    staleWhileRevalidate(event.request, RUNTIME_CACHE, CACHE_EXPIRATION.runtime).catch(() => {
+      // Fallback for navigation requests
+      if (event.request.mode === 'navigate') {
+        return caches.match('/');
+      }
+      return new Response('Offline', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: new Headers({ 'Content-Type': 'text/plain' })
+      });
+    })
   );
 });
 

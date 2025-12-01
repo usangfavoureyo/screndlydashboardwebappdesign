@@ -5,6 +5,7 @@ import { TMDbFeedCard } from './tmdb/TMDbFeedCard';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
+import { useTMDbPosts } from '../contexts/TMDbPostsContext';
 
 interface TMDbFeedsPageProps {
   onNavigate: (page: string) => void;
@@ -12,92 +13,12 @@ interface TMDbFeedsPageProps {
 }
 
 export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) {
+  const { posts, updatePost, deletePost } = useTMDbPosts();
   const [filterType, setFilterType] = useState<'all' | 'today' | 'weekly' | 'monthly' | 'anniversary'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Mock data - will be replaced with API calls
-  const [feeds, setFeeds] = useState([
-    {
-      id: '0',
-      tmdbId: 558449,
-      mediaType: 'movie' as const,
-      title: 'Gladiator II',
-      year: 2024,
-      releaseDate: '2024-11-17',
-      caption: '#GladiatorII arrives in theaters TODAY! 🎬⚔️',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg',
-      imageType: 'poster' as const,
-      scheduledTime: '2024-11-17T08:00:00Z',
-      source: 'tmdb_today' as const,
-      cast: ['Paul Mescal', 'Denzel Washington', 'Pedro Pascal'],
-      popularity: 456.89,
-      cacheHit: false,
-    },
-    {
-      id: '1',
-      tmdbId: 1034541,
-      mediaType: 'movie' as const,
-      title: 'Terrifier 3',
-      year: 2024,
-      releaseDate: '2024-10-11',
-      caption: '#Terrifier3 slashes into theaters October 11.',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/7NDHoebflLwL1CcgLJ9wZbbDrmV.jpg',
-      imageType: 'poster' as const,
-      scheduledTime: '2024-11-20T15:30:00Z',
-      source: 'tmdb_weekly' as const,
-      cast: ['David Howard Thornton', 'Lauren LaVera'],
-      popularity: 234.56,
-      cacheHit: false,
-    },
-    {
-      id: '2',
-      tmdbId: 603,
-      mediaType: 'movie' as const,
-      title: 'The Matrix',
-      year: 1999,
-      releaseDate: '1999-03-31',
-      caption: '#TheMatrix changed cinema 25 years ago today.',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
-      imageType: 'poster' as const,
-      scheduledTime: '2024-11-18T09:00:00Z',
-      source: 'tmdb_anniversary' as const,
-      cast: ['Keanu Reeves', 'Laurence Fishburne'],
-      popularity: 123.45,
-      cacheHit: true,
-    },
-    {
-      id: '3',
-      tmdbId: 157336,
-      mediaType: 'movie' as const,
-      title: 'Interstellar',
-      year: 2014,
-      releaseDate: '2014-11-07',
-      caption: 'Christopher Nolan\'s #Interstellar celebrated its 10th anniversary.',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg',
-      imageType: 'backdrop' as const,
-      scheduledTime: '2024-11-17T14:00:00Z',
-      source: 'tmdb_anniversary' as const,
-      cast: ['Matthew McConaughey', 'Anne Hathaway'],
-      popularity: 189.23,
-      cacheHit: true,
-    },
-    {
-      id: '4',
-      tmdbId: 94605,
-      mediaType: 'tv' as const,
-      title: 'Arcane',
-      year: 2021,
-      releaseDate: '2021-11-06',
-      caption: '#Arcane returns for Season 2 next month.',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg',
-      imageType: 'poster' as const,
-      scheduledTime: '2024-11-19T11:00:00Z',
-      source: 'tmdb_monthly' as const,
-      cast: ['Hailee Steinfeld', 'Ella Purnell'],
-      popularity: 312.78,
-      cacheHit: false,
-    },
-  ]);
+  // Filter posts to show only queued and scheduled ones (not published/failed)
+  const feeds = posts.filter(post => post.status === 'queued' || post.status === 'scheduled');
 
   const filteredFeeds = feeds.filter(feed => {
     if (filterType === 'all') return true;
@@ -110,15 +31,11 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
   };
 
   const handleUpdateFeed = (feedId: string, updates: any) => {
-    setFeeds(prevFeeds =>
-      prevFeeds.map(feed =>
-        feed.id === feedId ? { ...feed, ...updates } : feed
-      )
-    );
+    updatePost(feedId, updates);
   };
 
   const handleDeleteFeed = (feedId: string) => {
-    setFeeds(prevFeeds => prevFeeds.filter(feed => feed.id !== feedId));
+    deletePost(feedId);
   };
 
   const handleRefresh = () => {
@@ -239,7 +156,7 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
             />
           ))
         ) : (
-          <div className="bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] p-12 text-center">
+          <div className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] p-12 text-center">
             <Clapperboard className="w-12 h-12 text-gray-400 dark:text-[#9CA3AF] mx-auto mb-4" />
             <h3 className="text-gray-900 dark:text-white mb-2">No {filterType !== 'all' ? filterType : ''} feeds scheduled</h3>
             <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">

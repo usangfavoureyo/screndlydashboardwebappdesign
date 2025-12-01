@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface TMDbPost {
   id: string;
@@ -34,47 +34,111 @@ interface TMDbPostsContextType {
 const TMDbPostsContext = createContext<TMDbPostsContextType | undefined>(undefined);
 
 export function TMDbPostsProvider({ children }: { children: ReactNode }) {
-  const [posts, setPosts] = useState<TMDbPost[]>([
-    // Some initial mock data for demo
-    {
-      id: 'published-1',
-      tmdbId: 558449,
-      mediaType: 'movie',
-      title: 'Gladiator II',
-      year: 2024,
-      releaseDate: '2024-11-17',
-      caption: '#GladiatorII arrives in theaters TODAY! 🎬⚔️',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg',
-      imageType: 'poster',
-      scheduledTime: '2024-11-17T08:00:00Z',
-      source: 'tmdb_today',
-      cast: ['Paul Mescal', 'Denzel Washington', 'Pedro Pascal'],
-      popularity: 456.89,
-      cacheHit: false,
-      status: 'published',
-      platforms: ['X', 'Facebook', 'Instagram'],
-      publishedTime: '2024-11-17T08:00:00Z',
-    },
-    {
-      id: 'failed-1',
-      tmdbId: 94605,
-      mediaType: 'tv',
-      title: 'Arcane',
-      year: 2021,
-      releaseDate: '2021-11-06',
-      caption: '#Arcane returns for Season 2 next month.',
-      imageUrl: 'https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg',
-      imageType: 'poster',
-      scheduledTime: '2024-11-19T11:00:00Z',
-      source: 'tmdb_monthly',
-      cast: ['Hailee Steinfeld', 'Ella Purnell'],
-      popularity: 312.78,
-      cacheHit: false,
-      status: 'failed',
-      platforms: ['YouTube'],
-      errorMessage: 'Upload quota exceeded',
-    },
-  ]);
+  const [posts, setPosts] = useState<TMDbPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load posts from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('screndlyTMDbPosts');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setPosts(parsed);
+      } catch (e) {
+        console.error('Failed to parse TMDb posts from localStorage:', e);
+        // Use default mock data if parsing fails
+        setPosts([
+          {
+            id: 'published-1',
+            tmdbId: 558449,
+            mediaType: 'movie',
+            title: 'Gladiator II',
+            year: 2024,
+            releaseDate: '2024-11-17',
+            caption: '#GladiatorII arrives in theaters TODAY! 🎬⚔️',
+            imageUrl: 'https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg',
+            imageType: 'poster',
+            scheduledTime: '2024-11-17T08:00:00Z',
+            source: 'tmdb_today',
+            cast: ['Paul Mescal', 'Denzel Washington', 'Pedro Pascal'],
+            popularity: 456.89,
+            cacheHit: false,
+            status: 'published',
+            platforms: ['X', 'Facebook', 'Instagram'],
+            publishedTime: '2024-11-17T08:00:00Z',
+          },
+          {
+            id: 'failed-1',
+            tmdbId: 94605,
+            mediaType: 'tv',
+            title: 'Arcane',
+            year: 2021,
+            releaseDate: '2021-11-06',
+            caption: '#Arcane returns for Season 2 next month.',
+            imageUrl: 'https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg',
+            imageType: 'poster',
+            scheduledTime: '2024-11-19T11:00:00Z',
+            source: 'tmdb_monthly',
+            cast: ['Hailee Steinfeld', 'Ella Purnell'],
+            popularity: 312.78,
+            cacheHit: false,
+            status: 'failed',
+            platforms: ['YouTube'],
+            errorMessage: 'Upload quota exceeded',
+          },
+        ]);
+      }
+    } else {
+      // Use default mock data on first load
+      setPosts([
+        {
+          id: 'published-1',
+          tmdbId: 558449,
+          mediaType: 'movie',
+          title: 'Gladiator II',
+          year: 2024,
+          releaseDate: '2024-11-17',
+          caption: '#GladiatorII arrives in theaters TODAY! 🎬⚔️',
+          imageUrl: 'https://image.tmdb.org/t/p/w500/2cxhvwyEwRlysAmRH4iodkvo0z5.jpg',
+          imageType: 'poster',
+          scheduledTime: '2024-11-17T08:00:00Z',
+          source: 'tmdb_today',
+          cast: ['Paul Mescal', 'Denzel Washington', 'Pedro Pascal'],
+          popularity: 456.89,
+          cacheHit: false,
+          status: 'published',
+          platforms: ['X', 'Facebook', 'Instagram'],
+          publishedTime: '2024-11-17T08:00:00Z',
+        },
+        {
+          id: 'failed-1',
+          tmdbId: 94605,
+          mediaType: 'tv',
+          title: 'Arcane',
+          year: 2021,
+          releaseDate: '2021-11-06',
+          caption: '#Arcane returns for Season 2 next month.',
+          imageUrl: 'https://image.tmdb.org/t/p/w500/fqldf2t8ztc9aiwn3k6mlX3tvRT.jpg',
+          imageType: 'poster',
+          scheduledTime: '2024-11-19T11:00:00Z',
+          source: 'tmdb_monthly',
+          cast: ['Hailee Steinfeld', 'Ella Purnell'],
+          popularity: 312.78,
+          cacheHit: false,
+          status: 'failed',
+          platforms: ['YouTube'],
+          errorMessage: 'Upload quota exceeded',
+        },
+      ]);
+    }
+    setIsLoading(false);
+  }, []);
+
+  // Auto-save to localStorage whenever posts change
+  useEffect(() => {
+    if (isLoading) return; // Don't save during initial load
+    localStorage.setItem('screndlyTMDbPosts', JSON.stringify(posts));
+  }, [posts, isLoading]);
 
   const schedulePost = (post: TMDbPost) => {
     setPosts(prev => {

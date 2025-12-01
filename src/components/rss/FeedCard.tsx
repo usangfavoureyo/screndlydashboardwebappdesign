@@ -180,7 +180,7 @@ export function FeedCard({
           }}
           className="!bg-white dark:!bg-[#000000] !text-gray-900 dark:!text-white text-xs border-gray-300 dark:border-[#333333]"
         >
-          <Eye className="w-3.5 h-3.5 mr-1.5" />
+          <Eye className="w-3.5 h-3.5 mr-1.5 text-[#ec1e24]" />
           Preview
         </Button>
         <Button
@@ -190,7 +190,7 @@ export function FeedCard({
           disabled={isTestRunning}
           className="!bg-white dark:!bg-[#000000] !text-gray-900 dark:!text-white text-xs border-gray-300 dark:border-[#333333]"
         >
-          <Zap className="w-3.5 h-3.5 mr-1.5" />
+          <Zap className="w-3.5 h-3.5 mr-1.5 text-[#ec1e24]" />
           {isTestRunning ? 'Testing...' : 'Test'}
         </Button>
         <Button
@@ -202,7 +202,7 @@ export function FeedCard({
           }}
           className="!bg-white dark:!bg-[#000000] !text-gray-900 dark:!text-white text-xs border-gray-300 dark:border-[#333333]"
         >
-          <Pencil className="w-3.5 h-3.5 mr-1.5" />
+          <Pencil className="w-3.5 h-3.5 mr-1.5 text-[#ec1e24]" />
           Edit
         </Button>
       </div>

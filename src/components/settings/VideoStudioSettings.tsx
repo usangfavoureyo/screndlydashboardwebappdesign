@@ -294,9 +294,9 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
         {/* Caption Generation Settings */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-gray-900 dark:text-white">Caption Generation (Social Media)</h3>
+            <h3 className="text-gray-900 dark:text-white">Caption Generation</h3>
             <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
-              AI-powered caption generation from voiceover transcripts for social media publishing
+              AI-powered caption generation from Video content for social media publishing
             </p>
           </div>
 

@@ -8,6 +8,7 @@ import { Progress } from './ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
 import { haptics } from '../utils/haptics';
+import { useSettings } from '../contexts/SettingsContext';
 import { InstagramIcon } from './icons/InstagramIcon';
 import { FacebookIcon } from './icons/FacebookIcon';
 import { ThreadsIcon } from './icons/ThreadsIcon';
@@ -38,6 +39,7 @@ type DuckingMode = 'Partial' | 'Full Mute' | 'Adaptive';
 type VideoFitMode = 'contain' | 'cover'; // 'contain' = show letterbox, 'cover' = fill/crop
 
 export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStudioPageProps) {
+  const { settings } = useSettings();
   const isMountedRef = useRef(true);
   const reviewMusicInputRef = useRef<HTMLInputElement>(null);
   const monthlyMusicInputRef = useRef<HTMLInputElement>(null);
@@ -787,25 +789,15 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     haptics.light();
     
     try {
-      // Load caption generation settings from localStorage
-      const savedSettings = localStorage.getItem('screndly_video_studio_settings');
-      let captionSettings = {
-        captionOpenaiModel: 'gpt-4o',
-        captionTemperature: 0.7,
+      // Use caption settings from context
+      const captionSettings = {
+        captionOpenaiModel: settings.captionOpenaiModel || 'gpt-4o',
+        captionTemperature: settings.captionTemperature || 0.7,
         captionMaxTokens: 500,
         captionSystemPrompt: 'You are a social media caption writer...',
         captionMaxLength: 280,
         captionTone: 'engaging'
       };
-      
-      if (savedSettings) {
-        try {
-          const parsed = JSON.parse(savedSettings);
-          captionSettings = { ...captionSettings, ...parsed };
-        } catch (e) {
-          console.error('Error parsing settings:', e);
-        }
-      }
       
       // Simulate voiceover transcript (in real implementation, extract from file)
       const mockTranscript = module === 'review' 

@@ -11,6 +11,7 @@ import { XIcon } from './icons/XIcon';
 import { YouTubeIcon } from './icons/YouTubeIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
 import { useState } from 'react';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface VideoStudioActivityPageProps {
   onNavigate: (page: string) => void;
@@ -18,6 +19,7 @@ interface VideoStudioActivityPageProps {
 }
 
 export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudioActivityPageProps) {
+  const { settings } = useSettings();
   const activities = [
     {
       id: '1',
@@ -110,25 +112,15 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
     haptics.light();
     
     try {
-      // Load caption generation settings from localStorage
-      const savedSettings = localStorage.getItem('screndly_video_studio_settings');
-      let captionSettings = {
-        captionOpenaiModel: 'gpt-4o',
-        captionTemperature: 0.7,
+      // Use caption settings from context
+      const captionSettings = {
+        captionOpenaiModel: settings.captionOpenaiModel || 'gpt-4o',
+        captionTemperature: settings.captionTemperature || 0.7,
         captionMaxTokens: 500,
         captionSystemPrompt: 'You are a social media caption writer...',
         captionMaxLength: 280,
         captionTone: 'engaging'
       };
-      
-      if (savedSettings) {
-        try {
-          const parsed = JSON.parse(savedSettings);
-          captionSettings = { ...captionSettings, ...parsed };
-        } catch (e) {
-          console.error('Error parsing settings:', e);
-        }
-      }
       
       // Simulate voiceover transcript based on video type and title
       const mockTranscript = activity.type === 'review' 
@@ -279,9 +271,7 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
 
                   {/* Error Message */}
                   {activity.status === 'failed' && activity.error && (
-                    <div className="p-3 bg-[#FEE2E2] dark:bg-[#991B1B]/20 border border-[#FCA5A5] dark:border-[#991B1B] rounded-xl text-sm text-[#991B1B] dark:text-[#FEE2E2] mb-2">
-                      {activity.error}
-                    </div>
+                    <p className="text-sm text-[#EF4444] mt-1">{activity.error}</p>
                   )}
 
                   {/* Processing Progress */}

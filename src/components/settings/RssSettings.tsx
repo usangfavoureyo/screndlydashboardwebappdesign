@@ -31,15 +31,15 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
         {/* Caption Generation Section */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-gray-900 dark:text-white mb-1">Caption Generation (Social Media)</h3>
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+            <h3 className="text-gray-900 dark:text-white mb-1">Caption Generation</h3>
+            <p className="text-sm text-gray-600 dark:text-white">
               AI-powered caption generation from RSS article content for social media publishing
             </p>
           </div>
 
           {/* Caption AI Model */}
           <div>
-            <Label htmlFor="rss-caption-model" className="text-[#9CA3AF]">Caption AI Model</Label>
+            <Label htmlFor="rss-caption-model" className="text-[#6B7280] dark:text-[#9CA3AF]">Caption AI Model</Label>
             <Select
               value={settings.rssCaptionModel || 'gpt-4o'}
               onValueChange={(value) => {
@@ -58,7 +58,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
                 <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+            <p className="text-xs text-gray-500 dark:text-white mt-1">
               GPT-4o balances creativity and cost for engaging social media captions
             </p>
           </div>
@@ -66,8 +66,8 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
           {/* Caption Creativity */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <Label className="text-[#9CA3AF]">Caption Creativity (Temperature)</Label>
-              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+              <Label className="text-[#6B7280] dark:text-[#9CA3AF]">Caption Creativity (Temperature)</Label>
+              <span className="text-sm text-gray-600 dark:text-white">
                 {settings.rssCaptionTemperature || 0.7} - Balanced
               </span>
             </div>
@@ -82,14 +82,14 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
               step={0.1}
               className="mt-2"
             />
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-2">
+            <p className="text-xs text-gray-500 dark:text-white mt-2">
               Recommended: 0.7 — Balanced creativity for engaging yet relevant captions
             </p>
           </div>
 
           {/* Caption Tone */}
           <div>
-            <Label htmlFor="rss-caption-tone" className="text-[#9CA3AF]">Caption Tone</Label>
+            <Label htmlFor="rss-caption-tone" className="text-[#6B7280] dark:text-[#9CA3AF]">Caption Tone</Label>
             <Select
               value={settings.rssCaptionTone || 'Engaging'}
               onValueChange={(value) => {
@@ -109,14 +109,14 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
                 <SelectItem value="Mysterious">Mysterious</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+            <p className="text-xs text-gray-500 dark:text-white mt-1">
               Sets the overall tone and style for generated captions
             </p>
           </div>
 
           {/* Max Caption Length */}
           <div>
-            <Label htmlFor="rss-caption-length" className="text-[#9CA3AF]">Max Caption Length (Characters)</Label>
+            <Label htmlFor="rss-caption-length" className="text-[#6B7280] dark:text-[#9CA3AF]">Max Caption Length (Characters)</Label>
             <Input
               id="rss-caption-length"
               type="number"
@@ -127,14 +127,14 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
               }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+            <p className="text-xs text-gray-500 dark:text-white mt-1">
               280 for X/Twitter compatibility, 2200 for Instagram, 63,206 for Facebook
             </p>
           </div>
 
           {/* Caption Generation Prompt */}
           <div>
-            <Label htmlFor="rss-caption-prompt" className="text-[#9CA3AF]">Caption Generation Prompt</Label>
+            <Label htmlFor="rss-caption-prompt" className="text-[#6B7280] dark:text-[#9CA3AF]">Caption Generation Prompt</Label>
             <textarea
               id="rss-caption-prompt"
               value={settings.rssCaptionPrompt || `You are a social media caption writer for Screen Render, a movie and TV trailer news platform. Create engaging, platform-optimized captions for RSS article content.
@@ -158,7 +158,7 @@ Guidelines:
               rows={16}
               className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono mt-1 resize-none"
             />
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+            <p className="text-xs text-gray-500 dark:text-white mt-1">
               Instructions for generating captions from RSS article content
             </p>
           </div>
@@ -167,33 +167,8 @@ Guidelines:
         {/* Divider */}
         <div className="border-t border-gray-200 dark:border-[#333333]"></div>
 
-        {/* Existing Settings */}
-        {/* OpenAI Model Selection */}
         <div>
-          <Label htmlFor="rss-openai-model" className="text-[#9CA3AF]">OpenAI Model</Label>
-          <Select
-            value={settings.rssOpenaiModel || 'gpt-4o-mini'}
-            onValueChange={(value) => {
-              updateSetting('rssOpenaiModel', value);
-              toast.success(`AI Model changed to ${value}`);
-            }}
-          >
-            <SelectTrigger id="rss-openai-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gpt-5-nano">GPT-5 Nano (Latest)</SelectItem>
-              <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cheapest)</SelectItem>
-              <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-              <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-              <SelectItem value="gpt-4">GPT-4</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label className="text-[#9CA3AF]">Log Level</Label>
+          <Label className="text-[#6B7280] dark:text-[#9CA3AF]">Log Level</Label>
           <Select
             value={settings.rssLogLevel}
             onValueChange={(value) => updateSetting('rssLogLevel', value)}

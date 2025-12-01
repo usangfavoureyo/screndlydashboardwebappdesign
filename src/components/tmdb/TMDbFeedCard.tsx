@@ -498,14 +498,14 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
                 variant="outline"
                 className="flex-1 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Post Now
+                <Send className="w-4 h-4 mr-2 text-[#ec1e24]" />
+                Publish
               </Button>
               <Button
                 onClick={handleSchedule}
                 className="flex-1"
               >
-                <Calendar className="w-4 h-4 mr-2" />
+                <Calendar className="w-4 h-4 mr-2 text-white" />
                 Schedule
               </Button>
             </div>
@@ -787,7 +787,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
               onClick={handleSchedulePost}
               className="flex-1 bg-[#ec1e24] hover:bg-[#d01a20] text-white shadow-none hover:shadow-none active:shadow-none focus:shadow-none hover:scale-100 active:scale-100"
             >
-              {isPostNowMode ? 'Post Now' : 'Schedule Post'}
+              {isPostNowMode ? 'Publish' : 'Schedule Post'}
             </Button>
           </div>
         </DialogContent>

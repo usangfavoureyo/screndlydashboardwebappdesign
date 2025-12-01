@@ -43,30 +43,84 @@ const defaultSettings = {
   weeklyPlatforms: { x: true, threads: true, facebook: false },
   monthlyPlatforms: { x: true, threads: true, facebook: false },
   anniversaryPlatforms: { x: true, threads: false, facebook: false },
-  // Caption generation settings
+  // Caption generation settings - Universal Model
   tmdbCaptionModel: 'gpt-4o',
-  tmdbCaptionTemperature: 0.7,
-  tmdbCaptionTone: 'Engaging',
-  tmdbCaptionMaxLength: 280,
-  tmdbCaptionPrompt: `You are a social media caption writer for Screen Render, a movie and TV trailer platform. Create engaging, platform-optimized captions for movie/TV show anniversary posts.
+  // Individual prompts for each feed type
+  todayPrompt: `You are a concise caption generator for short social posts. Output must be under 100 characters and use at most 50 tokens. Insert the title as a hashtag somewhere in the sentence. Occasionally include top 1–2 cast names and/or the release date. Tone: punchy, newsy, minimal. No extra hashtags. No CTAs. No quotes. No markdown. End with a period.
 
-INPUT: Movie/TV show title, release date, anniversary year, cast, and synopsis
-OUTPUT: Engaging social media caption with emojis, hashtags, and hook
+User prompt template:
+Title: {title}
+Type: {movie|tv}
+ReleaseDate: {YYYY-MM-DD}
+CastTop2: {Actor One, Actor Two}
+Context: today_release
+Constraints: Max 100 characters. Use title as hashtag #Title inside the sentence. Keep short.
 
-Guidelines:
-- Hook in first line celebrating the anniversary (7-10 words max)
-- Include relevant emoji and hashtags (#MovieAnniversary, #ClassicFilm, etc.)
-- Add 2-3 strategically placed emojis (🎬 🎥 🍿)
-- Keep total under {maxLength} characters for platform compatibility
-- Match nostalgic and celebratory tone
-- No generic "Happy Anniversary" openers
-- Highlight iconic moments or cultural impact
-- Make it shareable and engaging`,
+Examples:
+1) #InsideOut2 releases today.
+2) #TheLastOfUs S2 premieres today.
+3) Keanu Reeves stars in #JohnWick4 releasing today.
+
+Instruction: Produce a single-line caption following the constraints.`,
+  weeklyPrompt: `You are a concise caption generator for short social posts. Output must be under 100 characters and use at most 50 tokens. Insert the title as a hashtag somewhere in the sentence. Occasionally include top 1–2 cast names and/or the release date. Tone: punchy, newsy, minimal. No extra hashtags. No CTAs. No quotes. No markdown. End with a period.
+
+User prompt template:
+Title: {title}
+Type: {movie|tv}
+ReleaseDate: {YYYY-MM-DD}
+CastTop2: {Actor One, Actor Two}
+Context: week_release
+Constraints: Max 100 characters. Use title as hashtag #Title inside the sentence. Keep short.
+
+Examples:
+1) #InsideOut2 releases next week.
+2) #TheLastOfUs S2 premieres this week on HBO.
+3) Keanu Reeves and Laurence Fishburne return in #TheMatrix next week.
+
+Instruction: Produce a single-line caption following the constraints.`,
+  monthlyPrompt: `You are a concise caption generator for short social posts. Output must be under 100 characters and use at most 50 tokens. Insert the title as a hashtag somewhere in the sentence. Occasionally include top 1–2 cast names and/or the release date. Tone: punchy, newsy, minimal. No extra hashtags. No CTAs. No quotes. No markdown. End with a period.
+
+User prompt template:
+Title: {title}
+Type: {movie|tv}
+ReleaseDate: {YYYY-MM-DD}
+CastTop2: {Actor One, Actor Two}
+Context: month_notice
+Constraints: Max 100 characters. Use title as hashtag #Title inside the sentence. Keep short.
+
+Examples:
+1) #InsideOut2 releases next month.
+2) #TheLastOfUs S2 coming next month to HBO.
+3) Keanu Reeves stars in #JohnWick5 next month.
+
+Instruction: Produce a single-line caption following the constraints.`,
+  anniversaryPrompt: `You are a concise caption generator for short social posts. Output must be under 100 characters and use at most 50 tokens. Insert the title as a hashtag somewhere in the sentence. Occasionally include top 1–2 cast names and/or the release date. Tone: punchy, newsy, minimal. No extra hashtags. No CTAs. No quotes. No markdown. End with a period.
+
+User prompt template:
+Title: {title}
+Type: {movie|tv}
+ReleaseDate: {YYYY-MM-DD}
+CastTop2: {Actor One, Actor Two}
+Context: anniversary_N_years
+Constraints: Max 100 characters. Use title as hashtag #Title inside the sentence. Keep short.
+
+Examples:
+1) #InsideOut released 10 years ago today.
+2) #TheLastOfUs S1 premiered two years ago today.
+3) Keanu Reeves and Laurence Fishburne created an unforgettable moment in the #Matrix 25 years ago today.
+
+Instruction: Produce a single-line caption following the constraints.`,
 };
 
 export function TMDbSettings({ onSave }: TMDbSettingsProps) {
   const [tmdbSettings, setTMDbSettings] = useState(defaultSettings);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [expandedPrompts, setExpandedPrompts] = useState({
+    today: false,
+    weekly: false,
+    monthly: false,
+    anniversary: false
+  });
 
   // Load settings from localStorage on mount
   useEffect(() => {
@@ -159,26 +213,202 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
 
   return (
     <div className="space-y-6">
-      {/* OpenAI Model Selection */}
-      <div>
-        <Label htmlFor="openai-model" className="text-[#9CA3AF]">OpenAI Model</Label>
-        <Select
-          value={tmdbSettings.openaiModel}
-          onValueChange={(value) => updateSetting('openaiModel', value)}
-        >
-          <SelectTrigger id="openai-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="gpt-5-nano">GPT-5 Nano (Latest)</SelectItem>
-            <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cheapest)</SelectItem>
-            <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-            <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-            <SelectItem value="gpt-4">GPT-4</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Caption Generation Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-gray-900 dark:text-white mb-1">Caption Generation</h3>
+          <p className="text-sm text-gray-600 dark:text-white">
+            AI-powered caption generation for TMDb feed posts
+          </p>
+        </div>
+
+        {/* Universal OpenAI Model Selection */}
+        <div>
+          <Label htmlFor="tmdb-caption-model" className="text-[#6B7280] dark:text-[#9CA3AF]">Caption AI Model</Label>
+          <Select
+            value={tmdbSettings.tmdbCaptionModel}
+            onValueChange={(value) => {
+              haptics.light();
+              updateSetting('tmdbCaptionModel', value);
+              toast.success(`Caption AI Model changed to ${value}`);
+            }}
+          >
+            <SelectTrigger id="tmdb-caption-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gpt-5-nano">GPT-5 Nano (Latest)</SelectItem>
+              <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
+              <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cheapest)</SelectItem>
+              <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Today's Releases Prompt */}
+        <div className="border border-gray-200 dark:border-[#333333] rounded-lg">
+          <button
+            onClick={() => {
+              haptics.light();
+              setExpandedPrompts(prev => ({ ...prev, today: !prev.today }));
+            }}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[#ec1e24]">•</span>
+              <span className="text-gray-900 dark:text-white">Today's Releases Prompt</span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedPrompts.today ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedPrompts.today && (
+            <div className="p-4 pt-0">
+              <textarea
+                value={tmdbSettings.todayPrompt}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('todayPrompt', e.target.value);
+                }}
+                rows={18}
+                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono resize-none"
+              />
+              <p className="text-xs text-gray-500 dark:text-white mt-2">
+                Context: today_release — For movies/TV shows releasing today
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Weekly Releases Prompt */}
+        <div className="border border-gray-200 dark:border-[#333333] rounded-lg">
+          <button
+            onClick={() => {
+              haptics.light();
+              setExpandedPrompts(prev => ({ ...prev, weekly: !prev.weekly }));
+            }}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[#ec1e24]">•</span>
+              <span className="text-gray-900 dark:text-white">Weekly Releases Prompt</span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedPrompts.weekly ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedPrompts.weekly && (
+            <div className="p-4 pt-0">
+              <textarea
+                value={tmdbSettings.weeklyPrompt}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('weeklyPrompt', e.target.value);
+                }}
+                rows={18}
+                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono resize-none"
+              />
+              <p className="text-xs text-gray-500 dark:text-white mt-2">
+                Context: week_release — For movies/TV shows releasing next week
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Monthly Previews Prompt */}
+        <div className="border border-gray-200 dark:border-[#333333] rounded-lg">
+          <button
+            onClick={() => {
+              haptics.light();
+              setExpandedPrompts(prev => ({ ...prev, monthly: !prev.monthly }));
+            }}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[#ec1e24]">•</span>
+              <span className="text-gray-900 dark:text-white">Monthly Previews Prompt</span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedPrompts.monthly ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedPrompts.monthly && (
+            <div className="p-4 pt-0">
+              <textarea
+                value={tmdbSettings.monthlyPrompt}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('monthlyPrompt', e.target.value);
+                }}
+                rows={18}
+                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono resize-none"
+              />
+              <p className="text-xs text-gray-500 dark:text-white mt-2">
+                Context: month_notice — For movies/TV shows releasing next month
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Anniversaries Prompt */}
+        <div className="border border-gray-200 dark:border-[#333333] rounded-lg">
+          <button
+            onClick={() => {
+              haptics.light();
+              setExpandedPrompts(prev => ({ ...prev, anniversary: !prev.anniversary }));
+            }}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[#ec1e24]">•</span>
+              <span className="text-gray-900 dark:text-white">Anniversaries Prompt</span>
+            </div>
+            <svg
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${expandedPrompts.anniversary ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {expandedPrompts.anniversary && (
+            <div className="p-4 pt-0">
+              <textarea
+                value={tmdbSettings.anniversaryPrompt}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('anniversaryPrompt', e.target.value);
+                }}
+                rows={18}
+                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono resize-none"
+              />
+              <p className="text-xs text-gray-500 dark:text-white mt-2">
+                Context: anniversary_N_years — For movies/TV shows celebrating anniversaries
+              </p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200 dark:border-[#333333]"></div>
 
       {/* Feed Types */}
       <div className="space-y-3">

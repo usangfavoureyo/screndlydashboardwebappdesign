@@ -351,13 +351,6 @@ export function getSceneTypeLabel(type: SceneType): string {
  * Get badge color for scene type (Tailwind classes)
  */
 export function getSceneTypeBadgeColor(type: SceneType): string {
-  const colors: Record<SceneType, string> = {
-    action: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    dialogue: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    suspense: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-    establishing: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    climax: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    character_moment: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-  };
-  return colors[type];
+  // All scene types use brand red background with white text
+  return 'bg-[#ec1e24] text-white';
 }

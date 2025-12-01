@@ -7,8 +7,9 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { useTheme } from './ThemeProvider';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { haptics, setHapticsEnabled } from '../utils/haptics';
+import { useSettings } from '../contexts/SettingsContext';
 import { TMDbSettings } from './settings/TMDbSettings';
 import { ApiKeysSettings } from './settings/ApiKeysSettings';
 import { VideoSettings } from './settings/VideoSettings';
@@ -36,168 +37,8 @@ interface SettingsPanelProps {
 
 export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNotification, initialPage }: SettingsPanelProps) {
   const { theme, setTheme } = useTheme();
-  const [settings, setSettings] = useState(() => {
-    // Load from localStorage if available
-    const saved = localStorage.getItem('screndlySettings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Merge with defaults to ensure all new fields exist
-        return {
-          ...getDefaultSettings(),
-          ...parsed,
-          // Ensure platform blacklists exist
-          xCommentBlacklist: parsed.xCommentBlacklist || getDefaultSettings().xCommentBlacklist,
-          threadsCommentBlacklist: parsed.threadsCommentBlacklist || getDefaultSettings().threadsCommentBlacklist,
-          facebookCommentBlacklist: parsed.facebookCommentBlacklist || getDefaultSettings().facebookCommentBlacklist,
-          instagramCommentBlacklist: parsed.instagramCommentBlacklist || getDefaultSettings().instagramCommentBlacklist,
-          youtubeCommentBlacklist: parsed.youtubeCommentBlacklist || getDefaultSettings().youtubeCommentBlacklist,
-        };
-      } catch (e) {
-        // If parsing fails, use defaults
-      }
-    }
-    
-    return getDefaultSettings();
-  });
-
-  function getDefaultSettings() {
-    const hapticsEnabled = localStorage.getItem('hapticsEnabled');
-    return {
-      // API Keys
-      youtubeKey: '••••••••••••••••',
-      openaiKey: '••••••••••••••••',
-      serperKey: '••••••••••••••••',
-      tmdbKey: '••••••••••••••••',
-      googleVideoIntelligenceKey: '••••••••••••••••',
-      shotstackKey: '••••••••••••••••',
-      s3Key: '••••••••••••••••',
-      redisUrl: 'redis://localhost:6379',
-      databaseUrl: 'postgresql://localhost/screndly',
-      videoGoogleSearchApiKey: '',
-      videoGoogleSearchCx: '',
-      
-      // Video
-      fetchInterval: '10',
-      regionFilter: 'US,UK',
-      advancedFilters: 'trailer, official, teaser',
-      
-      // Comment Reply
-      commentRepliesActive: true,
-      totalCommentsProcessed: 1247,
-      repliesPosted: 1189,
-      commentErrors: 4,
-      commentBlacklistUsernames: '',
-      commentBlacklistKeywords: '',
-      commentReplyFrequency: 'instant',
-      commentThrottle: 'low', // low, medium, high
-      
-      // Per-platform comment settings
-      xCommentBlacklist: {
-        active: true,
-        usernames: '',
-        keywords: '',
-        noEmojiOnly: false,
-        noLinks: false,
-        pauseOldPosts: true,
-        pauseAfterHours: '24',
-      },
-      threadsCommentBlacklist: {
-        active: false,
-        usernames: '',
-        keywords: '',
-        noEmojiOnly: false,
-        noLinks: false,
-        pauseOldPosts: true,
-        pauseAfterHours: '24',
-      },
-      facebookCommentBlacklist: {
-        active: false,
-        usernames: '',
-        keywords: '',
-        noEmojiOnly: false,
-        noLinks: false,
-        pauseOldPosts: true,
-        pauseAfterHours: '24',
-      },
-      instagramCommentBlacklist: {
-        active: true,
-        usernames: '',
-        keywords: '',
-        noEmojiOnly: false,
-        noLinks: false,
-        pauseOldPosts: true,
-        pauseAfterHours: '24',
-      },
-      youtubeCommentBlacklist: {
-        active: false,
-        usernames: '',
-        keywords: '',
-        noEmojiOnly: false,
-        noLinks: false,
-        pauseOldPosts: true,
-        pauseAfterHours: '24',
-      },
-      
-      // RSS
-      rssEnabled: false,
-      rssImageCount: 'random',
-      rssPlatforms: ['x', 'threads'],
-      rssFetchInterval: '5',
-      rssPostingInterval: '10',
-      rssDeduplication: true,
-      rssLogLevel: 'standard',
-      
-      // Cleanup
-      cleanupEnabled: true,
-      cleanupInterval: 'daily',
-      storageRetention: '48',
-      videoCleanupInterval: 'daily',
-      videoStorageRetention: '48',
-      imageCleanupInterval: 'daily',
-      imageStorageRetention: '48',
-      videoStudioCleanupInterval: 'daily',
-      videoStudioStorageRetention: '48',
-      
-      // Appearance
-      darkMode: true,
-      hapticsEnabled: hapticsEnabled === null ? true : hapticsEnabled === 'true',
-
-      // Notifications
-      emailNotifications: true,
-      pushNotifications: false,
-    };
-  }
-
-  const [lastSaved, setLastSaved] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Auto-save effect with debounce
-  useEffect(() => {
-    if (!isOpen) return; // Don't save if panel is closed
-
-    const timer = setTimeout(() => {
-      saveSettings();
-    }, 1000); // Save 1 second after last change
-
-    return () => clearTimeout(timer);
-  }, [settings, isOpen]);
-
-  const saveSettings = () => {
-    setIsSaving(true);
-    // Save settings to localStorage
-    localStorage.setItem('screndlySettings', JSON.stringify(settings));
-    
-    setTimeout(() => {
-      setIsSaving(false);
-      setLastSaved(new Date().toLocaleTimeString());
-    }, 300);
-  };
-
-  const updateSetting = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
+  const { settings, updateSetting } = useSettings();
+  
   const [activeSettingsPage, setActiveSettingsPage] = useState<string | null>(initialPage || null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -306,7 +147,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
           className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
           onClick={() => setActiveSettingsPage(null)}
         />
-        <TmdbFeedsSettings onSave={saveSettings} onBack={() => setActiveSettingsPage(null)} />
+        <TmdbFeedsSettings onSave={updateSetting} onBack={() => setActiveSettingsPage(null)} />
       </>
     );
   }
@@ -318,7 +159,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
           className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
           onClick={() => setActiveSettingsPage(null)}
         />
-        <VideoStudioSettings onSave={saveSettings} onBack={() => setActiveSettingsPage(null)} />
+        <VideoStudioSettings onSave={updateSetting} onBack={() => setActiveSettingsPage(null)} />
       </>
     );
   }

@@ -134,43 +134,30 @@ export function UploadManagerPage({ onBack }: UploadManagerPageProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-start gap-4 mb-4">
+          <button
             onClick={() => {
               haptics.light();
               onBack();
             }}
-            className="text-gray-600 dark:text-[#9CA3AF] hover:text-gray-900 dark:hover:text-white"
+            className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2 mt-1 flex-shrink-0"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-gray-900 dark:text-white">Upload Manager</h1>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12H2M9 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl text-gray-900 dark:text-white">Upload Manager</h1>
             <p className="text-sm text-gray-600 dark:text-[#9CA3AF] mt-1">
               Manage video uploads and processing pipeline
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Polling Status */}
-          <Badge
-            variant="outline"
-            className={
-              isPolling
-                ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800'
-                : 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-800'
-            }
-          >
-            {isPolling ? 'Auto-polling active' : 'Polling paused'}
-          </Badge>
-
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Polling Toggle */}
           <Button
             variant="outline"
@@ -200,77 +187,55 @@ export function UploadManagerPage({ onBack }: UploadManagerPageProps) {
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Total Jobs</p>
-              <p className="text-2xl text-gray-900 dark:text-white mt-1">{jobs.length}</p>
-            </div>
-            <Upload className="w-8 h-8 text-gray-400 dark:text-[#666666]" />
-          </div>
+          <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Total Jobs</p>
+          <p className="text-2xl text-gray-900 dark:text-white mt-1">{jobs.length}</p>
         </div>
 
         <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Active</p>
-              <p className="text-2xl text-gray-900 dark:text-white mt-1">{activeJobs.length}</p>
-            </div>
-            <RefreshCw className="w-8 h-8 text-blue-600 dark:text-blue-500" />
-          </div>
+          <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Active</p>
+          <p className="text-2xl text-gray-900 dark:text-white mt-1">{activeJobs.length}</p>
         </div>
 
         <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Completed</p>
-              <p className="text-2xl text-gray-900 dark:text-white mt-1">{completedJobs.length}</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <span className="text-green-600 dark:text-green-500 text-lg">✓</span>
-            </div>
-          </div>
+          <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Completed</p>
+          <p className="text-2xl text-gray-900 dark:text-white mt-1">{completedJobs.length}</p>
         </div>
 
         <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Failed</p>
-              <p className="text-2xl text-gray-900 dark:text-white mt-1">{failedJobs.length}</p>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-              <span className="text-red-600 dark:text-red-500 text-lg">✕</span>
-            </div>
-          </div>
+          <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Failed</p>
+          <p className="text-2xl text-gray-900 dark:text-white mt-1">{failedJobs.length}</p>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)}>
-        <div className="flex items-center justify-between">
-          <TabsList className="bg-gray-100 dark:bg-[#111111]">
-            <TabsTrigger value="all" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000]">
-              All ({jobs.length})
-            </TabsTrigger>
-            <TabsTrigger value="active" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000]">
-              Active ({activeJobs.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000]">
-              Completed ({completedJobs.length})
-            </TabsTrigger>
-            <TabsTrigger value="failed" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000]">
-              Failed ({failedJobs.length})
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000]">
-              System Logs
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="bg-gray-100 dark:bg-[#111111] w-max sm:w-auto">
+              <TabsTrigger value="all" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000] text-xs sm:text-sm whitespace-nowrap">
+                All ({jobs.length})
+              </TabsTrigger>
+              <TabsTrigger value="active" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000] text-xs sm:text-sm whitespace-nowrap">
+                Active ({activeJobs.length})
+              </TabsTrigger>
+              <TabsTrigger value="completed" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000] text-xs sm:text-sm whitespace-nowrap">
+                Completed ({completedJobs.length})
+              </TabsTrigger>
+              <TabsTrigger value="failed" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000] text-xs sm:text-sm whitespace-nowrap">
+                Failed ({failedJobs.length})
+              </TabsTrigger>
+              <TabsTrigger value="logs" className="data-[state=active]:bg-white dark:data-[state=active]:bg-[#000000] text-xs sm:text-sm whitespace-nowrap">
+                System Logs
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {activeTab !== 'logs' && filteredJobs.length > 0 && (
             <Button
               onClick={handleClearJobs}
               variant="outline"
               size="sm"
-              className="border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+              className="border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111] flex-shrink-0"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Clear {activeTab === 'all' ? 'All' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}

@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react'
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
+import { useRSSFeeds } from '../contexts/RSSFeedsContext';
 
 interface QueueItem {
   id: string;
@@ -20,87 +21,32 @@ interface RSSActivityPageProps {
 }
 
 export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPageProps) {
+  const { feeds } = useRSSFeeds();
   const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [queueItems] = useState<QueueItem[]>([
-    {
-      id: 'queue-1',
-      feedName: 'Variety',
-      title: 'Dune: Part Three - Official Announcement',
-      status: 'published',
-      timestamp: '2 min ago',
-      platforms: ['X', 'Threads'],
-    },
-    {
-      id: 'queue-2',
-      feedName: 'The Hollywood Reporter',
-      title: 'Marvel Announces New Phase 6 Projects',
-      status: 'published',
-      timestamp: '5 min ago',
-    },
-    {
-      id: 'queue-3',
-      feedName: 'Deadline',
-      title: 'Christopher Nolan Next Film Details',
-      status: 'published',
-      timestamp: '10 min ago',
-    },
-    {
-      id: 'queue-4',
-      feedName: 'IndieWire',
-      title: 'Sundance 2025 Lineup Revealed',
-      status: 'failed',
-      timestamp: '15 min ago',
-      error: 'Failed to fetch images from Serper API',
-    },
-    {
-      id: 'queue-5',
-      feedName: 'Variety',
-      title: 'Avatar 3 Gets New Release Date',
-      status: 'queued',
-      timestamp: '20 min ago',
-    },
-    {
-      id: 'queue-6',
-      feedName: 'The Hollywood Reporter',
-      title: 'Netflix Drops First Look at The Witcher Season 4',
-      status: 'published',
-      timestamp: '25 min ago',
-      platforms: ['X', 'Facebook'],
-    },
-    {
-      id: 'queue-7',
-      feedName: 'Deadline',
-      title: 'Sony Pictures Announces Spider-Man 4',
-      status: 'published',
-      timestamp: '35 min ago',
-      platforms: ['X', 'Threads', 'Instagram'],
-    },
-    {
-      id: 'queue-8',
-      feedName: 'Variety',
-      title: 'Barbie 2 Confirmed by Warner Bros',
-      status: 'failed',
-      timestamp: '42 min ago',
-      error: 'Rate limit exceeded on OpenAI API',
-    },
-    {
-      id: 'queue-9',
-      feedName: 'The Hollywood Reporter',
-      title: 'James Cameron to Direct Avatar 4 and 5',
-      status: 'published',
-      timestamp: '1 hour ago',
-      platforms: ['X'],
-    },
-    {
-      id: 'queue-10',
-      feedName: 'IndieWire',
-      title: 'Cannes Film Festival 2025 Lineup Announced',
-      status: 'published',
-      timestamp: '1 hour ago',
-    },
-  ]);
+  // Convert RSS feeds context to queue items format
+  const queueItems: QueueItem[] = feeds.map(feed => {
+    // Map feed status to queue item status
+    let status: 'queued' | 'published' | 'failed' = 'queued';
+    if (feed.status === 'published') {
+      status = 'published';
+    } else if (feed.status === 'failed') {
+      status = 'failed';
+    } else if (feed.status === 'pending' || feed.status === 'scheduled') {
+      status = 'queued';
+    }
+    
+    return {
+      id: feed.id,
+      feedName: feed.source,
+      title: feed.title,
+      status,
+      timestamp: feed.publishedDate,
+      platforms: feed.platforms,
+      error: feed.errorMessage,
+    };
+  });
 
   const filteredItems = queueItems.filter((item) => {
     if (filter === 'failures') return item.status === 'failed';
@@ -188,7 +134,7 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">
           <p className="text-[#6B7280] dark:text-[#9CA3AF] text-sm mb-1">Pending</p>
           <p className="text-gray-900 dark:text-white text-2xl">
-            {queueItems.filter(item => item.status === 'pending').length}
+            {queueItems.filter(item => item.status === 'queued').length}
           </p>
         </div>
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">

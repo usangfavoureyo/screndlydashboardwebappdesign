@@ -113,7 +113,7 @@ export function TrainingProgressDashboard({
               </div>
             </div>
             <div className="space-y-1 text-xs">
-              <div className={`flex items-center gap-2 ${criteriaOverrideRate ? 'text-green-600' : 'text-gray-600 dark:text-gray-400'}`}>
+              <div className="flex items-center gap-2 text-[#ec1e24]">
                 Override rate ≤ 20% (current: {overrideRate.toFixed(0)}%)
               </div>
               <div className={`flex items-center gap-2 ${criteriaMeanConfidence ? 'text-green-600' : 'text-gray-600 dark:text-gray-400'}`}>
@@ -167,25 +167,25 @@ export function TrainingProgressDashboard({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-600 dark:text-gray-400">Baseline (Out of box)</span>
-            <span className={currentAccuracy >= 68 ? 'text-green-600' : 'text-gray-400'}>
+            <span className="text-[#ec1e24]">
               68-75% {currentAccuracy >= 68 && '✓'}
             </span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-            <div className="h-full bg-green-500" style={{ width: '75%' }} />
+            <div className="h-full bg-[#ec1e24]" style={{ width: '75%' }} />
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-600 dark:text-gray-400">Enhanced (500+ corrections + STT)</span>
-            <span className={mlTrainingActive ? 'text-green-600' : 'text-gray-400'}>
+            <span className="text-[#ec1e24]">
               80-86% {mlTrainingActive && '✓'}
             </span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div 
-              className={`h-full transition-all ${mlTrainingActive ? 'bg-amber-500' : 'bg-gray-400'}`} 
+              className={`h-full bg-[#ec1e24] transition-all`} 
               style={{ width: mlTrainingActive ? '86%' : '0%' }} 
             />
           </div>
@@ -194,13 +194,13 @@ export function TrainingProgressDashboard({
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-600 dark:text-gray-400">Advanced (2,500+ corrections + temporal)</span>
-            <span className={totalCorrections >= 2500 ? 'text-green-600' : 'text-gray-400'}>
+            <span className="text-[#ec1e24]">
               88-92% {totalCorrections >= 2500 && '✓'}
             </span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
             <div 
-              className={`h-full transition-all ${totalCorrections >= 2500 ? 'bg-[#ec1e24]' : 'bg-gray-400'}`}
+              className="h-full bg-[#ec1e24] transition-all"
               style={{ width: totalCorrections >= 2500 ? '92%' : '0%' }} 
             />
           </div>

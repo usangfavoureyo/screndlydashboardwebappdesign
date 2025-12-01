@@ -65,30 +65,6 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
       </div>
 
       <div className="p-6 space-y-6">
-        {/* OpenAI Model Selection */}
-        <div>
-          <Label htmlFor="video-openai-model" className="text-[#9CA3AF]">OpenAI Model</Label>
-          <Select
-            value={settings.videoOpenaiModel || 'gpt-4o-mini'}
-            onValueChange={(value) => {
-              updateSetting('videoOpenaiModel', value);
-              toast.success(`AI Model changed to ${value}`);
-            }}
-          >
-            <SelectTrigger id="video-openai-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gpt-5-nano">GPT-5 Nano (Latest)</SelectItem>
-              <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cheapest)</SelectItem>
-              <SelectItem value="gpt-4o">GPT-4o</SelectItem>
-              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-              <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-              <SelectItem value="gpt-4">GPT-4</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Polling Interval */}
         <div>
           <h3 className="text-gray-900 dark:text-white mb-3">Polling Interval</h3>
@@ -144,6 +120,38 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+
+        {/* Caption Generation Section */}
+        <div>
+          <h3 className="text-gray-900 dark:text-white mb-3">Caption Generation</h3>
+          
+          {/* OpenAI Model Selection */}
+          <div>
+            <Label htmlFor="video-openai-model" className="text-[#9CA3AF]">Caption AI Model</Label>
+            <Select
+              value={settings.videoOpenaiModel || 'gpt-4o-mini'}
+              onValueChange={(value) => {
+                updateSetting('videoOpenaiModel', value);
+                toast.success(`AI Model changed to ${value}`);
+              }}
+            >
+              <SelectTrigger id="video-openai-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-5-nano">GPT-5 Nano (Latest)</SelectItem>
+                <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cheapest)</SelectItem>
+                <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                <SelectItem value="gpt-4">GPT-4</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -501,7 +509,7 @@ Tone: Binary validation, strict criteria enforcement`}
                     haptics.light();
                     updateSetting('videoFilterCache', e.target.checked);
                   }}
-                  className="w-4 h-4 accent-black dark:accent-white"
+                  className="w-4 h-4 border-gray-300 dark:border-[#333333] accent-black dark:accent-white"
                 />
                 <Label htmlFor="video-filter-cache" className="text-xs text-gray-600 dark:text-[#9CA3AF] cursor-pointer">
                   Cache filtered titles to reduce API calls
@@ -516,7 +524,7 @@ Tone: Binary validation, strict criteria enforcement`}
                     haptics.light();
                     updateSetting('videoFilterTmdbValidation', e.target.checked);
                   }}
-                  className="w-4 h-4 accent-black dark:accent-white"
+                  className="w-4 h-4 border-gray-300 dark:border-[#333333] accent-black dark:accent-white"
                 />
                 <Label htmlFor="video-filter-tmdb-validation" className="text-xs text-gray-600 dark:text-[#9CA3AF] cursor-pointer">
                   Validate with TMDb API (country code: US/GB, language: en)

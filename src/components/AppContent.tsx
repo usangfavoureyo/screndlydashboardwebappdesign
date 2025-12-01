@@ -301,6 +301,11 @@ export function AppContent() {
         </>
       ) : (
         <div className="min-h-screen bg-white dark:bg-[#000000]">
+          {/* Skip to main content link for screen readers */}
+          <a href="#main-content" className="skip-to-main">
+            Skip to main content
+          </a>
+          
           <Navigation
             currentPage={currentPage}
             onNavigate={handleNavigate}
@@ -309,7 +314,7 @@ export function AppContent() {
             onLogout={handleLogout}
             unreadNotifications={unreadCount}
           />
-          <main className="lg:ml-64 pb-16 lg:pb-0">
+          <main id="main-content" className="lg:ml-64 pb-16 lg:pb-0" role="main">
             <div className="p-4 sm:p-6 lg:p-8 transition-opacity duration-200">
               {displayPage === "dashboard" && (
                 <DashboardOverview onNavigate={handleNavigate} />

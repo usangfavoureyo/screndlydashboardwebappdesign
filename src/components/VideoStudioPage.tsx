@@ -34,7 +34,7 @@ interface VideoStudioPageProps {
 }
 
 type AspectRatio = '16:9' | '9:16' | '1:1';
-type MusicGenre = 'Hip-Hop' | 'Trap' | 'Rap' | 'Pop' | 'Electronic' | 'R&B';
+type MusicGenre = 'Hip-Hop' | 'Trap' | 'Rap' | 'Pop' | 'Electronic' | 'R&B' | 'Dance' | 'House' | 'Jazz';
 type DuckingMode = 'Partial' | 'Full Mute' | 'Adaptive';
 type VideoFitMode = 'contain' | 'cover'; // 'contain' = show letterbox, 'cover' = fill/crop
 
@@ -218,7 +218,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     transition: 20
   });
 
-  const musicGenres: MusicGenre[] = ['Hip-Hop', 'Trap', 'Rap', 'Pop', 'Electronic', 'R&B'];
+  const musicGenres: MusicGenre[] = ['Hip-Hop', 'Trap', 'Rap', 'Pop', 'Electronic', 'R&B', 'Dance', 'House', 'Jazz'];
   const aspectRatios: AspectRatio[] = ['16:9', '9:16', '1:1'];
   const duckingModes: DuckingMode[] = ['Partial', 'Full Mute', 'Adaptive'];
   

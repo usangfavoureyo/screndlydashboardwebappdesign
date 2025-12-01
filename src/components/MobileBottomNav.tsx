@@ -9,12 +9,12 @@ interface MobileBottomNavProps {
 
 export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProps) {
   const navItems = [
-    { id: 'dashboard', icon: LayoutDashboard },
-    { id: 'channels', icon: Youtube },
-    { id: 'platforms', icon: Share2 },
-    { id: 'rss', icon: Rss },
-    { id: 'tmdb', icon: Clapperboard },
-    { id: 'video-studio', icon: Film },
+    { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'channels', icon: Youtube, label: 'Channels' },
+    { id: 'platforms', icon: Share2, label: 'Platforms' },
+    { id: 'rss', icon: Rss, label: 'RSS Feeds' },
+    { id: 'tmdb', icon: Clapperboard, label: 'TMDb Feeds' },
+    { id: 'video-studio', icon: Film, label: 'Video Studio' },
   ];
 
   const handleNavigation = (pageId: string) => {
@@ -34,9 +34,13 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
   const scrollDirection = useScrollDirection();
 
   return (
-    <nav className={`lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#000000] border-t border-gray-200 dark:border-[#333333] z-50 backdrop-blur-lg bg-opacity-90 dark:bg-opacity-90 transition-transform duration-300 ${
-      scrollDirection === 'down' ? 'translate-y-full' : 'translate-y-0'
-    }`}>
+    <nav 
+      className={`lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-[#000000] border-t border-gray-200 dark:border-[#333333] z-50 backdrop-blur-lg bg-opacity-90 dark:bg-opacity-90 transition-transform duration-300 ${
+        scrollDirection === 'down' ? 'translate-y-full' : 'translate-y-0'
+      }`}
+      aria-label="Main navigation"
+      role="navigation"
+    >
       <div className="flex items-center justify-around py-3">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -48,7 +52,8 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
               className={`flex items-center justify-center p-2 transition-all duration-300 hover:scale-110 active:scale-95 ${
                 isActive ? 'transform -translate-y-1' : ''
               }`}
-              aria-label={item.id}
+              aria-label={`Navigate to ${item.label}`}
+              aria-current={isActive ? 'page' : undefined}
             >
               <Icon
                 className={`w-7 h-7 stroke-1 transition-all duration-300 ${
@@ -56,6 +61,7 @@ export function MobileBottomNav({ currentPage, onNavigate }: MobileBottomNavProp
                     ? 'text-[#ec1e24]'
                     : 'text-black dark:text-white'
                 }`}
+                aria-hidden="true"
               />
             </button>
           );

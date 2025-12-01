@@ -15,7 +15,7 @@ export interface CaptionTemplate {
 export interface AudioTemplate {
   id: string;
   name: string;
-  genre: 'Hip-Hop' | 'Trap' | 'Rap' | 'Pop' | 'Electronic' | 'R&B';
+  genre: 'Hip-Hop' | 'Trap' | 'Rap' | 'Pop' | 'Electronic' | 'R&B' | 'Dance' | 'House' | 'Jazz';
   duckingMode: 'Partial' | 'Full Mute' | 'Adaptive';
   volume: number;
   createdAt: string;

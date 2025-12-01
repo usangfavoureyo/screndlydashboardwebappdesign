@@ -105,146 +105,205 @@ export function SwipeableLogRow({
 
   return (
     <tr 
-      className="relative border-b border-gray-200 dark:border-[#374151] last:border-0 transition-colors duration-200 group"
+      className="relative border-b border-gray-200 dark:border-[#374151] last:border-0 transition-colors duration-200 group overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       style={{
-        position: 'relative'
+        // Background delete layer using CSS
+        background: swipeX < 0 
+          ? `linear-gradient(to left, #ec1e24 0%, #ec1e24 100%)`
+          : 'transparent',
       }}
     >
-      {/* Background delete layer - positioned absolutely behind the content */}
+      {/* Content cell */}
       <td 
-        colSpan={7}
-        className="absolute inset-0 bg-[#ec1e24] p-0 pointer-events-none"
-        style={{
-          opacity: swipeX < 0 ? 1 : 0,
-          transition: 'opacity 0.2s',
-          zIndex: 0
-        }}
-      >
-        <div className="flex justify-end items-center h-full pr-6">
-          <div className="flex flex-col items-center gap-1 text-white">
-            <Trash2 className="w-5 h-5" />
-            <span className="text-xs whitespace-nowrap">Delete</span>
-          </div>
-        </div>
-      </td>
-
-      {/* Content wrapper - all table cells in one container */}
-      <td 
-        colSpan={7} 
-        className="p-0 bg-white dark:bg-[#000000]"
+        className="relative p-4 text-gray-900 dark:text-white bg-white dark:bg-[#000000]"
         style={{
           transform: `translateX(${swipeX}px)`,
           transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
           position: 'relative',
           zIndex: 1
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
-        <table className="w-full">
-          <tbody>
-            <tr>
-              {/* Desktop delete button - only visible on hover */}
-              <td className="relative p-4 text-gray-900 dark:text-white">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    haptics.medium();
-                    onDelete(log.id);
-                  }}
-                  className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-[#ec1e24] hover:dark:bg-[#ec1e24] text-gray-600 dark:text-gray-400 hover:text-white z-10"
-                  title="Delete log entry"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-                {log.videoTitle}
-              </td>
-              <td className="p-4">
-                <div className="flex items-center gap-2">
-                  {log.type === 'video' && (
-                    <>
-                      <Video className="w-4 h-4 text-[#ec1e24]" />
-                      <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video</span>
-                    </>
-                  )}
-                  {log.type === 'rss' && (
-                    <>
-                      <Rss className="w-4 h-4 text-[#ec1e24]" />
-                      <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">RSS</span>
-                    </>
-                  )}
-                  {log.type === 'tmdb' && (
-                    <>
-                      <Clapperboard className="w-4 h-4 text-[#ec1e24]" />
-                      <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">TMDb</span>
-                    </>
-                  )}
-                  {log.type === 'videostudio' && (
-                    <>
-                      <Film className="w-4 h-4 text-[#ec1e24]" />
-                      <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video Studio</span>
-                    </>
-                  )}
-                </div>
-              </td>
-              <td className="p-4">
-                <a
-                  href={getPlatformUrl(log.platform)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    haptics.light();
-                    window.open(getPlatformUrl(log.platform), '_blank', 'noopener,noreferrer');
-                  }}
-                  className="inline-block px-3 py-1 bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF] rounded-full hover:bg-gray-300 dark:hover:bg-[#2a2a2a] transition-colors cursor-pointer"
-                >
-                  {log.platform}
-                </a>
-              </td>
-              <td className="p-4">
-                <span
-                  className={`px-3 py-1 rounded-full ${
-                    log.status === 'success'
-                      ? 'bg-[#D1FAE5] dark:bg-[#065F46] text-[#065F46] dark:text-[#D1FAE5]'
-                      : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
-                  }`}
-                >
-                  {log.status}
-                </span>
-              </td>
-              <td className="p-4 text-[#6B7280] dark:text-[#9CA3AF]">{log.timestamp}</td>
-              <td className="p-4">
-                {log.error ? (
-                  <div>
-                    <p className="text-[#EF4444]">{log.error}</p>
-                    {log.errorDetails && (
-                      <p className="text-[#6B7280] dark:text-[#9CA3AF] text-xs mt-1">{log.errorDetails}</p>
-                    )}
-                  </div>
-                ) : (
-                  <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
-                )}
-              </td>
-              <td className="p-4">
-                {log.status === 'failed' ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onRetry(log.id, log.videoTitle)}
-                    className="gap-2 bg-white dark:bg-black"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    Retry
-                  </Button>
-                ) : (
-                  <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
-                )}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {/* Delete indicator - positioned absolutely relative to the TR, stays on red background */}
+        {swipeX < 0 && (
+          <div 
+            className="flex flex-col items-center gap-1 text-white pointer-events-none"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              right: '16px',
+              transform: `translateX(${-swipeX}px) translateY(-50%)`,
+              opacity: Math.min(Math.abs(swipeX) / 60, 1),
+              zIndex: 10,
+            }}
+          >
+            <Trash2 className="w-5 h-5" />
+            <span className="text-xs whitespace-nowrap">Delete</span>
+          </div>
+        )}
+
+        {/* Desktop delete button - only visible on hover */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            haptics.medium();
+            onDelete(log.id);
+          }}
+          className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-[#ec1e24] hover:dark:bg-[#ec1e24] text-gray-600 dark:text-gray-400 hover:text-white z-10"
+          aria-label="Delete log entry"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+        
+        {log.videoTitle}
+      </td>
+
+      {/* Source cell */}
+      <td 
+        className="p-4 bg-white dark:bg-[#000000]"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        <div className="flex items-center gap-2">
+          {log.type === 'video' && (
+            <>
+              <Video className="w-4 h-4 text-[#ec1e24]" aria-hidden="true" />
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video</span>
+            </>
+          )}
+          {log.type === 'rss' && (
+            <>
+              <Rss className="w-4 h-4 text-[#ec1e24]" aria-hidden="true" />
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">RSS</span>
+            </>
+          )}
+          {log.type === 'tmdb' && (
+            <>
+              <Clapperboard className="w-4 h-4 text-[#ec1e24]" aria-hidden="true" />
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">TMDb</span>
+            </>
+          )}
+          {log.type === 'videostudio' && (
+            <>
+              <Film className="w-4 h-4 text-[#ec1e24]" aria-hidden="true" />
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video Studio</span>
+            </>
+          )}
+        </div>
+      </td>
+
+      {/* Platform cell */}
+      <td 
+        className="p-4 bg-white dark:bg-[#000000]"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        <a
+          href={getPlatformUrl(log.platform)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => {
+            e.preventDefault();
+            haptics.light();
+            window.open(getPlatformUrl(log.platform), '_blank', 'noopener,noreferrer');
+          }}
+          className="inline-block px-3 py-1 bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF] rounded-full hover:bg-gray-300 dark:hover:bg-[#2a2a2a] transition-colors cursor-pointer"
+          aria-label={`View ${log.platform} profile`}
+        >
+          {log.platform}
+        </a>
+      </td>
+
+      {/* Status cell */}
+      <td 
+        className="p-4 bg-white dark:bg-[#000000]"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        <span
+          className={`px-3 py-1 rounded-full ${
+            log.status === 'success'
+              ? 'bg-[#D1FAE5] dark:bg-[#065F46] text-[#065F46] dark:text-[#D1FAE5]'
+              : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
+          }`}
+        >
+          {log.status}
+        </span>
+      </td>
+
+      {/* Timestamp cell */}
+      <td 
+        className="p-4 text-[#6B7280] dark:text-[#9CA3AF] bg-white dark:bg-[#000000]"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        {log.timestamp}
+      </td>
+
+      {/* Error cell */}
+      <td 
+        className="p-4 bg-white dark:bg-[#000000]"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        {log.error ? (
+          <div>
+            <p className="text-[#EF4444]">{log.error}</p>
+            {log.errorDetails && (
+              <p className="text-[#6B7280] dark:text-[#9CA3AF] text-xs mt-1">{log.errorDetails}</p>
+            )}
+          </div>
+        ) : (
+          <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
+        )}
+      </td>
+
+      {/* Action cell */}
+      <td 
+        className="p-4 bg-white dark:bg-[#000000]"
+        style={{
+          transform: `translateX(${swipeX}px)`,
+          transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        {log.status === 'failed' ? (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onRetry(log.id, log.videoTitle)}
+            className="gap-2 bg-white dark:bg-black"
+            aria-label={`Retry upload for ${log.videoTitle}`}
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            Retry
+          </Button>
+        ) : (
+          <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
+        )}
       </td>
     </tr>
   );

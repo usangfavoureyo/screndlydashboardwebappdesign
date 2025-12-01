@@ -209,6 +209,67 @@
     @apply bg-background text-foreground;
   }
 
+  /* ========================================
+     ACCESSIBILITY IMPROVEMENTS
+     ======================================== */
+  
+  /* Enhanced focus styles for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+  }
+
+  /* Ensure sufficient color contrast for links */
+  a:not([class]) {
+    color: var(--brand-red);
+    text-decoration: underline;
+  }
+
+  a:not([class]):hover {
+    color: var(--brand-red-hover);
+  }
+
+  /* Skip to main content link (for screen readers) */
+  .skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--brand-red);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 100;
+    border-radius: var(--radius-sm);
+  }
+
+  .skip-to-main:focus {
+    top: 0;
+  }
+
+  /* Ensure reduced motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* Override browser autofill styles */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,

@@ -186,6 +186,7 @@
     --tracking-widest: .1em;
     --leading-relaxed: 1.625;
     --radius-xs: .125rem;
+    --radius-sm: calc(var(--radius)  - 4px);
     --radius-2xl: 1rem;
     --ease-out: cubic-bezier(0, 0, .2, 1);
     --ease-in-out: cubic-bezier(.4, 0, .2, 1);
@@ -472,6 +473,51 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [role="button"]:focus-visible, [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid var(--brand-red);
+    outline-offset: 2px;
+  }
+
+  a:not([class]) {
+    color: var(--brand-red);
+    text-decoration: underline;
+  }
+
+  a:not([class]):hover {
+    color: var(--brand-red-hover);
+  }
+
+  .skip-to-main {
+    background: var(--brand-red);
+    color: #fff;
+    z-index: 100;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    text-decoration: none;
+    position: absolute;
+    top: -40px;
+    left: 0;
+  }
+
+  .skip-to-main:focus {
+    top: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, :before, :after {
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+    }
   }
 
   input:-webkit-autofill {
@@ -2695,10 +2741,6 @@
 
   .pr-2 {
     padding-right: calc(var(--spacing) * 2);
-  }
-
-  .pr-6 {
-    padding-right: calc(var(--spacing) * 6);
   }
 
   .pr-8 {

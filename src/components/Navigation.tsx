@@ -99,10 +99,15 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
               haptics.light();
               onToggleNotifications();
             }}
+            aria-label={`Notifications${unreadNotifications > 0 ? ` (${unreadNotifications} unread)` : ''}`}
+            aria-expanded={false}
           >
-            <Bell className="w-[26px] h-[26px] stroke-1 transition-transform duration-300" />
+            <Bell className="w-[26px] h-[26px] stroke-1 transition-transform duration-300" aria-hidden="true" />
             {unreadNotifications > 0 && (
-              <div className="absolute -top-1 -right-1 bg-[#ec1e24] text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse-slow">
+              <div 
+                className="absolute -top-1 -right-1 bg-[#ec1e24] text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse-slow"
+                aria-label={`${unreadNotifications} unread notifications`}
+              >
                 {unreadNotifications}
               </div>
             )}
@@ -113,8 +118,10 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
               haptics.light();
               onToggleSettings();
             }}
+            aria-label="Open settings"
+            aria-expanded={false}
           >
-            <Settings className="w-[26px] h-[26px] stroke-1 transition-transform duration-300 hover:rotate-90" />
+            <Settings className="w-[26px] h-[26px] stroke-1 transition-transform duration-300 hover:rotate-90" aria-hidden="true" />
           </button>
         </div>
       </div>

@@ -28,49 +28,74 @@ export function SwipeableNotificationCard({
 }: SwipeableNotificationCardProps) {
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [swipeDirection, setSwipeDirection] = useState<'none' | 'horizontal' | 'vertical'>('none');
   const startX = useRef(0);
+  const startY = useRef(0);
   const currentX = useRef(0);
+  const currentY = useRef(0);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    e.stopPropagation();
     startX.current = e.touches[0].clientX;
-    setIsSwiping(true);
+    startY.current = e.touches[0].clientY;
+    setSwipeDirection('none');
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isSwiping) return;
-    
-    e.stopPropagation();
-    e.preventDefault(); // Prevent scrolling while swiping
     currentX.current = e.touches[0].clientX;
-    const diff = currentX.current - startX.current;
+    currentY.current = e.touches[0].clientY;
     
-    // Limit swipe distance
-    const maxSwipe = 120;
-    const clampedDiff = Math.max(-maxSwipe, Math.min(maxSwipe, diff));
+    const deltaX = Math.abs(currentX.current - startX.current);
+    const deltaY = Math.abs(currentY.current - startY.current);
     
-    setSwipeX(clampedDiff);
-  };
-
-  const handleTouchEnd = () => {
-    setIsSwiping(false);
-    
-    const threshold = 60;
-    
-    // Swipe left (delete)
-    if (swipeX < -threshold) {
-      haptics.medium();
-      onDelete(notification.id);
-    }
-    // Swipe right (mark as read)
-    else if (swipeX > threshold) {
-      haptics.medium();
-      if (!notification.read) {
-        onMarkAsRead(notification.id);
+    // Determine swipe direction on first significant movement
+    if (swipeDirection === 'none' && (deltaX > 10 || deltaY > 10)) {
+      // If horizontal movement is greater than vertical, it's a horizontal swipe
+      if (deltaX > deltaY * 1.5) {
+        setSwipeDirection('horizontal');
+        setIsSwiping(true);
+      } else {
+        // Otherwise, it's vertical scrolling
+        setSwipeDirection('vertical');
       }
     }
     
-    // Reset position
+    // Only handle horizontal swipe
+    if (swipeDirection === 'horizontal') {
+      e.stopPropagation();
+      e.preventDefault(); // Prevent scrolling while swiping horizontally
+      
+      const diff = currentX.current - startX.current;
+      
+      // Limit swipe distance
+      const maxSwipe = 120;
+      const clampedDiff = Math.max(-maxSwipe, Math.min(maxSwipe, diff));
+      
+      setSwipeX(clampedDiff);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    // Only process swipe action if it was a horizontal swipe
+    if (swipeDirection === 'horizontal') {
+      const threshold = 90; // Increased from 60 to make less sensitive
+      
+      // Swipe left (delete)
+      if (swipeX < -threshold) {
+        haptics.medium();
+        onDelete(notification.id);
+      }
+      // Swipe right (mark as read)
+      else if (swipeX > threshold) {
+        haptics.medium();
+        if (!notification.read) {
+          onMarkAsRead(notification.id);
+        }
+      }
+    }
+    
+    // Reset state
+    setIsSwiping(false);
+    setSwipeDirection('none');
     setSwipeX(0);
   };
 
@@ -142,7 +167,7 @@ export function SwipeableNotificationCard({
 
       {/* Notification Card */}
       <div
-        className={`relative w-full text-left p-4 rounded-lg shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] transition-shadow select-none ${
+        className={`relative w-full text-left p-4 rounded-lg shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] transition-shadow select-none group ${
           notification.read
             ? 'bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333]'
             : 'bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] !border-l-4 !border-l-[#ec1e24]'
@@ -156,6 +181,19 @@ export function SwipeableNotificationCard({
         onTouchEnd={handleTouchEnd}
         onClick={handleClick}
       >
+        {/* Desktop delete button - only visible on hover */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            haptics.medium();
+            onDelete(notification.id);
+          }}
+          className="hidden lg:flex absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400"
+          title="Delete notification"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+
         <div className="flex gap-3">
           <div className="flex-shrink-0 mt-0.5">
             {getIcon(notification)}

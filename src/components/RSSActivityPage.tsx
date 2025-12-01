@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
 import { useRSSFeeds } from '../contexts/RSSFeedsContext';
+import { SwipeableActivityCard } from './SwipeableActivityCard';
 
 interface QueueItem {
   id: string;
@@ -21,7 +22,7 @@ interface RSSActivityPageProps {
 }
 
 export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPageProps) {
-  const { feeds } = useRSSFeeds();
+  const { feeds, deleteFeed } = useRSSFeeds();
   const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -70,9 +71,17 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
     e.stopPropagation(); // Prevent triggering the parent button click
     haptics.medium();
     toast.success('Retry Initiated', {
-      description: `Retrying RSS feed: "${title}"`,
+      description: `Retrying RSS feed: \"${title}\"`,
     });
     // Add logic to retry the RSS feed processing here
+  };
+
+  const handleDelete = (id: string, title: string) => {
+    haptics.medium();
+    deleteFeed(id);
+    toast.success('Deleted', {
+      description: `\"${title}\" has been removed`,
+    });
   };
 
   const handleRefresh = () => {
@@ -164,7 +173,7 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
               className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
                 filter === filterOption.value
                   ? 'bg-[#ec1e24] text-white'
-                  : 'bg-gray-100 dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1F1F1F]'
+                  : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1F1F1F]'
               }`}
             >
               {filterOption.label}
@@ -184,9 +193,11 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
               const StatusIcon = statusConfig.icon;
 
               return (
-                <div
+                <SwipeableActivityCard
                   key={item.id}
-                  className="w-full text-left p-4 rounded-xl border border-gray-200 dark:border-[#333333] bg-gray-50 dark:bg-[#000000] shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] transition-all duration-200"
+                  id={item.id}
+                  onDelete={() => handleDelete(item.id, item.title)}
+                  className="w-full text-left p-4 rounded-xl border border-gray-200 dark:border-[#333333] bg-white dark:bg-[#000000] shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] transition-all duration-200"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -230,7 +241,7 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
                       )}
                     </div>
                   </div>
-                </div>
+                </SwipeableActivityCard>
               );
             })
           )}

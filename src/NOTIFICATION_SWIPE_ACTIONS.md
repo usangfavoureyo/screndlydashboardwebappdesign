@@ -6,23 +6,25 @@ Successfully added touch-based swipe gestures to notification cards with context
 
 ---
 
-## 🎯 What Was Added
+## 🎯 Swipe Gestures
+
+### **Activation Thresholds**
+- **Swipe Distance Required**: 90px (increased from 60px for less sensitivity)
+- **Maximum Swipe Distance**: 120px (visual feedback cap)
+- **Click Detection**: <5px movement = tap/click
 
 ### **Swipe Left → Delete**
-- **Action**: Swipe a notification card to the left
-- **Reveals**: Red delete button (brand #ec1e24)
-- **Icon**: Trash icon
-- **Text**: "Delete" in white
-- **Feedback**: Medium haptic feedback when threshold met
-- **Behavior**: Permanently deletes the notification
+- **Trigger**: Swipe left ≥90px
+- **Action**: Deletes notification immediately
+- **Feedback**: Medium haptic feedback on trigger
+- **Visual**: Red background with trash icon revealed
 
 ### **Swipe Right → Mark as Read**
-- **Action**: Swipe a notification card to the right
-- **Reveals**: Grey mark-as-read button
-- **Icon**: Check icon
-- **Text**: "Mark as Read" in white
-- **Feedback**: Medium haptic feedback when threshold met
-- **Behavior**: Marks notification as read (if unread)
+- **Trigger**: Swipe right ≥90px
+- **Action**: Marks notification as read (if unread)
+- **Feedback**: Medium haptic feedback on trigger
+- **Visual**: Grey background with check icon revealed
+- **Note**: Only triggers if notification is currently unread
 
 ---
 
@@ -86,7 +88,7 @@ The notification list container also stops propagation to ensure card swipes don
 
 ### **Swipe Thresholds**
 - **Maximum Swipe Distance**: 120px (clamped)
-- **Action Threshold**: 60px
+- **Action Threshold**: 90px (increased from 60px)
 - **Transition**: Smooth 0.3s ease-out
 
 ### **Key Features**
@@ -99,13 +101,69 @@ const maxSwipe = 120;
 const clampedDiff = Math.max(-maxSwipe, Math.min(maxSwipe, diff));
 
 // Action threshold
-const threshold = 60;
+const threshold = 90;
 if (swipeX < -threshold) {
   // Delete action
 } else if (swipeX > threshold) {
   // Mark as read action
 }
 ```
+
+### **Directional Swipe Detection**
+```typescript
+Algorithm:
+1. Track both X and Y touch positions on start
+2. Calculate deltaX and deltaY on move
+3. If deltaX > deltaY * 1.5 → Horizontal swipe (activate)
+4. Otherwise → Vertical scroll (pass through)
+5. Only prevent scrolling if horizontal swipe detected
+```
+
+**Implementation Details**:
+```typescript
+// State tracking
+const [swipeDirection, setSwipeDirection] = useState<'none' | 'horizontal' | 'vertical'>('none');
+const startX = useRef(0);
+const startY = useRef(0);
+
+// Touch start - capture both axes
+handleTouchStart: {
+  startX.current = e.touches[0].clientX;
+  startY.current = e.touches[0].clientY;
+  setSwipeDirection('none');
+}
+
+// Touch move - determine direction
+handleTouchMove: {
+  const deltaX = Math.abs(currentX - startX);
+  const deltaY = Math.abs(currentY - startY);
+  
+  // Only determine direction after significant movement (10px)
+  if (swipeDirection === 'none' && (deltaX > 10 || deltaY > 10)) {
+    if (deltaX > deltaY * 1.5) {
+      setSwipeDirection('horizontal');
+      // NOW activate swipe mode and prevent scrolling
+    } else {
+      setSwipeDirection('vertical');
+      // Allow normal scrolling
+    }
+  }
+}
+```
+
+### **Why This Matters**
+- ❌ **Old Behavior**: Any touch triggered swipe mode, blocking scroll
+- ✅ **New Behavior**: Detects swipe direction first, then activates
+- **Threshold**: 1.5x multiplier ensures clear horizontal intent
+- **Delay**: 10px movement required before direction detection
+- **Result**: Smooth vertical scrolling + reliable horizontal swipes
+
+### **Benefits**
+1. **No Scroll Interference**: Vertical scrolling works perfectly
+2. **No False Positives**: Slight diagonal movements don't trigger swipe
+3. **Better UX**: Users can scroll naturally through notifications
+4. **Precise Control**: Only deliberate horizontal swipes activate actions
+5. **Native Feel**: Matches system apps like Messages, Gmail, etc.
 
 ---
 
@@ -115,7 +173,7 @@ if (swipeX < -threshold) {
 1. **Touch and drag** the notification card
 2. **Visual feedback** shows action button as you swipe
 3. **Release** when button is visible
-4. **Action executes** if threshold (60px) is met
+4. **Action executes** if threshold (90px) is met
 5. **Card resets** smoothly if threshold not met
 
 ### **Haptic Feedback**
@@ -133,15 +191,34 @@ if (swipeX < -threshold) {
 
 ## 📱 Mobile-First Design
 
-### **Touch Optimization**
+### **Touch Optimization (Mobile/Tablet)**
 - ✅ 120px action button width (thumb-friendly)
-- ✅ No accidental triggers (60px threshold)
+- ✅ No accidental triggers (90px threshold)
 - ✅ Smooth, responsive tracking
 - ✅ Visual affordance (action reveals progressively)
+- ✅ **Directional Detection**: Only activates on horizontal swipes, allows vertical scrolling
+
+### **Desktop Experience (Non-Touchscreen)**
+- ✅ **Hover Delete Button**: Trash icon appears on hover (top-right)
+- ✅ **Click to Mark as Read**: Click anywhere on notification card
+- ✅ **Bulk Actions Menu**: Three-dot menu for "Mark all as read" and "Clear all"
+- ✅ **Responsive Design**: Delete button only shows on hover (≥lg breakpoint)
+
+### **Desktop Delete Button Styling**
+```css
+Position: Absolute top-right
+Size: 32px × 32px (w-8 h-8)
+Background: gray-100 / #1A1A1A (dark)
+Hover Background: #ec1e24 (brand red)
+Icon: Trash2 (w-4 h-4)
+Visibility: opacity-0 → opacity-100 on card hover
+Display: hidden on mobile, flex on lg+ screens
+```
 
 ### **Responsive Behavior**
+- ✅ **Mobile (< 1024px)**: Touch swipe gestures enabled
+- ✅ **Desktop (≥ 1024px)**: Hover delete button enabled
 - ✅ Works on all touch devices
-- ✅ Disabled on desktop (no mouse drag)
 - ✅ Native feel with proper physics
 - ✅ Prevents scroll interference
 
@@ -174,19 +251,19 @@ Example: Filter "errors" → Swipe left on all to delete
 ### **Swipe Left (Delete)**
 1. User swipes notification card to the left
 2. Red delete button reveals from right side
-3. At 60px, haptic feedback triggers
+3. At 90px, haptic feedback triggers
 4. On release, notification is deleted
 5. Card animates out smoothly
 
 ### **Swipe Right (Mark as Read)**
 1. User swipes notification card to the right
 2. Grey mark-as-read button reveals from left side
-3. At 60px, haptic feedback triggers
+3. At 90px, haptic feedback triggers
 4. On release, notification marked as read (if unread)
 5. Card updates visual state (removes red border bar)
 
 ### **Reset Behavior**
-1. Swipe less than 60px
+1. Swipe less than 90px
 2. Release finger
 3. Card smoothly animates back to center
 4. No action executed
@@ -276,7 +353,7 @@ transition: isSwiping ? 'none' : 'transform 0.3s ease-out'
 | Metric | Value | Purpose |
 |--------|-------|---------|
 | **Max Swipe** | 120px | Prevents over-scrolling |
-| **Threshold** | 60px | Action trigger point |
+| **Threshold** | 90px | Action trigger point |
 | **Button Width** | 120px | Full action reveal |
 | **Transition** | 0.3s | Smooth reset animation |
 
@@ -325,26 +402,51 @@ Potential improvements (not currently needed):
 
 ## 📱 Example Scenarios
 
-### **Scenario 1: Clear Error Notification**
+### **Mobile: Clear Error Notification**
 1. See error notification
-2. Swipe left on card
+2. **Swipe left** on card (≥90px)
 3. Red "Delete" button appears
 4. Feel haptic feedback
 5. Release → Notification deleted
 
-### **Scenario 2: Acknowledge Success**
+### **Desktop: Clear Error Notification**
+1. See error notification
+2. **Hover** over notification card
+3. Delete button (trash icon) fades in top-right
+4. **Click** delete button
+5. Notification deleted
+
+### **Mobile: Acknowledge Success**
 1. See upload success notification
-2. Swipe right on card
+2. **Swipe right** on card (≥90px)
 3. Grey "Mark as Read" button appears
 4. Feel haptic feedback
 5. Release → Notification marked as read
 
-### **Scenario 3: Accidental Swipe**
+### **Desktop: Acknowledge Success**
+1. See upload success notification
+2. **Click anywhere** on notification card
+3. Notification marked as read immediately
+
+### **Accidental Swipe (Mobile)**
 1. Start swiping card
-2. Change mind (< 60px)
+2. Change mind (< 90px)
 3. Release finger
 4. Card smoothly returns to center
 5. No action taken
+
+---
+
+## 🖥️ Desktop vs 📱 Mobile Interactions
+
+| Action | Mobile (Touch) | Desktop (Mouse) |
+|--------|---------------|-----------------|
+| **Delete** | Swipe left ≥90px | Hover + click trash icon |
+| **Mark as Read** | Swipe right ≥90px OR Tap | Click anywhere on card |
+| **Bulk Delete** | Three-dot menu | Three-dot menu |
+| **Bulk Mark Read** | Three-dot menu | Three-dot menu |
+| **Visual Feedback** | Progressive reveal | Hover fade-in |
+| **Haptic Feedback** | ✅ Yes | ❌ Not applicable |
 
 ---
 

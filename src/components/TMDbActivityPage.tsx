@@ -8,6 +8,7 @@ import { TimePicker } from './ui/time-picker';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
 import { useTMDbPosts } from '../contexts/TMDbPostsContext';
+import { SwipeableActivityCard } from './SwipeableActivityCard';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -356,7 +357,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filter === 'all'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             All Activity
@@ -369,7 +370,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filter === 'published'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Published
@@ -382,7 +383,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filter === 'scheduled'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Scheduled
@@ -395,7 +396,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filter === 'pending'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Pending
@@ -408,10 +409,10 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filter === 'failures'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
-            Failures
+            Failure
           </button>
         </div>
       </div>
@@ -424,8 +425,10 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             const StatusIcon = statusConfig.icon;
             
             return (
-              <div
+              <SwipeableActivityCard
                 key={item.id}
+                id={item.id}
+                onDelete={(id) => handleDelete(id, item.title)}
                 className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200"
               >
                 <div className="flex gap-4">
@@ -593,7 +596,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                     </DropdownMenu>
                   </div>
                 )}
-              </div>
+              </SwipeableActivityCard>
             );
           })
         ) : (

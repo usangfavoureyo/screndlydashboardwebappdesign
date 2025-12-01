@@ -128,7 +128,10 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
 
         {/* Caption Generation Section */}
         <div>
-          <h3 className="text-gray-900 dark:text-white mb-3">Caption Generation</h3>
+          <h3 className="text-gray-900 dark:text-white mb-1">Caption Generation</h3>
+          <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mb-3">
+            AI-powered caption generation from Video content for social media publishing
+          </p>
           
           {/* OpenAI Model Selection */}
           <div>

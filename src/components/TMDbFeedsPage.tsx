@@ -71,7 +71,7 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filterType === 'all'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             All Feeds
@@ -81,7 +81,7 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filterType === 'today'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Today
@@ -91,7 +91,7 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filterType === 'weekly'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Weekly
@@ -101,7 +101,7 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filterType === 'monthly'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Monthly
@@ -111,7 +111,7 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
             className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
               filterType === 'anniversary'
                 ? 'bg-[#ec1e24] text-white'
-                : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
             Anniversaries

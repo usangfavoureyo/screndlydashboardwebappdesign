@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { ChevronLeft, ChevronRight, RefreshCw, Video, Rss, Clapperboard, Film } from 'lucide-react';
 import { haptics } from '../utils/haptics';
 import { getPlatformConnection, PlatformType } from '../utils/platformConnections';
+import { SwipeableLogRow } from './SwipeableLogRow';
 
 interface LogEntry {
   id: string;
@@ -46,6 +47,7 @@ interface LogsPageProps {
 }
 
 export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
+  const [logs, setLogs] = useState<LogEntry[]>(mockLogs);
   const [statusFilter, setStatusFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -80,7 +82,23 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
     }
   };
 
-  const filteredLogs = mockLogs.filter(log => {
+  const handleDelete = (logId: string) => {
+    const deletedLog = logs.find(log => log.id === logId);
+    
+    // Remove log from state
+    setLogs(prevLogs => prevLogs.filter(log => log.id !== logId));
+    
+    // Show notification
+    if (onNewNotification && deletedLog) {
+      onNewNotification(
+        'Log Deleted',
+        `Removed "${deletedLog.videoTitle}" from logs`,
+        'success'
+      );
+    }
+  };
+
+  const filteredLogs = logs.filter(log => {
     if (statusFilter !== 'all' && log.status !== statusFilter) return false;
     if (platformFilter !== 'all' && log.platform !== platformFilter) return false;
     if (typeFilter !== 'all' && log.type !== typeFilter) return false;
@@ -214,91 +232,13 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
             </thead>
             <tbody>
               {displayedLogs.map((log) => (
-                <tr key={log.id} className="border-b border-gray-200 dark:border-[#374151] last:border-0 transition-colors duration-200">
-                  <td className="p-4 text-gray-900 dark:text-white">{log.videoTitle}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      {log.type === 'video' && (
-                        <>
-                          <Video className="w-4 h-4 text-[#ec1e24]" />
-                          <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video</span>
-                        </>
-                      )}
-                      {log.type === 'rss' && (
-                        <>
-                          <Rss className="w-4 h-4 text-[#ec1e24]" />
-                          <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">RSS</span>
-                        </>
-                      )}
-                      {log.type === 'tmdb' && (
-                        <>
-                          <Clapperboard className="w-4 h-4 text-[#ec1e24]" />
-                          <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">TMDb</span>
-                        </>
-                      )}
-                      {log.type === 'videostudio' && (
-                        <>
-                          <Film className="w-4 h-4 text-[#ec1e24]" />
-                          <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video Studio</span>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <a
-                      href={getPlatformUrl(log.platform)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        haptics.light();
-                        window.open(getPlatformUrl(log.platform), '_blank', 'noopener,noreferrer');
-                      }}
-                      className="inline-block px-3 py-1 bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF] rounded-full hover:bg-gray-300 dark:hover:bg-[#2a2a2a] transition-colors cursor-pointer"
-                    >
-                      {log.platform}
-                    </a>
-                  </td>
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 rounded-full ${
-                        log.status === 'success'
-                          ? 'bg-[#D1FAE5] dark:bg-[#065F46] text-[#065F46] dark:text-[#D1FAE5]'
-                          : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
-                      }`}
-                    >
-                      {log.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-[#6B7280] dark:text-[#9CA3AF]">{log.timestamp}</td>
-                  <td className="p-4">
-                    {log.error ? (
-                      <div>
-                        <p className="text-[#EF4444]">{log.error}</p>
-                        {log.errorDetails && (
-                          <p className="text-[#6B7280] dark:text-[#9CA3AF] text-xs mt-1">{log.errorDetails}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    {log.status === 'failed' ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRetry(log.id, log.videoTitle)}
-                        className="gap-2 bg-white dark:bg-black"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                        Retry
-                      </Button>
-                    ) : (
-                      <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
-                    )}
-                  </td>
-                </tr>
+                <SwipeableLogRow 
+                  key={log.id} 
+                  log={log} 
+                  onDelete={handleDelete}
+                  onRetry={handleRetry}
+                  platformUrls={platformUrls}
+                />
               ))}
             </tbody>
           </table>

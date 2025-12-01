@@ -106,7 +106,7 @@ export function NotificationPanel({
       {/* Notification Panel */}
       <div className="fixed top-0 right-0 bottom-0 w-full lg:w-[450px] bg-white dark:bg-[#000000] z-50 overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4">
+        <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 z-10">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h2 className="text-black dark:text-white text-xl">Notifications</h2>
@@ -210,7 +210,7 @@ export function NotificationPanel({
                     haptics.light();
                     setFilterSource(null);
                   }}
-                  className={`text-xs px-2 py-1 rounded ${!filterSource ? 'bg-[#ec1e24] text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'}`}
+                  className={`text-xs px-2 py-1 rounded ${!filterSource ? 'bg-[#ec1e24] text-white' : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'}`}
                 >
                   All
                 </button>
@@ -221,7 +221,7 @@ export function NotificationPanel({
                       haptics.light();
                       setFilterSource(source || null);
                     }}
-                    className={`text-xs px-2 py-1 rounded capitalize ${filterSource === source ? 'bg-[#ec1e24] text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'}`}
+                    className={`text-xs px-2 py-1 rounded capitalize ${filterSource === source ? 'bg-[#ec1e24] text-white' : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'}`}
                   >
                     {source}
                   </button>
@@ -235,7 +235,7 @@ export function NotificationPanel({
                     haptics.light();
                     setFilterType(null);
                   }}
-                  className={`text-xs px-2 py-1 rounded ${!filterType ? 'bg-[#ec1e24] text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'}`}
+                  className={`text-xs px-2 py-1 rounded ${!filterType ? 'bg-[#ec1e24] text-white' : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'}`}
                 >
                   All
                 </button>
@@ -246,7 +246,7 @@ export function NotificationPanel({
                       haptics.light();
                       setFilterType(type);
                     }}
-                    className={`text-xs px-2 py-1 rounded capitalize ${filterType === type ? 'bg-[#ec1e24] text-white' : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'}`}
+                    className={`text-xs px-2 py-1 rounded capitalize ${filterType === type ? 'bg-[#ec1e24] text-white' : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'}`}
                   >
                     {type}
                   </button>

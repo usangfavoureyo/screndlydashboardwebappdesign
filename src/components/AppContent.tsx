@@ -7,6 +7,7 @@ import { SettingsPanel } from "./SettingsPanel";
 import { NotificationPanel } from "./NotificationPanel";
 import { ToastContainer, ToastAction } from "./Toast";
 import { InstallPrompt } from "./InstallPrompt";
+import { NotFoundPage } from "./NotFoundPage";
 import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
 import { haptics } from "../utils/haptics";
 import { useNotifications } from "../contexts/NotificationsContext";
@@ -66,6 +67,18 @@ export function AppContent() {
     action?: ToastAction;
     duration?: number;
   }>>([]);
+
+  // List of all valid pages
+  const validPages = [
+    'dashboard', 'channels', 'platforms', 'logs', 'activity', 'design-system',
+    'rss', 'rss-activity', 'tmdb', 'tmdb-activity', 'video-details',
+    'video-studio', 'video-studio-activity', 'privacy', 'terms', 'disclaimer',
+    'cookie', 'contact', 'about', 'data-deletion', 'app-info', 'api-usage',
+    'comment-automation', 'upload-manager', 'not-found'
+  ];
+
+  // Check if current page is valid, if not show 404
+  const displayPage = validPages.includes(currentPage) ? currentPage : 'not-found';
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -298,50 +311,51 @@ export function AppContent() {
           />
           <main className="lg:ml-64 pb-16 lg:pb-0">
             <div className="p-4 sm:p-6 lg:p-8 transition-opacity duration-200">
-              {currentPage === "dashboard" && (
+              {displayPage === "dashboard" && (
                 <DashboardOverview onNavigate={handleNavigate} />
               )}
-              {currentPage === "channels" && <Suspense fallback={<PageLoader />}><ChannelsPage /></Suspense>}
-              {currentPage === "platforms" && <Suspense fallback={<PageLoader />}><PlatformsPage /></Suspense>}
-              {currentPage === "logs" && <Suspense fallback={<PageLoader />}><LogsPage onNewNotification={addNotification} onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "activity" && (
+              {displayPage === "channels" && <Suspense fallback={<PageLoader />}><ChannelsPage /></Suspense>}
+              {displayPage === "platforms" && <Suspense fallback={<PageLoader />}><PlatformsPage /></Suspense>}
+              {displayPage === "logs" && <Suspense fallback={<PageLoader />}><LogsPage onNewNotification={addNotification} onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "activity" && (
                 <Suspense fallback={<PageLoader />}><RecentActivityPage onNavigate={handleNavigate} /></Suspense>
               )}
-              {currentPage === "design-system" && (
+              {displayPage === "design-system" && (
                 <Suspense fallback={<PageLoader />}><DesignSystemPage onNavigate={handleNavigate} /></Suspense>
               )}
-              {currentPage === "rss" && (
+              {displayPage === "rss" && (
                 <Suspense fallback={<PageLoader />}><RSSPage onNavigate={handleNavigate} /></Suspense>
               )}
-              {currentPage === "rss-activity" && (
+              {displayPage === "rss-activity" && (
                 <Suspense fallback={<PageLoader />}><RSSActivityPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
               )}
-              {currentPage === "tmdb" && (
+              {displayPage === "tmdb" && (
                 <Suspense fallback={<PageLoader />}><TMDbFeedsPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
               )}
-              {currentPage === "tmdb-activity" && (
+              {displayPage === "tmdb-activity" && (
                 <Suspense fallback={<PageLoader />}><TMDbActivityPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
               )}
-              {currentPage === "video-details" && (
+              {displayPage === "video-details" && (
                 <Suspense fallback={<PageLoader />}><VideoDetailsPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
               )}
-              {currentPage === "video-studio" && (
+              {displayPage === "video-studio" && (
                 <Suspense fallback={<PageLoader />}><VideoStudioPage onNavigate={handleNavigate} previousPage={previousPage} onCaptionEditorChange={setIsCaptionEditorOpen} /></Suspense>
               )}
-              {currentPage === "video-studio-activity" && (
+              {displayPage === "video-studio-activity" && (
                 <Suspense fallback={<PageLoader />}><VideoStudioActivityPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
               )}
-              {currentPage === "privacy" && <Suspense fallback={<PageLoader />}><PrivacyPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "terms" && <Suspense fallback={<PageLoader />}><TermsPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "disclaimer" && <Suspense fallback={<PageLoader />}><DisclaimerPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "cookie" && <Suspense fallback={<PageLoader />}><CookiePage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "contact" && <Suspense fallback={<PageLoader />}><ContactPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "about" && <Suspense fallback={<PageLoader />}><AboutPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "data-deletion" && <Suspense fallback={<PageLoader />}><DataDeletionPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "app-info" && <Suspense fallback={<PageLoader />}><AppInfoPage onNavigate={handleNavigate} /></Suspense>}
-              {currentPage === "api-usage" && <Suspense fallback={<PageLoader />}><APIUsage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} /></Suspense>}
-              {currentPage === "comment-automation" && <Suspense fallback={<PageLoader />}><CommentAutomationPage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} /></Suspense>}
-              {currentPage === "upload-manager" && <Suspense fallback={<PageLoader />}><UploadManagerPage onBack={() => handleNavigate(previousPage || "dashboard")} /></Suspense>}
+              {displayPage === "privacy" && <Suspense fallback={<PageLoader />}><PrivacyPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "terms" && <Suspense fallback={<PageLoader />}><TermsPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "disclaimer" && <Suspense fallback={<PageLoader />}><DisclaimerPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "cookie" && <Suspense fallback={<PageLoader />}><CookiePage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "contact" && <Suspense fallback={<PageLoader />}><ContactPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "about" && <Suspense fallback={<PageLoader />}><AboutPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "data-deletion" && <Suspense fallback={<PageLoader />}><DataDeletionPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "app-info" && <Suspense fallback={<PageLoader />}><AppInfoPage onNavigate={handleNavigate} /></Suspense>}
+              {displayPage === "api-usage" && <Suspense fallback={<PageLoader />}><APIUsage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} /></Suspense>}
+              {displayPage === "comment-automation" && <Suspense fallback={<PageLoader />}><CommentAutomationPage onBack={() => handleNavigate(previousPage || "dashboard")} previousPage={previousPage} /></Suspense>}
+              {displayPage === "upload-manager" && <Suspense fallback={<PageLoader />}><UploadManagerPage onBack={() => handleNavigate(previousPage || "dashboard")} /></Suspense>}
+              {displayPage === "not-found" && <NotFoundPage onNavigate={handleNavigate} />}
             </div>
           </main>
           <MobileBottomNav

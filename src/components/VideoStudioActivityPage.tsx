@@ -1,6 +1,7 @@
 import { Film, Calendar, CheckCircle, XCircle, Clock, Download, RefreshCw, Share2, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
@@ -12,6 +13,7 @@ import { YouTubeIcon } from './icons/YouTubeIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
 import { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
+import { SwipeableActivityCard } from './SwipeableActivityCard';
 
 interface VideoStudioActivityPageProps {
   onNavigate: (page: string) => void;
@@ -20,7 +22,7 @@ interface VideoStudioActivityPageProps {
 
 export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudioActivityPageProps) {
   const { settings } = useSettings();
-  const activities = [
+  const [activities, setActivities] = useState([
     {
       id: '1',
       type: 'review' as const,
@@ -83,7 +85,7 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
       published: true,
       platforms: ['X', 'Threads', 'Facebook']
     }
-  ];
+  ]);
 
   // Calculate stats
   const completedCount = activities.filter(a => a.status === 'completed').length;
@@ -168,6 +170,14 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
     }
   };
 
+  const handleDelete = (id: string, title: string) => {
+    haptics.medium();
+    setActivities(prev => prev.filter(activity => activity.id !== id));
+    toast.success('Deleted', {
+      description: `\"${title}\" has been removed`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -238,8 +248,10 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
 
         <div className="space-y-4">
           {activities.map((activity) => (
-            <div
+            <SwipeableActivityCard
               key={activity.id}
+              id={activity.id}
+              onDelete={() => handleDelete(activity.id, activity.title)}
               className="p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]"
             >
               <div className="flex items-start justify-between gap-4">
@@ -310,40 +322,58 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
                 <div className="flex flex-col gap-2 flex-shrink-0">
                   {activity.status === 'completed' && (
                     <>
-                      <button
-                        onClick={() => haptics.light()}
-                        className="w-10 h-10 flex items-center justify-center bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#ec1e24] transition-all duration-200"
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          haptics.light();
+                          toast.success('Download Started', {
+                            description: `Downloading "${activity.title}"`,
+                          });
+                        }}
+                        size="sm"
+                        variant="outline"
+                        className="gap-2 bg-white dark:bg-black border-gray-200 dark:border-[#333333] whitespace-nowrap"
                       >
-                        <Download className="w-5 h-5 text-[#ec1e24]" />
-                      </button>
-                      <button
-                        onClick={() => {
+                        <Download className="w-4 h-4" />
+                        Download
+                      </Button>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           haptics.light();
                           setIsPublishDialogOpen(true);
                           setSelectedActivity(activity);
                           generateCaption(activity);
                         }}
-                        className="w-10 h-10 flex items-center justify-center bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#ec1e24] transition-all duration-200"
+                        size="sm"
+                        className="gap-2 bg-[#ec1e24] hover:bg-[#d01a20] text-white shadow-none whitespace-nowrap"
                       >
-                        <Share2 className="w-5 h-5 text-[#ec1e24]" />
-                      </button>
+                        <Share2 className="w-4 h-4" />
+                        {activity.published ? 'Re-publish' : 'Publish'}
+                      </Button>
                     </>
                   )}
-
+                  
                   {activity.status === 'failed' && (
                     <Button
-                      onClick={() => haptics.light()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        haptics.light();
+                        toast.success('Retry Initiated', {
+                          description: `Retrying "${activity.title}"`,
+                        });
+                      }}
                       size="sm"
                       variant="outline"
-                      className="border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+                      className="gap-2 bg-white dark:bg-black border-gray-200 dark:border-[#333333] whitespace-nowrap"
                     >
-                      <RefreshCw className="w-4 h-4 mr-2 text-[#ec1e24]" />
+                      <RefreshCw className="w-4 h-4" />
                       Retry
                     </Button>
                   )}
                 </div>
               </div>
-            </div>
+            </SwipeableActivityCard>
           ))}
         </div>
       </div>
@@ -512,6 +542,7 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
                 haptics.medium();
                 // Handle publish logic here
                 setIsPublishDialogOpen(false);
+                toast.success('Video published successfully!');
               }}
               className="flex-1 bg-[#ec1e24] hover:bg-[#d01a20] text-white shadow-none hover:shadow-none active:shadow-none focus:shadow-none hover:scale-100 active:scale-100"
             >

@@ -49,6 +49,7 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [timeFilter, setTimeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 10;
 
@@ -83,6 +84,28 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
     if (statusFilter !== 'all' && log.status !== statusFilter) return false;
     if (platformFilter !== 'all' && log.platform !== platformFilter) return false;
     if (typeFilter !== 'all' && log.type !== typeFilter) return false;
+    
+    // Time filter
+    if (timeFilter !== 'all') {
+      const logDate = new Date(log.timestamp);
+      const now = new Date();
+      
+      switch (timeFilter) {
+        case 'last-hour':
+          if (logDate < new Date(now.getTime() - 60 * 60 * 1000)) return false;
+          break;
+        case 'last-24h':
+          if (logDate < new Date(now.getTime() - 24 * 60 * 60 * 1000)) return false;
+          break;
+        case 'last-7d':
+          if (logDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)) return false;
+          break;
+        case 'last-30d':
+          if (logDate < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)) return false;
+          break;
+      }
+    }
+    
     return true;
   });
 
@@ -114,7 +137,7 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
 
       {/* Filters */}
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="rounded-lg border-gray-200 dark:border-[#333333]">
@@ -154,6 +177,20 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
                 <SelectItem value="Threads">Threads</SelectItem>
                 <SelectItem value="YouTube">YouTube</SelectItem>
                 <SelectItem value="Facebook">Facebook</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select value={timeFilter} onValueChange={setTimeFilter}>
+              <SelectTrigger className="rounded-lg border-gray-200 dark:border-[#333333]">
+                <SelectValue placeholder="All Time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="last-hour">Last Hour</SelectItem>
+                <SelectItem value="last-24h">Last 24 Hours</SelectItem>
+                <SelectItem value="last-7d">Last 7 Days</SelectItem>
+                <SelectItem value="last-30d">Last 30 Days</SelectItem>
               </SelectContent>
             </Select>
           </div>

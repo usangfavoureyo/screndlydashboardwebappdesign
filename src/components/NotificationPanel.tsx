@@ -2,6 +2,7 @@ import { X, CheckCheck, AlertCircle, Upload, Trash2, Settings as SettingsIcon, C
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { useState } from 'react';
+import { SwipeableNotificationCard } from './SwipeableNotificationCard';
 
 export interface NotificationAction {
   id: string;
@@ -28,6 +29,7 @@ interface NotificationPanelProps {
   onMarkAsRead: (id: string) => void;
   onMarkAllAsRead: () => void;
   onClearAll: () => void;
+  onDeleteNotification?: (id: string) => void;
   onNotificationAction?: (notificationId: string, actionType: string) => void;
 }
 
@@ -38,6 +40,7 @@ export function NotificationPanel({
   onMarkAsRead,
   onMarkAllAsRead,
   onClearAll,
+  onDeleteNotification,
   onNotificationAction
 }: NotificationPanelProps) {
   const [filterSource, setFilterSource] = useState<string | null>(null);
@@ -254,7 +257,12 @@ export function NotificationPanel({
         </div>
 
         {/* Notifications List */}
-        <div className="p-4 space-y-3">
+        <div 
+          className="p-4 space-y-3"
+          onTouchStart={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
           {filteredNotifications.length === 0 ? (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-gray-200 dark:bg-[#1A1A1A] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -265,50 +273,13 @@ export function NotificationPanel({
             </div>
           ) : (
             filteredNotifications.map((notification) => (
-              <button
+              <SwipeableNotificationCard
                 key={notification.id}
-                onClick={() => onMarkAsRead(notification.id)}
-                className={`w-full text-left p-4 rounded-lg shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all ${
-                  notification.read
-                    ? 'bg-white dark:bg-[#000000] hover:bg-gray-50 dark:hover:bg-[#000000] border border-gray-200 dark:border-[#333333]'
-                    : 'bg-white dark:bg-[#000000] hover:bg-gray-50 dark:hover:bg-[#000000] border border-gray-200 dark:border-[#333333] !border-l-4 !border-l-[#ec1e24]'
-                }`}
-              >
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getIcon(notification)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h4 className={`text-sm ${notification.read ? 'text-gray-600 dark:text-[#9CA3AF]' : 'text-gray-900 dark:text-white'}`}>
-                        {notification.title}
-                      </h4>
-                      {!notification.read && (
-                        <div className="w-2 h-2 bg-[#ec1e24] rounded-full flex-shrink-0 mt-1"></div>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#9CA3AF] mb-2">
-                      {notification.message}
-                    </p>
-                    <p className="text-xs text-[#6B7280]">
-                      {notification.timestamp}
-                    </p>
-                    {notification.actions && (
-                      <div className="flex gap-2 mt-2">
-                        {notification.actions.map(action => (
-                          <button
-                            key={action.id}
-                            onClick={(e) => handleActionClick(notification.id, action.type, e)}
-                            className={`text-xs ${action.type === 'dismiss' ? 'text-[#ec1e24]' : 'text-[#ec1e24]'} hover:text-[#ec1e24]/80`}
-                          >
-                            {action.icon ? <action.icon className="w-4 h-4" /> : action.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </button>
+                notification={notification}
+                onMarkAsRead={onMarkAsRead}
+                onDelete={onDeleteNotification || (() => {})}
+                onActionClick={handleActionClick}
+              />
             ))
           )}
         </div>

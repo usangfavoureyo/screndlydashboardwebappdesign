@@ -366,6 +366,7 @@ export function AppContent() {
             onMarkAsRead={markAsRead}
             onMarkAllAsRead={markAllAsRead}
             onClearAll={clearAll}
+            onDeleteNotification={deleteNotification}
             onNotificationAction={handleNotificationAction}
           />
           

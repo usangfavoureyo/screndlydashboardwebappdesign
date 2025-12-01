@@ -32,7 +32,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
         <div className="space-y-4">
           <div>
             <h3 className="text-gray-900 dark:text-white mb-1">Caption Generation</h3>
-            <p className="text-sm text-gray-600 dark:text-white">
+            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
               AI-powered caption generation from RSS article content for social media publishing
             </p>
           </div>
@@ -58,7 +58,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
                 <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 dark:text-white mt-1">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               GPT-4o balances creativity and cost for engaging social media captions
             </p>
           </div>
@@ -82,7 +82,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
               step={0.1}
               className="mt-2"
             />
-            <p className="text-xs text-gray-500 dark:text-white mt-2">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
               Recommended: 0.7 — Balanced creativity for engaging yet relevant captions
             </p>
           </div>
@@ -109,7 +109,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
                 <SelectItem value="Mysterious">Mysterious</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 dark:text-white mt-1">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               Sets the overall tone and style for generated captions
             </p>
           </div>
@@ -127,7 +127,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
               }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
-            <p className="text-xs text-gray-500 dark:text-white mt-1">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               280 for X/Twitter compatibility, 2200 for Instagram, 63,206 for Facebook
             </p>
           </div>
@@ -158,7 +158,7 @@ Guidelines:
               rows={16}
               className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono mt-1 resize-none"
             />
-            <p className="text-xs text-gray-500 dark:text-white mt-1">
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               Instructions for generating captions from RSS article content
             </p>
           </div>

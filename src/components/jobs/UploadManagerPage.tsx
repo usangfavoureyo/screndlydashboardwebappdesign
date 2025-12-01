@@ -48,7 +48,7 @@ export function UploadManagerPage({ onBack }: UploadManagerPageProps) {
       stopPolling();
       clearTimeout(timer);
     };
-  }, []);
+  }, [startPolling, stopPolling]);
 
   const activeJobs = getActiveJobs();
   const failedJobs = getFailedJobs();

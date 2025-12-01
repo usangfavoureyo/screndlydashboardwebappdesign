@@ -4,7 +4,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 const chartData = [
   { date: 'Mon', videos: 12 },

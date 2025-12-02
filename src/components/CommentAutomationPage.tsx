@@ -103,15 +103,15 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="bg-gray-50 dark:bg-[#0A0A0A] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
               <p className="text-2xl text-gray-900 dark:text-white mb-1">142</p>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Total Replies Today</p>
             </div>
-            <div className="bg-gray-50 dark:bg-[#0A0A0A] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
               <p className="text-2xl text-gray-900 dark:text-white mb-1">87%</p>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Success Rate</p>
             </div>
-            <div className="bg-gray-50 dark:bg-[#0A0A0A] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
               <p className="text-2xl text-gray-900 dark:text-white mb-1">3</p>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Active Platforms</p>
             </div>
@@ -135,11 +135,11 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
 
             {/* Platform Stats */}
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-gray-50 dark:bg-[#0A0A0A] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+              <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
                 <p className="text-2xl text-gray-900 dark:text-white mb-1">{data.repliesToday}</p>
                 <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Replies Today</p>
               </div>
-              <div className="bg-gray-50 dark:bg-[#0A0A0A] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+              <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
                 <p className="text-2xl text-gray-900 dark:text-white mb-1">{data.successRate}</p>
                 <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Success Rate</p>
               </div>
@@ -152,7 +152,7 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
                 <button
                   key={idx}
                   onClick={() => haptics.light()}
-                  className="w-full text-left p-4 bg-gray-50 dark:bg-[#0A0A0A] rounded-xl border border-gray-200 dark:border-[#333333] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all cursor-pointer"
+                  className="w-full text-left p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <p className="text-sm text-gray-600 dark:text-[#9CA3AF] italic flex-1">\"{item.comment}\"</p>

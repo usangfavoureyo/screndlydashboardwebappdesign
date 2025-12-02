@@ -63,7 +63,7 @@ function Component() {
 2. `/lib/api/types.ts` - TypeScript definitions (400 lines, 60+ types)
 3. `/lib/api/youtube.ts` - YouTube service (140 lines)
 4. `/lib/api/openai.ts` - OpenAI/LLM service (200 lines)
-5. `/lib/api/vizla.ts` - Vizla video generation (180 lines)
+5. `/lib/api/shotstack.ts` - Shotstack video generation (180 lines)
 6. `/lib/api/tmdb.ts` - TMDb movie database (120 lines)
 7. `/lib/api/websocket.ts` - WebSocket client (150 lines)
 8. `/lib/api/index.ts` - Central exports
@@ -79,7 +79,7 @@ function Component() {
 
 **Usage Example:**
 ```typescript
-import { youtubeApi, openaiApi, vizlaApi } from './lib/api';
+import { youtubeApi, openaiApi, shotstackApi } from './lib/api';
 
 // Upload video
 const result = await youtubeApi.uploadVideo(request, (progress) => {
@@ -94,20 +94,20 @@ if (result.success) {
 }
 
 // Generate prompt with GPT-4.1
-const prompt = await openaiApi.generateVislaPrompt(
+const prompt = await openaiApi.generateShotstackPrompt(
   jobData, 
   'gpt-4.1', 
   0  // temperature
 );
 
 // Validate timestamps automatically
-const validation = openaiApi.validateTimestamps(jobData, prompt.data.visla_prompt_text);
+const validation = openaiApi.validateTimestamps(jobData, prompt.data.shotstack_prompt_text);
 ```
 
 **API Services:**
 - **YouTube:** Search, upload, comments, analytics
 - **OpenAI:** Prompt generation, comment replies, validation
-- **Vizla:** Job creation, status polling, preview jobs
+- **Shotstack:** Job creation, status polling, preview jobs
 - **TMDb:** Movie search, feeds, anniversaries
 
 ---
@@ -126,7 +126,7 @@ const validation = openaiApi.validateTimestamps(jobData, prompt.data.visla_promp
 1. **Authentication** - Login, logout, JWT tokens
 2. **YouTube API** - Upload, comments, replies
 3. **OpenAI API** - Chat completions, prompt generation
-4. **Vizla API** - Job creation, status polling, cancellation
+4. **Shotstack API** - Job creation, status polling, cancellation
 5. **TMDb API** - Search, feeds, anniversaries
 6. **Video Studio API** - Job management
 7. **RSS API** - Feed management, posting
@@ -343,7 +343,7 @@ function MyComponent() {
 ### 2. Using API Services
 
 ```typescript
-import { youtubeApi, openaiApi, vizlaApi, tmdbApi } from './lib/api';
+import { youtubeApi, openaiApi, shotstackApi, tmdbApi } from './lib/api';
 
 // YouTube upload
 async function uploadVideo(file: File) {
@@ -364,28 +364,28 @@ async function uploadVideo(file: File) {
   }
 }
 
-// Generate Visla prompt with GPT-4.1
+// Generate Shotstack prompt with GPT-4.1
 async function generatePrompt(jobData: any) {
-  const response = await openaiApi.generateVislaPromptWithRetry(
+  const response = await openaiApi.generateShotstackPromptWithRetry(
     jobData,
     'gpt-4.1',
     1  // max retries
   );
   
   if (response.success) {
-    return response.data.visla_prompt_text;
+    return response.data.shotstack_prompt_text;
   }
 }
 
-// Create Vizla job and poll status
-async function createVideo(request: VizlaJobRequest) {
-  const createResponse = await vizlaApi.createJob(request);
+// Create Shotstack job and poll status
+async function createVideo(request: ShotstackJobRequest) {
+  const createResponse = await shotstackApi.createJob(request);
   
   if (createResponse.success) {
     const jobId = createResponse.data.jobId;
     
     // Poll for completion
-    const finalStatus = await vizlaApi.pollJobStatus(
+    const finalStatus = await shotstackApi.pollJobStatus(
       jobId,
       (status) => {
         console.log(`Progress: ${status.progress}%`);
@@ -472,7 +472,7 @@ npm test -- --grep "notification"
 │       ├── types.ts                # ✅ Type definitions (400 lines)
 │       ├── youtube.ts              # ✅ YouTube service (140 lines)
 │       ├── openai.ts               # ✅ OpenAI service (200 lines)
-│       ├── vizla.ts                # ✅ Vizla service (180 lines)
+│       ├── shotstack.ts            # ✅ Shotstack service (180 lines)
 │       ├── tmdb.ts                 # ✅ TMDb service (120 lines)
 │       ├── websocket.ts            # ✅ WebSocket client (150 lines)
 │       └── index.ts                # ✅ Exports

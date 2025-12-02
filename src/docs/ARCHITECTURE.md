@@ -45,6 +45,7 @@ Screndly is a production-grade automation dashboard for movie/TV trailer managem
 
 ### External APIs
 - **YouTube Data API v3:** Video uploads, comments
+- **YouTube RSS Feeds:** No-API-key trailer discovery with 16:9 format detection
 - **OpenAI API:** GPT-4.1 for prompt generation
 - **TMDb API:** Movie database
 - **Vizla API:** Video generation

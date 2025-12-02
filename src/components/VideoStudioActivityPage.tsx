@@ -14,6 +14,7 @@ import { TikTokIcon } from './icons/TikTokIcon';
 import { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
+import { useUndo } from './UndoContext';
 
 interface VideoStudioActivityPageProps {
   onNavigate: (page: string) => void;
@@ -22,6 +23,7 @@ interface VideoStudioActivityPageProps {
 
 export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudioActivityPageProps) {
   const { settings } = useSettings();
+  const { showUndo } = useUndo();
   const [activities, setActivities] = useState([
     {
       id: '1',
@@ -172,9 +174,28 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
 
   const handleDelete = (id: string, title: string) => {
     haptics.medium();
+    
+    // Find the activity to delete
+    const deletedActivity = activities.find(activity => activity.id === id);
+    if (!deletedActivity) return;
+    
+    // Temporarily remove from state
     setActivities(prev => prev.filter(activity => activity.id !== id));
-    toast.success('Deleted', {
-      description: `\"${title}\" has been removed`,
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: title,
+      onUndo: () => {
+        // Restore the activity
+        setActivities(prev => [...prev, deletedActivity]);
+      },
+      onConfirm: () => {
+        // Show final confirmation
+        toast.success('Deleted', {
+          description: `\"${title}\" has been removed`,
+        });
+      }
     });
   };
 

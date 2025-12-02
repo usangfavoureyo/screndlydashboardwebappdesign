@@ -9,6 +9,8 @@ import { FeedPreview } from './rss/FeedPreview';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
 import { useSettings } from '../contexts/SettingsContext';
+import { enrichArticleWithImages } from '../lib/rss/image-enrichment';
+import { useUndo } from './UndoContext';
 
 interface RSSPageProps {
   onNavigate?: (page: string) => void;
@@ -16,6 +18,7 @@ interface RSSPageProps {
 
 export function RSSPage({ onNavigate }: RSSPageProps) {
   const { settings, updateSetting } = useSettings();
+  const { showUndo } = useUndo();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFeed, setSelectedFeed] = useState<Feed | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -191,8 +194,35 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
 
   const handleDeleteFeed = (id: string) => {
     haptics.medium();
+    
+    // Find the feed and its index to delete
+    const feedIndex = feeds.findIndex((f) => f.id === id);
+    const deletedFeed = feeds.find((f) => f.id === id);
+    if (!deletedFeed || feedIndex === -1) return;
+    
+    // Store the original index
+    const originalIndex = feedIndex;
+    
+    // Temporarily remove from state
     setFeeds(feeds.filter((f) => f.id !== id));
-    toast.success('Feed deleted successfully');
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: deletedFeed.name,
+      onUndo: () => {
+        // Restore the feed at its original position
+        setFeeds(prevFeeds => {
+          const newFeeds = [...prevFeeds];
+          newFeeds.splice(originalIndex, 0, deletedFeed);
+          return newFeeds;
+        });
+      },
+      onConfirm: () => {
+        // Show final confirmation
+        toast.success('Feed deleted successfully');
+      }
+    });
   };
 
   const handleSaveFeed = async (feed: Feed) => {
@@ -207,27 +237,70 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
     }
   };
 
-  const handlePreview = (id: string) => {
-    // Mock preview data
-    setPreviewData({
-      title: 'Dune: Part Three Confirmed by Warner Bros.',
-      link: 'https://variety.com/2024/film/news/dune-part-three-confirmed-1234567890/',
-      pubDate: '2 hours ago',
-      snippet: 'Warner Bros. has officially confirmed that Dune: Part Three is in development, with Denis Villeneuve returning to direct...',
-      images: [
-        {
-          url: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800',
-          reason: 'Poster match',
-        },
-        {
-          url: 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800',
-          reason: 'Scene imagery',
-        },
-      ],
-      caption: 'BREAKING: Warner Bros. confirms Dune: Part Three is officially happening! 🎬\n\nDenis Villeneuve returns to complete the epic trilogy. Production details coming soon.\n\n#Dune #DunePartThree #Movies',
-      captionCharCount: 147,
-    });
-    setIsPreviewOpen(true);
+  const handlePreview = async (id: string) => {
+    const feed = feeds.find(f => f.id === id);
+    if (!feed) return;
+
+    // Show loading toast
+    const loadingToast = toast.loading('Fetching and enriching preview article...');
+    
+    try {
+      // Mock article (in production, this would fetch from RSS feed)
+      const mockArticle = {
+        title: 'Dune: Part Three Confirmed by Warner Bros.',
+        description: 'Warner Bros. has officially confirmed that Dune: Part Three is in development, with Denis Villeneuve returning to direct the third installment in the epic sci-fi saga.',
+        link: 'https://variety.com/2024/film/news/dune-part-three-confirmed-1234567890/',
+        pubDate: '2 hours ago'
+      };
+
+      // Use smart image selection
+      const enrichmentResult = await enrichArticleWithImages(
+        mockArticle,
+        settings,
+        parseInt(feed.imageCount) || 2
+      );
+
+      toast.dismiss(loadingToast);
+
+      if (!enrichmentResult.success) {
+        toast.error(enrichmentResult.error || 'Failed to enrich article with images');
+        return;
+      }
+
+      // Show confidence level
+      if (enrichmentResult.confidenceLevel === 'high') {
+        toast.success(`High confidence match (${enrichmentResult.confidence}%) - Perfect images found!`);
+      } else if (enrichmentResult.confidenceLevel === 'medium') {
+        toast.info(`Medium confidence (${enrichmentResult.confidence}%) - Good match`);
+      } else {
+        toast.warning(`Low confidence (${enrichmentResult.confidence}%) - Using fallback images`);
+      }
+
+      // Mock caption generation (in production, this would use GPT-4)
+      const mockCaption = 'BREAKING: Warner Bros. confirms Dune: Part Three is officially happening! 🎬\n\nDenis Villeneuve returns to complete the epic trilogy. Production details coming soon.\n\n#Dune #DunePartThree #Movies';
+
+      setPreviewData({
+        title: mockArticle.title,
+        link: mockArticle.link,
+        pubDate: mockArticle.pubDate,
+        snippet: mockArticle.description,
+        images: enrichmentResult.images.map(img => ({
+          url: img.url,
+          reason: img.reason
+        })),
+        caption: mockCaption,
+        captionCharCount: mockCaption.length,
+        analysis: enrichmentResult.analysis,
+        confidence: enrichmentResult.confidence,
+        confidenceLevel: enrichmentResult.confidenceLevel
+      });
+      
+      setIsPreviewOpen(true);
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate preview');
+      console.error('Preview error:', error);
+    }
   };
 
   const handleTest = async (id: string) => {

@@ -9,6 +9,7 @@ import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
 import { useTMDbPosts } from '../contexts/TMDbPostsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
+import { useUndo } from './UndoContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +50,8 @@ interface TMDbActivityPageProps {
 }
 
 export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageProps) {
-  const { posts, reschedulePost, updatePostStatus, deletePost, updatePost } = useTMDbPosts();
+  const { posts, reschedulePost, updatePostStatus, deletePost, updatePost, addPost } = useTMDbPosts();
+  const { showUndo } = useUndo();
   const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending' | 'scheduled'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isChangeDateOpen, setIsChangeDateOpen] = useState(false);
@@ -119,9 +121,28 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
 
   const handleDelete = (id: string, title: string) => {
     haptics.medium();
+    
+    // Find the post to delete
+    const deletedPost = posts.find(post => post.id === id);
+    if (!deletedPost) return;
+    
+    // Temporarily remove from state
     deletePost(id);
-    toast.success('Deleted', {
-      description: `\"${title}\" has been removed`,
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: title,
+      onUndo: () => {
+        // Restore the post
+        addPost(deletedPost);
+      },
+      onConfirm: () => {
+        // Show final confirmation
+        toast.success('Deleted', {
+          description: `\"${title}\" has been removed`,
+        });
+      }
     });
   };
 

@@ -9,8 +9,10 @@ import { haptics } from '../utils/haptics';
 import { youtubePoller } from '../utils/youtube-poller';
 import { toast } from 'sonner';
 import type { Channel } from '../utils/youtube-rss';
+import { useUndo } from './UndoContext';
 
 export function ChannelsPage() {
+  const { showUndo } = useUndo();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [isPolling, setIsPolling] = useState(false);
   const [pollInterval] = useState(2);
@@ -101,9 +103,33 @@ export function ChannelsPage() {
 
   const deleteChannel = (id: string) => {
     haptics.medium();
+    
+    // Find the channel and its index to delete
+    const channelIndex = channels.findIndex(ch => ch.id === id);
+    const deletedChannel = channels.find(ch => ch.id === id);
+    if (!deletedChannel || channelIndex === -1) return;
+    
+    // Store the original index
+    const originalIndex = channelIndex;
+    
+    // Temporarily remove from poller
     youtubePoller.removeChannel(id);
     setChannels([...youtubePoller.getChannels()]);
-    toast.success('Channel removed');
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: deletedChannel.name,
+      onUndo: () => {
+        // Restore the channel at its original position
+        youtubePoller.restoreChannel(deletedChannel, originalIndex);
+        setChannels([...youtubePoller.getChannels()]);
+      },
+      onConfirm: () => {
+        // Show final confirmation
+        toast.success('Channel removed');
+      }
+    });
   };
 
   const addChannel = async () => {
@@ -153,7 +179,7 @@ export function ChannelsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[#111827] dark:text-white mb-2">Channels</h1>
-          <p className="text-[#6B7280] dark:text-[#9CA3AF]">Manage YouTube channels to monitor for new trailers.</p>
+          <p className="text-[#6B7280] dark:text-[#9CA3AF]">Monitor YouTube channels for new 16:9 landscape trailers.</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
@@ -195,7 +221,7 @@ export function ChannelsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setIsAddDialogOpen(false)}
-                  className="rounded-lg"
+                  className="rounded-lg bg-white dark:bg-[#000000]"
                 >
                   Cancel
                 </Button>
@@ -243,7 +269,7 @@ export function ChannelsPage() {
               <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(false)}
-                className="rounded-lg"
+                className="rounded-lg bg-white dark:bg-[#000000]"
               >
                 Cancel
               </Button>

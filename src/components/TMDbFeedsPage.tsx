@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
 import { useTMDbPosts } from '../contexts/TMDbPostsContext';
+import { useUndo } from './UndoContext';
 
 interface TMDbFeedsPageProps {
   onNavigate: (page: string) => void;
@@ -13,7 +14,8 @@ interface TMDbFeedsPageProps {
 }
 
 export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) {
-  const { posts, updatePost, deletePost } = useTMDbPosts();
+  const { posts, updatePost, deletePost, restorePost } = useTMDbPosts();
+  const { showUndo } = useUndo();
   const [filterType, setFilterType] = useState<'all' | 'today' | 'weekly' | 'monthly' | 'anniversary'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -35,7 +37,32 @@ export function TMDbFeedsPage({ onNavigate, previousPage }: TMDbFeedsPageProps) 
   };
 
   const handleDeleteFeed = (feedId: string) => {
+    haptics.medium();
+    
+    // Find the post and its index to delete
+    const postIndex = posts.findIndex(post => post.id === feedId);
+    const deletedPost = posts.find(post => post.id === feedId);
+    if (!deletedPost || postIndex === -1) return;
+    
+    // Store the original index
+    const originalIndex = postIndex;
+    
+    // Temporarily remove from state
     deletePost(feedId);
+    
+    // Show undo toast
+    showUndo({
+      id: feedId,
+      itemName: deletedPost.title,
+      onUndo: () => {
+        // Restore the post at its original position
+        restorePost(deletedPost, originalIndex);
+      },
+      onConfirm: () => {
+        // Show final confirmation
+        toast.success('Feed deleted successfully');
+      }
+    });
   };
 
   const handleRefresh = () => {

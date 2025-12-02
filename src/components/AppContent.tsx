@@ -8,6 +8,7 @@ import { NotificationPanel } from "./NotificationPanel";
 import { ToastContainer, ToastAction } from "./Toast";
 import { InstallPrompt } from "./InstallPrompt";
 import { NotFoundPage } from "./NotFoundPage";
+import { UndoToast } from "./UndoToast";
 import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
 import { haptics } from "../utils/haptics";
 import { useNotifications } from "../contexts/NotificationsContext";
@@ -391,6 +392,9 @@ export function AppContent() {
           
           {/* Toast Container */}
           <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+          
+          {/* Undo Toast */}
+          <UndoToast />
           
           {/* PWA Install Prompt */}
           <InstallPrompt />

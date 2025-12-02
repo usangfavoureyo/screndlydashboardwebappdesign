@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, RefreshCw, Video, Rss, Clapperboard, Film } 
 import { haptics } from '../utils/haptics';
 import { getPlatformConnection, PlatformType } from '../utils/platformConnections';
 import { SwipeableLogRow } from './SwipeableLogRow';
+import { useUndo } from './UndoContext';
 
 interface LogEntry {
   id: string;
@@ -47,6 +48,7 @@ interface LogsPageProps {
 }
 
 export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
+  const { showUndo } = useUndo();
   const [logs, setLogs] = useState<LogEntry[]>(mockLogs);
   const [statusFilter, setStatusFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
@@ -84,18 +86,43 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
 
   const handleDelete = (logId: string) => {
     const deletedLog = logs.find(log => log.id === logId);
+    if (!deletedLog) return;
     
-    // Remove log from state
+    // Temporarily remove log from state
     setLogs(prevLogs => prevLogs.filter(log => log.id !== logId));
     
-    // Show notification
-    if (onNewNotification && deletedLog) {
-      onNewNotification(
-        'Log Deleted',
-        `Removed "${deletedLog.videoTitle}" from logs`,
-        'success'
-      );
-    }
+    // Show undo toast
+    showUndo({
+      id: logId,
+      itemName: deletedLog.videoTitle,
+      onUndo: () => {
+        // Restore the log
+        setLogs(prevLogs => {
+          // Find the correct position to insert based on timestamp
+          const insertIndex = prevLogs.findIndex(log => 
+            new Date(log.timestamp) < new Date(deletedLog.timestamp)
+          );
+          if (insertIndex === -1) {
+            return [...prevLogs, deletedLog];
+          }
+          return [
+            ...prevLogs.slice(0, insertIndex),
+            deletedLog,
+            ...prevLogs.slice(insertIndex)
+          ];
+        });
+      },
+      onConfirm: () => {
+        // Show notification after undo timeout expires
+        if (onNewNotification) {
+          onNewNotification(
+            'Log Deleted',
+            `Removed "${deletedLog.videoTitle}" from logs`,
+            'success'
+          );
+        }
+      }
+    });
   };
 
   const filteredLogs = logs.filter(log => {

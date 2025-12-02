@@ -63,6 +63,7 @@ interface JobsState {
   
   // Job management
   addJob: (job: Omit<UploadJob, 'id' | 'createdAt' | 'updatedAt' | 'events'>) => string;
+  restoreJob: (job: UploadJob) => void;
   updateJob: (id: string, updates: Partial<UploadJob>) => void;
   deleteJob: (id: string) => void;
   duplicateJob: (id: string) => string;
@@ -128,6 +129,12 @@ export const useJobsStore = create<JobsState>()(
         });
         
         return newJob.id;
+      },
+      
+      restoreJob: (job) => {
+        set(state => ({
+          jobs: [job, ...state.jobs],
+        }));
       },
       
       updateJob: (id, updates) => {

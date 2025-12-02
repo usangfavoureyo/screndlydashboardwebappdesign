@@ -9,7 +9,7 @@ export { apiClient, ApiClient } from './client';
 // API services
 export { youtubeApi, YouTubeApi } from './youtube';
 export { openaiApi, OpenAIApi } from './openai';
-export { vizlaApi, VizlaApi } from './vizla';
+export { shotstackApi, ShotstackApi } from './shotstack';
 export { tmdbApi, TMDbApi } from './tmdb';
 
 // WebSocket client

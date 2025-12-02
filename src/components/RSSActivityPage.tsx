@@ -5,6 +5,7 @@ import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
 import { useRSSFeeds } from '../contexts/RSSFeedsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
+import { useUndo } from './UndoContext';
 
 interface QueueItem {
   id: string;
@@ -22,7 +23,8 @@ interface RSSActivityPageProps {
 }
 
 export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPageProps) {
-  const { feeds, deleteFeed } = useRSSFeeds();
+  const { feeds, deleteFeed, addFeed } = useRSSFeeds();
+  const { showUndo } = useUndo();
   const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -78,9 +80,28 @@ export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPagePro
 
   const handleDelete = (id: string, title: string) => {
     haptics.medium();
+    
+    // Find the feed to delete
+    const deletedFeed = feeds.find(feed => feed.id === id);
+    if (!deletedFeed) return;
+    
+    // Temporarily remove from state
     deleteFeed(id);
-    toast.success('Deleted', {
-      description: `\"${title}\" has been removed`,
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: title,
+      onUndo: () => {
+        // Restore the feed
+        addFeed(deletedFeed);
+      },
+      onConfirm: () => {
+        // Show final confirmation
+        toast.success('Deleted', {
+          description: `\"${title}\" has been removed`,
+        });
+      }
     });
   };
 

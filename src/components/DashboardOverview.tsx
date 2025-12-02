@@ -1,5 +1,5 @@
 import { StatCard } from './StatCard';
-import { Video, Radio, Globe, AlertCircle, HardDrive, MessageSquare, Rss, Clapperboard, Calendar, TrendingUp, Zap, CheckCircle, Key, Film } from 'lucide-react';
+import { Video, Radio, Globe, AlertCircle, HardDrive, MessageSquare, Rss, Clapperboard, Calendar, TrendingUp, Zap, CheckCircle, Key, Film, Search } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
@@ -593,14 +593,34 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">TMDb API Usage</div>
           </div>
 
-          {/* Vizla API Usage */}
+          {/* Shotstack API Usage */}
           <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
             <div className="flex items-center gap-2 mb-2">
               <Film className="w-4 h-4 text-[#ec1e24]" />
               <span className="text-xs text-gray-500 dark:text-[#6B7280]">Today</span>
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-0.5">127</div>
-            <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">Vizla API Usage</div>
+            <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">Shotstack API Usage</div>
+          </div>
+
+          {/* Google Search API Usage */}
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="flex items-center gap-2 mb-2">
+              <Search className="w-4 h-4 text-[#ec1e24]" />
+              <span className="text-xs text-gray-500 dark:text-[#6B7280]">Today</span>
+            </div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">543</div>
+            <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">Google Search API Usage</div>
+          </div>
+
+          {/* Google Video Intelligence API Usage */}
+          <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="flex items-center gap-2 mb-2">
+              <Video className="w-4 h-4 text-[#ec1e24]" />
+              <span className="text-xs text-gray-500 dark:text-[#6B7280]">Today</span>
+            </div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">284</div>
+            <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">GVI API Usage</div>
           </div>
 
           {/* Total API Calls */}
@@ -609,7 +629,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
               <TrendingUp className="w-4 h-4 text-[#ec1e24]" />
               <span className="text-xs text-gray-500 dark:text-[#6B7280]">Today</span>
             </div>
-            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">5,717</div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-0.5">6,544</div>
             <div className="text-xs text-gray-600 dark:text-[#9CA3AF]">Total API Calls</div>
           </div>
         </div>

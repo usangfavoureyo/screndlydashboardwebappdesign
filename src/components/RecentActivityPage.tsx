@@ -1,38 +1,153 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { haptics } from '../utils/haptics';
+import { SwipeableActivityItem } from './SwipeableActivityItem';
+import { useUndo } from './UndoContext';
+
+interface Activity {
+  id: string;
+  title: string;
+  platform: string;
+  status: 'success' | 'failed';
+  time: string;
+  type: 'video' | 'videostudio' | 'rss' | 'tmdb';
+  timestamp: number;
+}
 
 interface RecentActivityPageProps {
   onNavigate: (page: string) => void;
 }
 
+// Calculate time ago from timestamp
+function getTimeAgo(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
 export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
+  const { showUndo } = useUndo();
+  
+  // Initialize activities with timestamps (stored in localStorage)
+  const [activities, setActivities] = useState<Activity[]>(() => {
+    const stored = localStorage.getItem('recentActivities');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    
+    // Initial demo data with timestamps
+    const now = Date.now();
+    return [
+      { id: '1', title: 'The Batman - Official Trailer 2', platform: 'Instagram', status: 'success' as const, time: '2 min ago', type: 'video' as const, timestamp: now - 2 * 60000 },
+      { id: '2', title: 'Gladiator II - Trailer Review', platform: 'YouTube', status: 'success' as const, time: '3 min ago', type: 'videostudio' as const, timestamp: now - 3 * 60000 },
+      { id: '3', title: 'Breaking: New Sci-Fi Movie Announced', platform: 'X', status: 'success' as const, time: '5 min ago', type: 'rss' as const, timestamp: now - 5 * 60000 },
+      { id: '4', title: 'Dune: Part Two - Final Trailer', platform: 'TikTok', status: 'success' as const, time: '15 min ago', type: 'video' as const, timestamp: now - 15 * 60000 },
+      { id: '5', title: 'Hollywood Reporter: Awards Season Update', platform: 'Threads', status: 'success' as const, time: '30 min ago', type: 'rss' as const, timestamp: now - 30 * 60000 },
+      { id: '6', title: 'Oppenheimer - Official Trailer', platform: 'YouTube', status: 'success' as const, time: '1 hour ago', type: 'video' as const, timestamp: now - 60 * 60000 },
+      { id: '7', title: 'Wicked - Monthly Releases', platform: 'Instagram', status: 'failed' as const, time: '1 hour ago', type: 'videostudio' as const, timestamp: now - 60 * 60000 },
+      { id: '8', title: 'Barbie - Teaser Trailer', platform: 'Facebook', status: 'failed' as const, time: '2 hours ago', type: 'video' as const, timestamp: now - 120 * 60000 },
+      { id: '9', title: 'Variety: Top 10 Box Office Films', platform: 'X', status: 'failed' as const, time: '2 hours ago', type: 'rss' as const, timestamp: now - 120 * 60000 },
+      { id: '10', title: 'Avatar 3 - Teaser Analysis', platform: 'TikTok', status: 'success' as const, time: '3 hours ago', type: 'videostudio' as const, timestamp: now - 180 * 60000 },
+      { id: '11', title: 'Killers of the Flower Moon - Trailer', platform: 'X', status: 'success' as const, time: '3 hours ago', type: 'video' as const, timestamp: now - 180 * 60000 },
+      { id: '12', title: 'Deadline: Streaming Wars Continue', platform: 'Threads', status: 'success' as const, time: '4 hours ago', type: 'rss' as const, timestamp: now - 240 * 60000 },
+      { id: '13', title: 'Wonka - Official Trailer', platform: 'Threads', status: 'success' as const, time: '4 hours ago', type: 'video' as const, timestamp: now - 240 * 60000 },
+      { id: '14', title: 'Napoleon - Final Trailer', platform: 'Instagram', status: 'failed' as const, time: '5 hours ago', type: 'video' as const, timestamp: now - 300 * 60000 },
+      { id: '15', title: 'IndieWire: Festival Circuit News', platform: 'Facebook', status: 'success' as const, time: '5 hours ago', type: 'rss' as const, timestamp: now - 300 * 60000 },
+      { id: '16', title: 'The Marvels - Trailer 2', platform: 'TikTok', status: 'success' as const, time: '6 hours ago', type: 'video' as const, timestamp: now - 360 * 60000 },
+      { id: '17', title: 'Aquaman 2 - Official Trailer', platform: 'Facebook', status: 'success' as const, time: '7 hours ago', type: 'video' as const, timestamp: now - 420 * 60000 },
+      { id: '18', title: 'Spider-Man: Beyond - Teaser', platform: 'YouTube', status: 'success' as const, time: '8 hours ago', type: 'video' as const, timestamp: now - 480 * 60000 },
+    ];
+  });
+
   // Scroll to top when page loads
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const activities = [
-    { id: '1', title: 'The Batman - Official Trailer 2', platform: 'Instagram', status: 'success', time: '2 min ago', type: 'video' },
-    { id: '2', title: 'Gladiator II - Trailer Review', platform: 'YouTube', status: 'success', time: '3 min ago', type: 'videostudio' },
-    { id: '3', title: 'Breaking: New Sci-Fi Movie Announced', platform: 'X', status: 'success', time: '5 min ago', type: 'rss' },
-    { id: '4', title: 'Dune: Part Two - Final Trailer', platform: 'TikTok', status: 'success', time: '15 min ago', type: 'video' },
-    { id: '5', title: 'Hollywood Reporter: Awards Season Update', platform: 'Threads', status: 'success', time: '30 min ago', type: 'rss' },
-    { id: '6', title: 'Oppenheimer - Official Trailer', platform: 'YouTube', status: 'success', time: '1 hour ago', type: 'video' },
-    { id: '7', title: 'Wicked - Monthly Releases', platform: 'Instagram', status: 'failed', time: '1 hour ago', type: 'videostudio' },
-    { id: '8', title: 'Barbie - Teaser Trailer', platform: 'Facebook', status: 'failed', time: '2 hours ago', type: 'video' },
-    { id: '9', title: 'Variety: Top 10 Box Office Films', platform: 'X', status: 'failed', time: '2 hours ago', type: 'rss' },
-    { id: '10', title: 'Avatar 3 - Teaser Analysis', platform: 'TikTok', status: 'success', time: '3 hours ago', type: 'videostudio' },
-    { id: '11', title: 'Killers of the Flower Moon - Trailer', platform: 'X', status: 'success', time: '3 hours ago', type: 'video' },
-    { id: '12', title: 'Deadline: Streaming Wars Continue', platform: 'Threads', status: 'success', time: '4 hours ago', type: 'rss' },
-    { id: '13', title: 'Wonka - Official Trailer', platform: 'Threads', status: 'success', time: '4 hours ago', type: 'video' },
-    { id: '14', title: 'Napoleon - Final Trailer', platform: 'Instagram', status: 'failed', time: '5 hours ago', type: 'video' },
-    { id: '15', title: 'IndieWire: Festival Circuit News', platform: 'Facebook', status: 'success', time: '5 hours ago', type: 'rss' },
-    { id: '16', title: 'The Marvels - Trailer 2', platform: 'TikTok', status: 'success', time: '6 hours ago', type: 'video' },
-    { id: '17', title: 'Aquaman 2 - Official Trailer', platform: 'Facebook', status: 'success', time: '7 hours ago', type: 'video' },
-    { id: '18', title: 'Spider-Man: Beyond - Teaser', platform: 'YouTube', status: 'success', time: '8 hours ago', type: 'video' },
-  ];
+  // Save activities to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('recentActivities', JSON.stringify(activities));
+  }, [activities]);
+
+  // Auto-delete activities older than 24 hours
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      setActivities(prev => {
+        const filtered = prev.filter(activity => {
+          const age = now - activity.timestamp;
+          return age < twentyFourHours;
+        });
+        
+        // Only update if something changed
+        if (filtered.length !== prev.length) {
+          return filtered;
+        }
+        return prev;
+      });
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update time display every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActivities(prev => 
+        prev.map(activity => ({
+          ...activity,
+          time: getTimeAgo(activity.timestamp)
+        }))
+      );
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDelete = (id: string) => {
+    haptics.medium();
+    
+    // Find the activity to delete
+    const deletedActivity = activities.find(activity => activity.id === id);
+    if (!deletedActivity) return;
+    
+    // Temporarily remove from state
+    setActivities(prev => prev.filter(activity => activity.id !== id));
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: deletedActivity.title,
+      onUndo: () => {
+        // Restore the activity
+        setActivities(prev => {
+          // Find the correct position to insert based on timestamp
+          const insertIndex = prev.findIndex(activity => 
+            activity.timestamp < deletedActivity.timestamp
+          );
+          if (insertIndex === -1) {
+            return [...prev, deletedActivity];
+          }
+          return [
+            ...prev.slice(0, insertIndex),
+            deletedActivity,
+            ...prev.slice(insertIndex)
+          ];
+        });
+      }
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -57,28 +172,11 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm p-6">
         <div className="space-y-3">
           {activities.map((activity) => (
-            <button
+            <SwipeableActivityItem
               key={activity.id}
-              onClick={() => haptics.light()}
-              className="w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] cursor-pointer"
-            >
-              <div className="flex-1 text-left">
-                <p className="text-gray-900 dark:text-white">{activity.title}</p>
-                <p className="text-[#6B7280] dark:text-[#9CA3AF]">{activity.platform}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span
-                  className={`px-3 py-1 rounded-full ${
-                    activity.status === 'success'
-                      ? 'bg-gray-200 dark:bg-[#1f1f1f] text-gray-700 dark:text-[#9CA3AF]'
-                      : 'bg-[#FEE2E2] dark:bg-[#991B1B] text-[#991B1B] dark:text-[#FEE2E2]'
-                  }`}
-                >
-                  {activity.status}
-                </span>
-                <span className="text-[#6B7280] dark:text-[#9CA3AF] min-w-[80px] text-right">{activity.time}</span>
-              </div>
-            </button>
+              activity={activity}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       </div>

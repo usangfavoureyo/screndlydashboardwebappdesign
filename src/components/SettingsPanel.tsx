@@ -49,7 +49,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
     { id: 'comment', label: 'Comment Automation', icon: MessageSquare, keywords: ['comment', 'reply', 'automation', 'ai', 'blacklist', 'throttle', 'frequency'] },
     { id: 'rss', label: 'RSS Feeds', icon: Rss, keywords: ['rss', 'feed', 'posting', 'image', 'platform', 'deduplication', 'fetch'] },
     { id: 'tmdb', label: 'TMDb Feeds', icon: Clapperboard, keywords: ['tmdb', 'movie', 'database', 'feeds', 'anniversary', 'scheduler'] },
-    { id: 'videostudio', label: 'Video Studio', icon: Film, keywords: ['video', 'studio', 'generation', 'llm', 'vizla', 'gpt', 'openai', 'caption'] },
+    { id: 'videostudio', label: 'Video Studio', icon: Film, keywords: ['video', 'studio', 'generation', 'llm', 'shotstack', 'gpt', 'openai', 'caption'] },
     { id: 'timezone', label: 'Timezone', icon: Globe, keywords: ['timezone', 'time', 'zone', 'schedule', 'scheduling', 'generation', 'feeds', 'utc', 'gmt'] },
     { id: 'error', label: 'Error Handling', icon: AlertCircle, keywords: ['error', 'handling', 'retry', 'logging', 'failure', 'alert'] },
     { id: 'cleanup', label: 'Cleanup', icon: Trash2, keywords: ['cleanup', 'storage', 'retention', 'maintenance', 'delete', 'purge'] },

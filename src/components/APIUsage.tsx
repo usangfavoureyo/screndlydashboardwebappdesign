@@ -1,4 +1,4 @@
-import { ArrowLeft, Key, Zap, Globe, Clapperboard, TrendingUp, Film } from 'lucide-react';
+import { ArrowLeft, Key, Zap, Globe, Clapperboard, TrendingUp, Film, Search, Video } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 
@@ -33,7 +33,7 @@ export function APIUsage({ onBack }: APIUsageProps) {
       {/* Content */}
       <div className="p-6 space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
           {/* OpenAI */}
           <button
             onClick={() => haptics.light()}
@@ -79,7 +79,7 @@ export function APIUsage({ onBack }: APIUsageProps) {
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
           </button>
 
-          {/* Vizla */}
+          {/* Shotstack */}
           <button
             onClick={() => haptics.light()}
             className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
@@ -88,16 +88,46 @@ export function APIUsage({ onBack }: APIUsageProps) {
               <div className="p-2 rounded-lg">
                 <Film className="w-5 h-5 text-[#ec1e24]" />
               </div>
-              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Vizla</span>
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Shotstack</span>
             </div>
             <div className="text-2xl text-gray-900 dark:text-white mb-1">127</div>
+            <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
+          </button>
+
+          {/* Google Search */}
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg">
+                <Search className="w-5 h-5 text-[#ec1e24]" />
+              </div>
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Google Search</span>
+            </div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-1">543</div>
+            <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
+          </button>
+
+          {/* Google Video Intelligence */}
+          <button
+            onClick={() => haptics.light()}
+            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 rounded-lg">
+                <Video className="w-5 h-5 text-[#ec1e24]" />
+              </div>
+              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">GVI</span>
+            </div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-1">284</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
           </button>
 
           {/* Total */}
           <button
             onClick={() => haptics.light()}
-            className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
+            className="col-span-2 lg:col-span-1 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all duration-200 cursor-pointer text-left"
           >
             <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg">
@@ -105,7 +135,7 @@ export function APIUsage({ onBack }: APIUsageProps) {
               </div>
               <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Total</span>
             </div>
-            <div className="text-2xl text-gray-900 dark:text-white mb-1">5,717</div>
+            <div className="text-2xl text-gray-900 dark:text-white mb-1">6,544</div>
             <div className="text-xs text-gray-500 dark:text-[#6B7280]">Today's calls</div>
           </button>
         </div>
@@ -169,12 +199,38 @@ export function APIUsage({ onBack }: APIUsageProps) {
                       <div className="p-1.5 rounded-lg">
                         <Film className="w-4 h-4 text-[#ec1e24]" />
                       </div>
-                      <span className="text-gray-900 dark:text-white">Vizla API</span>
+                      <span className="text-gray-900 dark:text-white">Shotstack API</span>
                     </div>
                   </td>
                   <td className="text-right py-3 px-4 text-gray-900 dark:text-white">127</td>
                   <td className="text-right py-3 px-4 text-gray-900 dark:text-white">891</td>
                   <td className="text-right py-3 px-4 text-gray-900 dark:text-white">3,258</td>
+                </tr>
+                <tr className="border-b border-gray-200 dark:border-[#333333]">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg">
+                        <Search className="w-4 h-4 text-[#ec1e24]" />
+                      </div>
+                      <span className="text-gray-900 dark:text-white">Google Search API</span>
+                    </div>
+                  </td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">543</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">3,214</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">12,891</td>
+                </tr>
+                <tr className="border-b border-gray-200 dark:border-[#333333]">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg">
+                        <Video className="w-4 h-4 text-[#ec1e24]" />
+                      </div>
+                      <span className="text-gray-900 dark:text-white">Google Video Intelligence API</span>
+                    </div>
+                  </td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">284</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">1,893</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">7,421</td>
                 </tr>
                 <tr className="bg-gray-50 dark:bg-[#0A0A0A]">
                   <td className="py-3 px-4">
@@ -185,9 +241,9 @@ export function APIUsage({ onBack }: APIUsageProps) {
                       <span className="text-gray-900 dark:text-white">Total</span>
                     </div>
                   </td>
-                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">5,717</td>
-                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">34,635</td>
-                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">131,999</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">6,544</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">40,742</td>
+                  <td className="text-right py-3 px-4 text-gray-900 dark:text-white">152,311</td>
                 </tr>
               </tbody>
             </table>

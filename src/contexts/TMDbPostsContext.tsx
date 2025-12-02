@@ -24,6 +24,8 @@ export interface TMDbPost {
 interface TMDbPostsContextType {
   posts: TMDbPost[];
   schedulePost: (post: TMDbPost) => void;
+  addPost: (post: TMDbPost) => void;
+  restorePost: (post: TMDbPost, index: number) => void;
   reschedulePost: (postId: string, newScheduledTime: string) => void;
   updatePostStatus: (postId: string, status: TMDbPost['status'], publishedTime?: string, errorMessage?: string) => void;
   updatePost: (postId: string, updates: Partial<TMDbPost>) => void;
@@ -155,6 +157,30 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const addPost = (post: TMDbPost) => {
+    setPosts(prev => {
+      // Check if post already exists
+      const existingIndex = prev.findIndex(p => p.id === post.id);
+      if (existingIndex !== -1) {
+        // Update existing post
+        const updated = [...prev];
+        updated[existingIndex] = post;
+        return updated;
+      }
+      // Add new post
+      return [...prev, post];
+    });
+  };
+
+  const restorePost = (post: TMDbPost, index: number) => {
+    setPosts(prev => {
+      const updated = [...prev];
+      // Insert the post at the specified index
+      updated.splice(index, 0, post);
+      return updated;
+    });
+  };
+
   const reschedulePost = (postId: string, newScheduledTime: string) => {
     setPosts(prev => 
       prev.map(post => 
@@ -208,6 +234,8 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
       value={{
         posts,
         schedulePost,
+        addPost,
+        restorePost,
         reschedulePost,
         updatePostStatus,
         updatePost,

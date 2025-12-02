@@ -173,7 +173,7 @@ const defaultSettings: Settings = {
 };
 
 const defaultVideoStudioSettings: VideoStudioSettings = {
-  openaiModel: 'gpt-4.1',
+  openaiModel: 'gpt-4o',
   temperature: 0,
   topP: 0.95,
   maxTokens: 4096,

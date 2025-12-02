@@ -7,6 +7,17 @@ import { FacebookIcon } from './icons/FacebookIcon';
 import { InstagramIcon } from './icons/InstagramIcon';
 import { YouTubeIcon } from './icons/YouTubeIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
+import { SwipeableVideoPostItem } from './SwipeableVideoPostItem';
+import { useState, useEffect } from 'react';
+import { useUndo } from './UndoContext';
+
+interface VideoPost {
+  id: string;
+  title: string;
+  platform: string;
+  time: string;
+  timestamp: number;
+}
 
 interface VideoDetailsPageProps {
   onNavigate: (page: string) => void;
@@ -23,8 +34,120 @@ const platformVideos = [
   { platform: 'TikTok', posts: 5, color: '#000000', change: '+1' },
 ];
 
+// Calculate time ago from timestamp
+function getTimeAgo(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes} min ago`;
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+  
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+}
+
 export function VideoDetailsPage({ onNavigate, previousPage }: VideoDetailsPageProps) {
+  const { showUndo } = useUndo();
+  
+  // Initialize video posts with timestamps (stored in localStorage)
+  const [videoPosts, setVideoPosts] = useState<VideoPost[]>(() => {
+    const stored = localStorage.getItem('videoPosts');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    
+    // Initial demo data with timestamps
+    const now = Date.now();
+    return [
+      { id: '1', title: 'Dune: Part Two - Official Trailer', platform: 'X', time: '5 min ago', timestamp: now - 5 * 60000 },
+      { id: '2', title: 'Barbie - Behind the Scenes', platform: 'Instagram', time: '12 min ago', timestamp: now - 12 * 60000 },
+      { id: '3', title: 'Oppenheimer - IMAX Experience', platform: 'YouTube', time: '24 min ago', timestamp: now - 24 * 60000 },
+      { id: '4', title: 'The Batman - Deleted Scene', platform: 'TikTok', time: '38 min ago', timestamp: now - 38 * 60000 },
+      { id: '5', title: 'Spider-Man - No Way Home BTS', platform: 'Facebook', time: '1 hour ago', timestamp: now - 60 * 60000 },
+      { id: '6', title: 'Guardians Vol 3 - Teaser', platform: 'Threads', time: '1 hour ago', timestamp: now - 60 * 60000 },
+    ];
+  });
+
   const totalVideos = platformVideos.reduce((sum, p) => sum + p.posts, 0);
+
+  // Save video posts to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('videoPosts', JSON.stringify(videoPosts));
+  }, [videoPosts]);
+
+  // Auto-delete posts older than 24 hours
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const twentyFourHours = 24 * 60 * 60 * 1000;
+      
+      setVideoPosts(prev => {
+        const filtered = prev.filter(post => {
+          const age = now - post.timestamp;
+          return age < twentyFourHours;
+        });
+        
+        // Only update if something changed
+        if (filtered.length !== prev.length) {
+          return filtered;
+        }
+        return prev;
+      });
+    }, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update time display every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVideoPosts(prev => 
+        prev.map(post => ({
+          ...post,
+          time: getTimeAgo(post.timestamp)
+        }))
+      );
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDelete = (id: string) => {
+    haptics.medium();
+    
+    // Find the post to delete
+    const deletedPost = videoPosts.find(post => post.id === id);
+    if (!deletedPost) return;
+    
+    // Temporarily remove from state
+    setVideoPosts(prev => prev.filter(post => post.id !== id));
+    
+    // Show undo toast
+    showUndo({
+      id,
+      itemName: deletedPost.title,
+      onUndo: () => {
+        // Restore the post
+        setVideoPosts(prev => {
+          // Find the correct position to insert based on timestamp
+          const insertIndex = prev.findIndex(post => 
+            post.timestamp < deletedPost.timestamp
+          );
+          if (insertIndex === -1) {
+            return [...prev, deletedPost];
+          }
+          return [
+            ...prev.slice(0, insertIndex),
+            deletedPost,
+            ...prev.slice(insertIndex)
+          ];
+        });
+      }
+    });
+  };
 
   // Helper function to get platform icon
   const getPlatformIcon = (platformName: string) => {
@@ -131,29 +254,12 @@ export function VideoDetailsPage({ onNavigate, previousPage }: VideoDetailsPageP
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
         <h2 className="text-gray-900 dark:text-white mb-4">Recent Posts Timeline</h2>
         <div className="space-y-3">
-          {[
-            { title: 'Dune: Part Two - Official Trailer', platform: 'X', time: '5 min ago' },
-            { title: 'Barbie - Behind the Scenes', platform: 'Instagram', time: '12 min ago' },
-            { title: 'Oppenheimer - IMAX Experience', platform: 'YouTube', time: '24 min ago' },
-            { title: 'The Batman - Deleted Scene', platform: 'TikTok', time: '38 min ago' },
-            { title: 'Spider-Man - No Way Home BTS', platform: 'Facebook', time: '1 hour ago' },
-            { title: 'Guardians Vol 3 - Teaser', platform: 'Threads', time: '1 hour ago' },
-          ].map((post, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333] hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-all cursor-pointer"
-              onClick={() => haptics.light()}
-            >
-              <div className="w-2 h-2 rounded-full bg-black dark:bg-white"></div>
-              <div className="flex-1">
-                <p className="text-gray-900 dark:text-white mb-1">{post.title}</p>
-                <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF]">
-                  <span>{post.platform}</span>
-                  <span>•</span>
-                  <span>{post.time}</span>
-                </div>
-              </div>
-            </div>
+          {videoPosts.map((post) => (
+            <SwipeableVideoPostItem
+              key={post.id}
+              post={post}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       </div>

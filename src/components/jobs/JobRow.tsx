@@ -13,6 +13,7 @@ import { UploadJob, useJobsStore } from '../../store/useJobsStore';
 import { cn } from '../ui/utils';
 import { MetadataConfidence } from './MetadataConfidence';
 import { PipelineProgress } from './PipelineProgress';
+import { useUndo } from '../UndoContext';
 
 interface JobRowProps {
   job: UploadJob;
@@ -21,7 +22,8 @@ interface JobRowProps {
 }
 
 export function JobRow({ job, onViewDetails, onShowError }: JobRowProps) {
-  const { deleteJob, retryJob, duplicateJob } = useJobsStore();
+  const { deleteJob, retryJob, duplicateJob, restoreJob } = useJobsStore();
+  const { showUndo } = useUndo();
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString('en-US', {
@@ -71,9 +73,22 @@ export function JobRow({ job, onViewDetails, onShowError }: JobRowProps) {
 
   const handleDelete = () => {
     haptics.medium();
-    if (confirm(`Delete job "${job.fileName}"?`)) {
-      deleteJob(job.id);
-    }
+    
+    // Store the job data before deletion
+    const deletedJob = { ...job };
+    
+    // Temporarily remove from state
+    deleteJob(job.id);
+    
+    // Show undo toast
+    showUndo({
+      id: job.id,
+      itemName: job.fileName || 'Job',
+      onUndo: () => {
+        // Restore the job
+        restoreJob(deletedJob);
+      }
+    });
   };
 
   const handleRetry = () => {

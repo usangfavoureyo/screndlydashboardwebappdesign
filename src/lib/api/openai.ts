@@ -21,7 +21,7 @@ export class OpenAIApi {
    */
   async generateVislaPrompt(
     jobData: any,
-    model: string = 'gpt-4.1',
+    model: string = 'gpt-4o',
     temperature: number = 0,
     systemPrompt?: string
   ): Promise<ApiResponse<{ visla_prompt_text: string; validation: any }>> {
@@ -140,7 +140,7 @@ export class OpenAIApi {
    */
   async generateVislaPromptWithRetry(
     jobData: any,
-    model: string = 'gpt-4.1',
+    model: string = 'gpt-4o',
     maxRetries: number = 1
   ): Promise<ApiResponse<{ visla_prompt_text: string; validation: any }>> {
     let attempt = 0;

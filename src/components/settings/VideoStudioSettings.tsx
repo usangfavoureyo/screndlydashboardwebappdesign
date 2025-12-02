@@ -14,7 +14,7 @@ interface VideoStudioSettingsProps {
 // Default prompt system settings
 const defaultSettings = {
   // Video Generation Model Selection
-  openaiModel: 'gpt-4.1',
+  openaiModel: 'gpt-4o',
   
   // Video Generation Operational Settings
   temperature: 0,
@@ -22,7 +22,7 @@ const defaultSettings = {
   maxTokens: 4096,
   
   // Video Generation System Prompt
-  systemPrompt: `You are an editor-prompt generator. Input: validated job JSON (segments, timestamps, audio_rules, caption_template, aspect). Output: (1) a Visla natural-language prompt that contains exact timestamps, audio ducking rules, caption template reference, and aspect directives; (2) a JSON validation summary with keys: segments_count, missing_fields, warnings. Strictly produce the Visla prompt in the field "visla_prompt_text" and do not add extra commentary. Follow the structured output schema exactly.`,
+  systemPrompt: `You are an editor-prompt generator. Input: validated job JSON (segments, timestamps, audio_rules, caption_template, aspect). Output: (1) a Shotstack natural-language prompt that contains exact timestamps, audio ducking rules, caption template reference, and aspect directives; (2) a JSON validation summary with keys: segments_count, missing_fields, warnings. Strictly produce the Shotstack prompt in the field "shotstack_prompt_text" and do not add extra commentary. Follow the structured output schema exactly.`,
   
   // Response Settings
   useStructuredOutput: true,
@@ -86,10 +86,8 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
     // Show toast notifications for important settings
     if (key === 'openaiModel') {
       const modelNames: Record<string, string> = {
-        'gpt-4.1': 'GPT-4.1 (Primary - Best Accuracy)',
-        'gpt-4.1-mini': 'GPT-4.1-mini (Cost/Throughput)',
+        'gpt-4o': 'GPT-4o (Recommended)',
         'gpt-4o-mini': 'GPT-4o Mini (Cost-Efficient)',
-        'gpt-4o': 'GPT-4o',
         'gpt-3.5-turbo': 'GPT-3.5 Turbo',
         'gpt-4-turbo': 'GPT-4 Turbo',
         'gpt-4': 'GPT-4'
@@ -162,17 +160,15 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="gpt-4.1">GPT-4.1 (Recommended)</SelectItem>
-                <SelectItem value="gpt-4.1-mini">GPT-4.1-mini (Cost/Throughput)</SelectItem>
+                <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
                 <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cost-Efficient)</SelectItem>
-                <SelectItem value="gpt-4o">GPT-4o</SelectItem>
                 <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
                 <SelectItem value="gpt-4">GPT-4</SelectItem>
                 <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
-              GPT-4.1 provides best accuracy for JSON→Visla translation. Use GPT-4.1-mini or GPT-4o-mini for high-volume batch processing.
+              GPT-4o provides best accuracy for JSON→Shotstack translation. Use GPT-4o-mini for high-volume batch processing.
             </p>
           </div>
         </div>
@@ -259,7 +255,7 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
               placeholder="Enter system prompt for the AI model..."
             />
             <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
-              Strict instruction-following role that enforces format/keywords for JSON→Visla translation
+              Strict instruction-following role that enforces format/keywords for JSON→Shotstack translation
             </p>
           </div>
         </div>
@@ -272,7 +268,7 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
           <div className="space-y-3 text-sm text-[#6B7280] dark:text-[#9CA3AF]">
             <p>
               <strong className="text-gray-900 dark:text-white">Structured Output</strong><br />
-              Forces exact fields (segments, audio_rules, visla_prompt_text) to prevent hallucination
+              Forces exact fields (segments, audio_rules, shotstack_prompt_text) to prevent hallucination
             </p>
             <p>
               <strong className="text-gray-900 dark:text-white">Timestamp Validation</strong><br />
@@ -284,7 +280,7 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
             </p>
             <p>
               <strong className="text-gray-900 dark:text-white">Preview Verification</strong><br />
-              15s Visla preview job before full render to verify prompt
+              15s Shotstack preview job before full render to verify prompt
             </p>
           </div>
         </div>
@@ -410,7 +406,7 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
           <div className="space-y-3 text-xs">
             <div>
               <p className="text-gray-900 dark:text-white mb-1">
-                <strong>Use GPT-4.1 when:</strong>
+                <strong>Use GPT-4o when:</strong>
               </p>
               <ul className="text-[#6B7280] dark:text-[#9CA3AF] space-y-1 ml-4">
                 <li>• Accuracy matters most (production jobs)</li>
@@ -421,7 +417,7 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
             </div>
             <div>
               <p className="text-gray-900 dark:text-white mb-1">
-                <strong>Use GPT-4.1-mini or GPT-4o-mini when:</strong>
+                <strong>Use GPT-4o-mini when:</strong>
               </p>
               <ul className="text-[#6B7280] dark:text-[#9CA3AF] space-y-1 ml-4">
                 <li>• High-volume batch processing</li>

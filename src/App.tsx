@@ -4,6 +4,7 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { RSSFeedsProvider } from "./contexts/RSSFeedsContext";
 import { VideoStudioTemplatesProvider } from "./contexts/VideoStudioTemplatesContext";
+import { UndoProvider } from "./components/UndoContext";
 import { AppContent } from "./components/AppContent";
 
 export default function App() {
@@ -14,7 +15,9 @@ export default function App() {
           <RSSFeedsProvider>
             <VideoStudioTemplatesProvider>
               <TMDbPostsProvider>
-                <AppContent />
+                <UndoProvider>
+                  <AppContent />
+                </UndoProvider>
               </TMDbPostsProvider>
             </VideoStudioTemplatesProvider>
           </RSSFeedsProvider>

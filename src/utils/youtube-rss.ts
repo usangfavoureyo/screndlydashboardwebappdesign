@@ -8,6 +8,7 @@ export interface YouTubeVideo {
   updated: Date;
   link: string;
   author: string;
+  isShort?: boolean; // YouTube Shorts indicator
 }
 
 export interface Channel {
@@ -84,14 +85,17 @@ function parseYouTubeFeed(xmlText: string): YouTubeVideo[] {
         return link?.getAttribute('href') || '';
       };
       
+      const link = getLinkHref();
+      
       return {
         videoId: getTextContent('yt\\:videoId, videoId'),
         channelId: getTextContent('yt\\:channelId, channelId'),
         title: getTextContent('title'),
         published: new Date(getTextContent('published') || Date.now()),
         updated: new Date(getTextContent('updated') || Date.now()),
-        link: getLinkHref(),
+        link: link,
         author: getTextContent('author name'),
+        isShort: link.includes('/shorts/'), // Detect YouTube Shorts by URL pattern
       };
     });
   } catch (error) {
@@ -174,4 +178,36 @@ export async function validateChannelId(channelId: string): Promise<boolean> {
   } catch (error) {
     return false;
   }
+}
+
+// Check if video title indicates it's a Short (additional check beyond URL)
+export function hasShortsIndicators(title: string): boolean {
+  const shortsKeywords = [
+    '#shorts',
+    '#short',
+    '(shorts)',
+    '(short)',
+    'youtube shorts',
+    'youtube short',
+    'short video',
+  ];
+  
+  const lowerTitle = title.toLowerCase();
+  return shortsKeywords.some(keyword => lowerTitle.includes(keyword));
+}
+
+// Check if video is likely a valid 16:9 trailer (not a Short)
+export function isValid16x9Video(video: YouTubeVideo): boolean {
+  // Check 1: URL should not contain /shorts/
+  if (video.isShort || video.link.includes('/shorts/')) {
+    return false;
+  }
+  
+  // Check 2: Title should not have Shorts indicators
+  if (hasShortsIndicators(video.title)) {
+    return false;
+  }
+  
+  // All checks passed - likely a 16:9 video
+  return true;
 }

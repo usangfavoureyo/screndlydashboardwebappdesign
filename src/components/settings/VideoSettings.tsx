@@ -112,13 +112,99 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
             </div>
             
             <div>
-              <Label className="text-[#9CA3AF]">Region Filter (optional)</Label>
+              <Label className="text-[#9CA3AF]\">Region Filter (optional)</Label>
               <Input
                 value={settings.regionFilter || ''}
                 onChange={(e) => updateSetting('regionFilter', e.target.value)}
                 placeholder="US,UK,CA"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+
+        {/* Format Detection Settings */}
+        <div>
+          <h3 className="text-gray-900 dark:text-white mb-3">Format Detection</h3>
+          <p className="text-sm text-gray-600 dark:text-[#9CA3AF] mb-3">
+            Filter videos by aspect ratio and format to ensure only 16:9 landscape trailers are processed.
+          </p>
+          <div className="space-y-3">
+            <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 mt-0.5">
+                  <Input
+                    type="checkbox"
+                    id="exclude-shorts"
+                    checked={settings.excludeShorts !== false}
+                    onChange={(e) => {
+                      haptics.light();
+                      updateSetting('excludeShorts', e.target.checked);
+                      toast.success(e.target.checked ? 'YouTube Shorts will be excluded' : 'YouTube Shorts will be allowed');
+                    }}
+                    className="w-4 h-4 border-gray-300 dark:border-[#333333] accent-black dark:accent-white"
+                  />
+                </div>
+                <div className="flex-1">
+                  <Label htmlFor="exclude-shorts" className="text-gray-900 dark:text-white cursor-pointer">
+                    Exclude YouTube Shorts (9:16 vertical videos)
+                  </Label>
+                  <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-1">
+                    Automatically skip videos with /shorts/ URL and #shorts in title. Only process 16:9 landscape trailers.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-4">
+              <h4 className="text-sm text-gray-900 dark:text-white mb-2">Detection Criteria</h4>
+              <div className="space-y-2 text-xs text-gray-600 dark:text-[#9CA3AF]">
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">✓</span>
+                  <span><span className="text-gray-900 dark:text-white">16:9 Format:</span> Landscape trailers (1920x1080, 3840x2160, etc.)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">✗</span>
+                  <span><span className="text-gray-900 dark:text-white">9:16 Format:</span> Shorts, vertical videos, TikTok-style content</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">✗</span>
+                  <span><span className="text-gray-900 dark:text-white">URL Pattern:</span> Videos with /shorts/ in URL are skipped</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">✗</span>
+                  <span><span className="text-gray-900 dark:text-white">Title Indicators:</span> #shorts, #short, (shorts) in title</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-4">
+              <h4 className="text-sm text-gray-900 dark:text-white mb-2">Platform Upload Settings</h4>
+              <div className="space-y-2 text-xs text-gray-600 dark:text-[#9CA3AF]">
+                <p className="text-gray-900 dark:text-white mb-1">All platforms receive 16:9 format:</p>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">•</span>
+                  <span><span className="text-gray-900 dark:text-white">YouTube:</span> Native 16:9 (1080p, 4K)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">•</span>
+                  <span><span className="text-gray-900 dark:text-white">TikTok:</span> Letterboxed 16:9 (users can rotate to landscape)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">•</span>
+                  <span><span className="text-gray-900 dark:text-white">Instagram:</span> 16:9 Feed/IGTV (landscape)</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-[#ec1e24]">•</span>
+                  <span><span className="text-gray-900 dark:text-white">Facebook/Threads/X/Bluesky:</span> Native 16:9</span>
+                </div>
+                <p className="text-[#ec1e24] mt-2 italic">
+                  ✓ Original aspect ratio preserved • No cropping or distortion
+                </p>
+              </div>
             </div>
           </div>
         </div>

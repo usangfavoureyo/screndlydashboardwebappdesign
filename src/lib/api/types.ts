@@ -88,7 +88,7 @@ export interface YouTubeCommentReplyRequest {
 // ----------------------------------------------------------------------------
 
 export interface OpenAICompletionRequest {
-  model: 'gpt-4.1' | 'gpt-4.1-mini' | 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo' | 'gpt-4' | 'gpt-3.5-turbo';
+  model: 'gpt-4o' | 'gpt-4o-mini' | 'gpt-4-turbo' | 'gpt-4' | 'gpt-3.5-turbo';
   messages: Array<{
     role: 'system' | 'user' | 'assistant';
     content: string;
@@ -153,19 +153,19 @@ export interface TMDbFeed {
 }
 
 // ----------------------------------------------------------------------------
-// Vizla API Types
+// Shotstack API Types
 // ----------------------------------------------------------------------------
 
-export interface VizlaJobRequest {
+export interface ShotstackJobRequest {
   prompt: string;
   aspectRatio: '16:9' | '9:16' | '1:1';
   duration: number; // in seconds
-  segments: VizlaSegment[];
-  audioRules?: VizlaAudioRules;
+  segments: ShotstackSegment[];
+  audioRules?: ShotstackAudioRules;
   captionTemplate?: string;
 }
 
-export interface VizlaSegment {
+export interface ShotstackSegment {
   startTime: number; // in seconds
   endTime: number;
   text: string;
@@ -176,7 +176,7 @@ export interface VizlaSegment {
   };
 }
 
-export interface VizlaAudioRules {
+export interface ShotstackAudioRules {
   ducking: {
     enabled: boolean;
     reduction: number; // 0-100 percentage
@@ -189,14 +189,14 @@ export interface VizlaAudioRules {
   };
 }
 
-export interface VizlaJobResponse {
+export interface ShotstackJobResponse {
   jobId: string;
   status: 'queued' | 'processing' | 'completed' | 'failed';
   createdAt: string;
   estimatedCompletion?: string;
 }
 
-export interface VizlaJobStatus {
+export interface ShotstackJobStatus {
   jobId: string;
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress: number; // 0-100
@@ -220,8 +220,8 @@ export interface VideoStudioJobRequest {
 export interface VideoStudioConfig {
   aspectRatio: '16:9' | '9:16' | '1:1';
   duration: number;
-  segments: VizlaSegment[];
-  audioRules: VizlaAudioRules;
+  segments: ShotstackSegment[];
+  audioRules: ShotstackAudioRules;
   llmModel: string;
   llmTemperature: number;
   llmMaxTokens: number;

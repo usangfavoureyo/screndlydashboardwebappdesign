@@ -1,6 +1,6 @@
 // YouTube RSS Polling Service (No API Key Required!)
 
-import { fetchChannelFeed, isTrailer, isRecentUpload, type YouTubeVideo, type Channel } from './youtube-rss';
+import { fetchChannelFeed, isTrailer, isRecentUpload, isValid16x9Video, type YouTubeVideo, type Channel } from './youtube-rss';
 
 type NotificationCallback = (notification: any) => void;
 type VideoCallback = (video: YouTubeVideo, channel: Channel) => void;
@@ -79,6 +79,14 @@ class YouTubeRSSPoller {
     this.channels = this.channels.filter(ch => ch.id !== id);
     this.saveState();
     console.log(`✅ Removed channel`);
+  }
+
+  // Restore channel at specific index (for undo functionality)
+  restoreChannel(channel: Channel, index: number): void {
+    // Insert the channel at the specified index
+    this.channels.splice(index, 0, channel);
+    this.saveState();
+    console.log(`✅ Restored channel: ${channel.name} at index ${index}`);
   }
 
   // Toggle channel active status
@@ -219,7 +227,19 @@ class YouTubeRSSPoller {
       return;
     }
 
-    console.log(`   ✅ Processing trailer...`);
+    // Check if it's a valid 16:9 video (not a Short)
+    const isValid16x9 = isValid16x9Video(video);
+    
+    if (!isValid16x9) {
+      if (video.isShort || video.link.includes('/shorts/')) {
+        console.log(`   ⏭️ Skipping (YouTube Short detected - 9:16 format)`);
+      } else {
+        console.log(`   ⏭️ Skipping (likely not 16:9 format)`);
+      }
+      return;
+    }
+
+    console.log(`   ✅ Processing 16:9 trailer...`);
 
     // Trigger callback if set
     if (this.onNewVideo) {

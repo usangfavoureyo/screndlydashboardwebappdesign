@@ -15,7 +15,7 @@ This document defines the API contract between the Screndly frontend and backend
 1. [Authentication](#authentication)
 2. [YouTube API](#youtube-api)
 3. [OpenAI API](#openai-api)
-4. [Vizla API](#vizla-api)
+4. [Shotstack API](#shotstack-api)
 5. [TMDb API](#tmdb-api)
 6. [Video Studio API](#video-studio-api)
 7. [RSS API](#rss-api)
@@ -230,9 +230,9 @@ Generate LLM completions for prompt generation.
 
 ---
 
-## Vizla API
+## Shotstack API
 
-### POST `/vizla/jobs`
+### POST `/shotstack/jobs`
 
 Create a video generation job.
 
@@ -283,7 +283,7 @@ Create a video generation job.
 }
 ```
 
-### GET `/vizla/jobs/{jobId}/status`
+### GET `/shotstack/jobs/{jobId}/status`
 
 Get job status (poll every 5 seconds).
 
@@ -296,7 +296,7 @@ Get job status (poll every 5 seconds).
     "status": "processing",
     "progress": 65,
     "currentStep": "Generating video scenes...",
-    "previewUrl": "https://vizla.com/previews/job_20240115_abc123.mp4"
+    "previewUrl": "https://shotstack.io/previews/job_20240115_abc123.mp4"
   }
 }
 ```
@@ -309,13 +309,13 @@ Get job status (poll every 5 seconds).
     "jobId": "job_20240115_abc123",
     "status": "completed",
     "progress": 100,
-    "outputUrl": "https://vizla.com/videos/job_20240115_abc123.mp4",
-    "previewUrl": "https://vizla.com/previews/job_20240115_abc123.mp4"
+    "outputUrl": "https://shotstack.io/videos/job_20240115_abc123.mp4",
+    "previewUrl": "https://shotstack.io/previews/job_20240115_abc123.mp4"
   }
 }
 ```
 
-### POST `/vizla/jobs/{jobId}/cancel`
+### POST `/shotstack/jobs/{jobId}/cancel`
 
 Cancel a running job.
 
@@ -450,7 +450,7 @@ Create a Video Studio job (Video Review or Monthly Releases).
     "title": "January 2024 Movie Releases",
     "status": "pending",
     "createdAt": "2024-01-15T12:00:00Z",
-    "vizlaJobId": null
+    "shotstackJobId": null
   }
 }
 ```
@@ -470,8 +470,8 @@ Get Video Studio job status.
     "progress": 100,
     "createdAt": "2024-01-15T12:00:00Z",
     "completedAt": "2024-01-15T12:05:00Z",
-    "vizlaJobId": "job_20240115_abc123",
-    "outputUrl": "https://vizla.com/videos/job_20240115_abc123.mp4"
+    "shotstackJobId": "job_20240115_abc123",
+    "outputUrl": "https://shotstack.io/videos/job_20240115_abc123.mp4"
   }
 }
 ```
@@ -589,7 +589,7 @@ ws.send(JSON.stringify({
 
 ### Event: `job_status_update`
 
-Sent when Video Studio or Vizla job status changes.
+Sent when Video Studio or Shotstack job status changes.
 
 ```json
 {
@@ -707,7 +707,7 @@ New comment detected for AI reply.
 - **YouTube API**: 10,000 units/day (1 upload = 1600 units)
 - **OpenAI API**: Model-specific (GPT-4.1: 10 RPM, GPT-4o-mini: 500 RPM)
 - **TMDb API**: 40 requests per 10 seconds
-- **Vizla API**: 100 jobs/day per account
+- **Shotstack API**: 100 jobs/day per account
 
 ---
 

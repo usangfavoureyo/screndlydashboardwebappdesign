@@ -105,14 +105,14 @@ export function SwipeableLogRow({
 
   return (
     <tr 
-      className="relative border-b border-gray-200 dark:border-[#374151] last:border-0 transition-colors duration-200 group overflow-hidden"
+      className="relative border-b border-gray-200 dark:border-[#374151] last:border-0 transition-colors duration-200 group"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{
         // Background delete layer using CSS
         background: swipeX < 0 
-          ? `linear-gradient(to left, #ec1e24 0%, #ec1e24 100%)`
+          ? '#ec1e24'
           : 'transparent',
       }}
     >
@@ -126,21 +126,21 @@ export function SwipeableLogRow({
           zIndex: 1
         }}
       >
-        {/* Delete indicator - positioned absolutely relative to the TR, stays on red background */}
+        {/* Delete indicator - positioned to appear on red background when swiping */}
         {swipeX < 0 && (
           <div 
-            className="flex flex-col items-center gap-1 text-white pointer-events-none"
+            className="flex flex-col items-center justify-center gap-1 text-white pointer-events-none lg:hidden"
             style={{
               position: 'absolute',
               top: '50%',
               right: '16px',
               transform: `translateX(${-swipeX}px) translateY(-50%)`,
               opacity: Math.min(Math.abs(swipeX) / 60, 1),
-              zIndex: 10,
+              zIndex: 2,
             }}
           >
             <Trash2 className="w-5 h-5" />
-            <span className="text-xs whitespace-nowrap">Delete</span>
+            <span className="text-xs font-medium whitespace-nowrap">Delete</span>
           </div>
         )}
 
@@ -151,8 +151,8 @@ export function SwipeableLogRow({
             haptics.medium();
             onDelete(log.id);
           }}
-          className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-[#ec1e24] hover:dark:bg-[#ec1e24] text-gray-600 dark:text-gray-400 hover:text-white z-10"
-          aria-label="Delete log entry"
+          className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 z-10"
+          title="Delete log entry"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -173,7 +173,7 @@ export function SwipeableLogRow({
         <div className="flex items-center gap-2">
           {log.type === 'video' && (
             <>
-              <Video className="w-4 h-4 text-[#ec1e24]" aria-hidden="true" />
+              <Video className="w-4.5 h-4.5 text-[#ec1e24]" aria-hidden="true" />
               <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video</span>
             </>
           )}
@@ -191,7 +191,7 @@ export function SwipeableLogRow({
           )}
           {log.type === 'videostudio' && (
             <>
-              <Film className="w-4 h-4 text-[#ec1e24]" aria-hidden="true" />
+              <Film className="w-6 h-6 text-[#ec1e24]" aria-hidden="true" />
               <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">Video Studio</span>
             </>
           )}

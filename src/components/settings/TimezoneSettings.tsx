@@ -16,16 +16,20 @@ export function TimezoneSettings({ onBack }: TimezoneSettingsProps) {
 
   // Load settings on mount
   useEffect(() => {
-    const stored = localStorage.getItem('tmdbSettings');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed.timezone) {
-          setTimezone(parsed.timezone);
+    try {
+      const stored = localStorage.getItem('tmdbSettings');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed.timezone) {
+            setTimezone(parsed.timezone);
+          }
+        } catch (err) {
+          console.error('Error parsing timezone settings:', err);
         }
-      } catch (err) {
-        console.error('Error loading timezone:', err);
       }
+    } catch (e) {
+      console.error('Failed to access localStorage:', e);
     }
   }, []);
 
@@ -33,19 +37,23 @@ export function TimezoneSettings({ onBack }: TimezoneSettingsProps) {
   const handleTimezoneChange = (value: string) => {
     setTimezone(value);
     
-    // Save to TMDb settings
-    const stored = localStorage.getItem('tmdbSettings');
-    let tmdbSettings = {};
-    if (stored) {
-      try {
-        tmdbSettings = JSON.parse(stored);
-      } catch (err) {
-        console.error('Error parsing TMDb settings:', err);
+    try {
+      // Save to TMDb settings
+      const stored = localStorage.getItem('tmdbSettings');
+      let tmdbSettings = {};
+      if (stored) {
+        try {
+          tmdbSettings = JSON.parse(stored);
+        } catch (err) {
+          console.error('Error parsing TMDb settings:', err);
+        }
       }
+      
+      const updated = { ...tmdbSettings, timezone: value };
+      localStorage.setItem('tmdbSettings', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save timezone to localStorage:', e);
     }
-    
-    const updated = { ...tmdbSettings, timezone: value };
-    localStorage.setItem('tmdbSettings', JSON.stringify(updated));
     
     haptics.selection();
     toast.success('Timezone updated');

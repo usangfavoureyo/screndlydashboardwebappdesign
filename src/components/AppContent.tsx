@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
 import { LoginPage } from "./LoginPage";
 import { DashboardOverview } from "./DashboardOverview";
 import { Navigation } from "./Navigation";
@@ -9,9 +9,12 @@ import { ToastContainer, ToastAction } from "./Toast";
 import { InstallPrompt } from "./InstallPrompt";
 import { NotFoundPage } from "./NotFoundPage";
 import { UndoToast } from "./UndoToast";
+import { ShortcutsHelp } from "./ShortcutsHelp";
 import { useSwipeNavigation } from "../hooks/useSwipeNavigation";
+import { useDesktopShortcuts } from "../hooks/useDesktopShortcuts";
 import { haptics } from "../utils/haptics";
 import { useNotifications } from "../contexts/NotificationsContext";
+import { setupInstallPrompt, registerServiceWorker } from "../utils/pwa";
 
 // Lazy load heavy components for better performance
 const ChannelsPage = lazy(() => import("./ChannelsPage").then(m => ({ default: m.ChannelsPage })));
@@ -36,15 +39,13 @@ const DataDeletionPage = lazy(() => import("./DataDeletionPage").then(m => ({ de
 const AppInfoPage = lazy(() => import("./AppInfoPage").then(m => ({ default: m.AppInfoPage })));
 const APIUsage = lazy(() => import("./APIUsage").then(m => ({ default: m.APIUsage })));
 const CommentAutomationPage = lazy(() => import("./CommentAutomationPage").then(m => ({ default: m.CommentAutomationPage })));
-const UploadManagerPage = lazy(() => import("./jobs/UploadManagerPage").then(m => ({ default: m.UploadManagerPage })));
+const UploadManagerPage = lazy(() => import("./UploadManagerPage").then(m => ({ default: m.UploadManagerPage })));
 
-// Loading component for Suspense fallback
+// Loading component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-white dark:bg-[#000000]">
-    <div className="flex flex-col items-center gap-4">
-      <div className="w-12 h-12 border-4 border-gray-200 dark:border-[#333333] border-t-[#ec1e24] rounded-full animate-spin"></div>
-      <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Loading...</p>
-    </div>
+  <div className="flex items-center justify-center h-64" role="status" aria-live="polite">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ec1e24]"></div>
+    <span className="sr-only">Loading...</span>
   </div>
 );
 
@@ -58,6 +59,7 @@ export function AppContent() {
   const [settingsInitialPage, setSettingsInitialPage] = useState<string | null>(null);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isCaptionEditorOpen, setIsCaptionEditorOpen] = useState(false);
+  const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
   
   // Toast notifications state
   const [toasts, setToasts] = useState<Array<{
@@ -108,6 +110,9 @@ export function AppContent() {
       setSettingsInitialPage(settingsPage);
       setIsSettingsOpen(true);
       setIsNotificationsOpen(false);
+    } else if (page === 'shortcuts-help') {
+      // Open shortcuts help modal
+      setIsShortcutsHelpOpen(true);
     } else if (page === 'login') {
       // Reset to login page (used when going back from static pages in unauthenticated state)
       setCurrentPage('dashboard');
@@ -286,6 +291,27 @@ export function AppContent() {
     increasedMinSwipeDistance: currentPage === 'logs' ? 120 : undefined,
   });
 
+  // Desktop shortcuts (keyboard + trackpad gestures)
+  useDesktopShortcuts({
+    onNavigate: handleNavigate,
+    onToggleSettings: toggleSettings,
+    onToggleNotifications: toggleNotifications,
+    currentPage,
+    isSettingsOpen,
+    isNotificationsOpen,
+    onCloseSettings: handleCloseSettings,
+    onCloseNotifications: () => setIsNotificationsOpen(false),
+  });
+
+  // Initialize PWA functionality
+  useEffect(() => {
+    // Set up the install prompt listener
+    setupInstallPrompt();
+    
+    // Register the service worker
+    registerServiceWorker();
+  }, []);
+
   return (
     <>
       {!isAuthenticated ? (
@@ -398,6 +424,9 @@ export function AppContent() {
           
           {/* PWA Install Prompt */}
           <InstallPrompt />
+          
+          {/* Shortcuts Help */}
+          <ShortcutsHelp isOpen={isShortcutsHelpOpen} onClose={() => setIsShortcutsHelpOpen(false)} />
         </div>
       )}
     </>

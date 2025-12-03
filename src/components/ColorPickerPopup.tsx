@@ -21,16 +21,16 @@ const ColorPickerPopup: React.FC<ColorPickerPopupProps> = ({
     ['#00E5FF', '#00BCD4', '#0288D1', '#1565C0', '#1E88E5'],
     // Row 2 - Light Blue & Oranges/Yellows
     ['#42A5F5', '#FF6D00', '#FF9800', '#FFC107', '#C0B100'],
-    // Row 3 - Browns & Reds (with Screndly brand red)
-    ['#8D6E63', '#6D4C41', '#ec1e24', '#C62828', '#E91E63'],
+    // Row 3 - Browns & Reds (with Screndly brand reds)
+    ['#8D6E63', '#6D4C41', '#ec1e24', '#f45247', '#C62828'],
     // Row 4 - Pinks & Purples
-    ['#F44336', '#EC407A', '#AD1457', '#6A1B9A', '#9C27B0'],
-    // Row 5 - Teals & Greens
-    ['#BA68C8', '#00796B', '#00897B', '#26A69A', '#43A047'],
-    // Row 6 - Lime & Grays/Blacks
-    ['#8BC34A', '#76FF03', '#212121', '#546E7A', '#B0BEC5'],
+    ['#E91E63', '#F44336', '#EC407A', '#AD1457', '#6A1B9A'],
+    // Row 5 - Purples & Teals & Greens
+    ['#9C27B0', '#BA68C8', '#00796B', '#00897B', '#26A69A'],
+    // Row 6 - Greens & Lime & Grays
+    ['#43A047', '#8BC34A', '#76FF03', '#212121', '#546E7A'],
     // Row 7 - Additional Grays & White
-    ['#78909C', '#607D8B', '#90A4AE', '#FFFFFF', ''],
+    ['#B0BEC5', '#78909C', '#607D8B', '#90A4AE', '#FFFFFF'],
   ];
 
   useEffect(() => {

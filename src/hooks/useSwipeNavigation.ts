@@ -39,6 +39,27 @@ export function useSwipeNavigation({
       if (!touchStartX.current || !touchEndX.current || !touchStartElement.current) return;
       if (!touchStartY.current || !touchEndY.current) return;
 
+      // Check if touch started on an interactive form element
+      const element = touchStartElement.current;
+      const tagName = element.tagName.toLowerCase();
+      const isInteractiveElement = 
+        tagName === 'input' || 
+        tagName === 'textarea' || 
+        tagName === 'select' || 
+        tagName === 'button' ||
+        element.closest('input') !== null ||
+        element.closest('textarea') !== null ||
+        element.closest('select') !== null;
+      
+      if (isInteractiveElement) {
+        touchStartX.current = null;
+        touchEndX.current = null;
+        touchStartY.current = null;
+        touchEndY.current = null;
+        touchStartElement.current = null;
+        return; // Don't trigger page swipe on interactive form elements
+      }
+
       // Check if the touch started on a scrollable element
       if (disableOnScrollable) {
         let element: HTMLElement | null = touchStartElement.current;

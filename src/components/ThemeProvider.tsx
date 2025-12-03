@@ -14,16 +14,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else {
-      setTheme('dark'); // Default to dark mode
+    try {
+      const savedTheme = localStorage.getItem('theme') as Theme;
+      if (savedTheme) {
+        setTheme(savedTheme);
+      } else {
+        setTheme('dark'); // Default to dark mode
+      }
+    } catch (e) {
+      // localStorage not available
+      console.error('Failed to load theme from localStorage:', e);
+      setTheme('dark');
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('theme', theme);
+    try {
+      localStorage.setItem('theme', theme);
+    } catch (e) {
+      // localStorage not available
+      console.error('Failed to save theme to localStorage:', e);
+    }
+    
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {

@@ -66,7 +66,7 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
             popularity: 456.89,
             cacheHit: false,
             status: 'published',
-            platforms: ['X', 'Facebook', 'Instagram'],
+            platforms: ['X', 'Threads', 'Facebook'],
             publishedTime: '2024-11-17T08:00:00Z',
           },
           {
@@ -85,7 +85,7 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
             popularity: 312.78,
             cacheHit: false,
             status: 'failed',
-            platforms: ['YouTube'],
+            platforms: ['X', 'Threads'],
             errorMessage: 'Upload quota exceeded',
           },
         ]);
@@ -109,7 +109,7 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
           popularity: 456.89,
           cacheHit: false,
           status: 'published',
-          platforms: ['X', 'Facebook', 'Instagram'],
+          platforms: ['X', 'Threads', 'Facebook'],
           publishedTime: '2024-11-17T08:00:00Z',
         },
         {
@@ -128,7 +128,7 @@ export function TMDbPostsProvider({ children }: { children: ReactNode }) {
           popularity: 312.78,
           cacheHit: false,
           status: 'failed',
-          platforms: ['YouTube'],
+          platforms: ['X', 'Threads'],
           errorMessage: 'Upload quota exceeded',
         },
       ]);

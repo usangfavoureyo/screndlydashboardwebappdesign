@@ -168,7 +168,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
         {isDevelopment && (
           <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
             <div className="flex items-start gap-3">
-              <Bell className="w-5 h-5 text-[#ec1e24]" />
+              <Bell className="w-5 h-5 text-[#ec1e24] mt-1" />
               <div className="flex-1">
                 <h4 className="text-sm text-gray-900 dark:text-white mb-2">
                   Development Mode
@@ -225,7 +225,7 @@ export function PWASettings({ onBack }: PWASettingsProps) {
 
         {/* Network Status */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             {offline ? (
               <WifiOff className="w-5 h-5 text-[#ec1e24]" />
             ) : (
@@ -247,9 +247,9 @@ export function PWASettings({ onBack }: PWASettingsProps) {
 
         {/* Push Notifications */}
         <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-1">
-              <Bell className="w-5 h-5 text-[#ec1e24]" />
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3 flex-1">
+              <Bell className="w-5 h-5 text-[#ec1e24] mt-0.5" />
               <div className="flex-1">
                 <Label htmlFor="pwa-notifications" className="text-gray-900 dark:text-white cursor-pointer">
                   Push Notifications

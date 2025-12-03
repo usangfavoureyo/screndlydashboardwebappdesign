@@ -116,7 +116,7 @@ export function SwipeableLogRow({
           : 'transparent',
       }}
     >
-      {/* Content cell */}
+      {/* Content cell with delete indicator */}
       <td 
         className="relative p-4 text-gray-900 dark:text-white bg-white dark:bg-[#000000]"
         style={{
@@ -129,34 +129,19 @@ export function SwipeableLogRow({
         {/* Delete indicator - positioned to appear on red background when swiping */}
         {swipeX < 0 && (
           <div 
-            className="flex flex-col items-center justify-center gap-1 text-white pointer-events-none lg:hidden"
+            className="flex flex-col items-center justify-center gap-1 text-white pointer-events-none lg:hidden absolute"
             style={{
-              position: 'absolute',
               top: '50%',
-              right: '16px',
-              transform: `translateX(${-swipeX}px) translateY(-50%)`,
+              right: '-100px',
+              transform: 'translateY(-50%)',
               opacity: Math.min(Math.abs(swipeX) / 60, 1),
-              zIndex: 2,
+              zIndex: 10,
             }}
           >
             <Trash2 className="w-5 h-5" />
             <span className="text-xs font-medium whitespace-nowrap">Delete</span>
           </div>
         )}
-
-        {/* Desktop delete button - only visible on hover */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            haptics.medium();
-            onDelete(log.id);
-          }}
-          className="hidden lg:flex absolute top-1/2 -translate-y-1/2 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 z-10"
-          title="Delete log entry"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-        
         {log.videoTitle}
       </td>
 
@@ -290,20 +275,35 @@ export function SwipeableLogRow({
           zIndex: 1
         }}
       >
-        {log.status === 'failed' ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onRetry(log.id, log.videoTitle)}
-            className="gap-2 bg-white dark:bg-black"
-            aria-label={`Retry upload for ${log.videoTitle}`}
+        <div className="flex items-center gap-3">
+          {log.status === 'failed' ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onRetry(log.id, log.videoTitle)}
+              className="gap-2 bg-white dark:bg-black"
+              aria-label={`Retry upload for ${log.videoTitle}`}
+            >
+              <RefreshCw className="w-4 h-4" aria-hidden="true" />
+              Retry
+            </Button>
+          ) : (
+            <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
+          )}
+          
+          {/* Delete button - visible on desktop */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              haptics.medium();
+              onDelete(log.id);
+            }}
+            className="hidden lg:flex absolute bottom-2 right-2 items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 transition-colors"
+            title="Delete log entry"
           >
-            <RefreshCw className="w-4 h-4" aria-hidden="true" />
-            Retry
-          </Button>
-        ) : (
-          <span className="text-[#6B7280] dark:text-[#9CA3AF]">-</span>
-        )}
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </td>
     </tr>
   );

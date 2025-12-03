@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize, Target, TrendingUp } from 'lucide-react';
+import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize, Target, TrendingUp, Monitor, Smartphone, Square } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
+import { Switch } from './ui/switch';
 import { haptics } from '../utils/haptics';
 import { useSettings } from '../contexts/SettingsContext';
 import { InstagramIcon } from './icons/InstagramIcon';
@@ -24,6 +25,7 @@ import { LetterboxControl } from './LetterboxControl';
 import { AnalysisSettingsPanel } from './AnalysisSettingsPanel';
 import { SceneCorrectionInterface } from './SceneCorrectionInterface';
 import { TrainingProgressDashboard } from './TrainingProgressDashboard';
+import { LowerThirdEditor, LowerThirdConfig } from './LowerThirdEditor';
 import { analyzeTrailer, TrailerAnalysis, VideoMoment } from '../lib/api/googleVideoIntelligence';
 import { generateShotstackJSON, generateAudioChoreography, renderVideo } from '../lib/api/shotstack';
 import { analyzeMultipleTrailers, MonthlyTrailerAnalysis, generateMonthlyCompilationJSON, getCompilationStats } from '../lib/api/monthlyCompilation';
@@ -102,6 +104,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [monthlyVideoTime, setMonthlyVideoTime] = useState(0);
   const [monthlyVideoDuration, setMonthlyVideoDuration] = useState(285); // 4:45 in seconds
   const [monthlyIsFullscreen, setMonthlyIsFullscreen] = useState(false);
+  const [monthlyLowerThirdConfig, setMonthlyLowerThirdConfig] = useState<LowerThirdConfig>({
+    position: 'bottom-left',
+    aspectRatio: '16:9',
+    size: 'medium',
+    duration: 3.5,
+  });
+  const [monthlyEnableLowerThirds, setMonthlyEnableLowerThirds] = useState(false);
   
   // Audio Dynamics State
   const [enableAutoDucking, setEnableAutoDucking] = useState(true);
@@ -188,6 +197,10 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [showTextColorPicker, setShowTextColorPicker] = useState(false);
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [showStrokeColorPicker, setShowStrokeColorPicker] = useState(false);
+
+  // Caption Preview State
+  const [captionPreviewAspectRatio, setCaptionPreviewAspectRatio] = useState<AspectRatio>('16:9');
+  const [isCaptionPreviewPlaying, setIsCaptionPreviewPlaying] = useState(false);
 
   // Audio Preview Player State
   const [isAudioPreviewPlaying, setIsAudioPreviewPlaying] = useState(false);
@@ -349,7 +362,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   };
 
   // Mock voiceover analysis function (simulates AI/LLM extraction)
-  const analyzeVoiceoverForTitles = async (file: File): Promise<Array<{
+  const analyzeVoiceoverForTitles = async (file: File, module: 'review' | 'monthly'): Promise<Array<{
     title: string;
     releaseDate?: string;
     timestamp: string;
@@ -365,38 +378,74 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing
     
     // Mock response - in production this comes from OpenAI
-    const mockResults = [
-      {
-        title: "A Minecraft Movie",
-        releaseDate: "April 4th",
-        timestamp: "0:15",
-        confidence: 0.98,
-        context: "Jason Momoa and Jack Black lead a ragtag crew..."
-      },
-      {
-        title: "Freaky Tales",
-        releaseDate: "April 4th",
-        timestamp: "0:42",
-        confidence: 0.95,
-        context: "Pedro Pascal and Ben Mendelsohn star in four twisted stories..."
-      },
-      {
-        title: "Sinners",
-        releaseDate: "April 18th",
-        timestamp: "1:08",
-        confidence: 0.99,
-        context: "Michael B. Jordan and Ryan Coogler team up for a vampire thriller..."
-      },
-      {
-        title: "Death of a Unicorn",
-        releaseDate: "April 18th",
-        timestamp: "1:25",
-        confidence: 0.92,
-        context: "Paul Rudd and Jenna Ortega accidentally offing a mythical beast..."
-      }
-    ];
+    // Monthly compilations ALWAYS include release dates
+    // Video reviews DON'T ALWAYS include release dates (sometimes just titles)
     
-    return mockResults;
+    if (module === 'monthly') {
+      // Monthly compilation - all entries have release dates
+      return [
+        {
+          title: "A Minecraft Movie",
+          releaseDate: "April 4th",
+          timestamp: "0:15",
+          confidence: 0.98,
+          context: "Jason Momoa and Jack Black lead a ragtag crew..."
+        },
+        {
+          title: "Freaky Tales",
+          releaseDate: "April 4th",
+          timestamp: "0:42",
+          confidence: 0.95,
+          context: "Pedro Pascal and Ben Mendelsohn star in four twisted stories..."
+        },
+        {
+          title: "Sinners",
+          releaseDate: "April 18th",
+          timestamp: "1:08",
+          confidence: 0.99,
+          context: "Michael B. Jordan and Ryan Coogler team up for a vampire thriller..."
+        },
+        {
+          title: "Death of a Unicorn",
+          releaseDate: "April 18th",
+          timestamp: "1:25",
+          confidence: 0.92,
+          context: "Paul Rudd and Jenna Ortega accidentally offing a mythical beast..."
+        }
+      ];
+    } else {
+      // Video review - some entries don't have release dates
+      return [
+        {
+          title: "The Brutalist",
+          // No release date mentioned in review
+          timestamp: "0:12",
+          confidence: 0.97,
+          context: "Adrien Brody delivers a career-defining performance..."
+        },
+        {
+          title: "Dune: Part Two",
+          releaseDate: "March 1st",
+          timestamp: "0:38",
+          confidence: 0.99,
+          context: "Denis Villeneuve's epic continues with breathtaking visuals..."
+        },
+        {
+          title: "Civil War",
+          // No release date mentioned in review
+          timestamp: "1:05",
+          confidence: 0.96,
+          context: "A24's most ambitious project yet explores a divided America..."
+        },
+        {
+          title: "Challengers",
+          releaseDate: "April 26th",
+          timestamp: "1:32",
+          confidence: 0.94,
+          context: "Zendaya stars in this intense tennis drama..."
+        }
+      ];
+    }
   };
 
   // Auto-assign detected titles to uploaded videos
@@ -484,7 +533,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
           blobUrl = URL.createObjectURL(file);
           
           // Analyze the file (in production, this would use the blob URL)
-          const detectedTitles = await analyzeVoiceoverForTitles(file);
+          const detectedTitles = await analyzeVoiceoverForTitles(file, 'review');
           
           // Check if component is still mounted before updating state
           if (!isMountedRef.current) {
@@ -531,7 +580,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
           blobUrl = URL.createObjectURL(file);
           
           // Analyze the file (in production, this would use the blob URL)
-          const detectedTitles = await analyzeVoiceoverForTitles(file);
+          const detectedTitles = await analyzeVoiceoverForTitles(file, 'monthly');
           
           // Check if component is still mounted before updating state
           if (!isMountedRef.current) {
@@ -1055,7 +1104,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     const videoFiles = module === 'review' ? reviewVideoFiles : monthlyVideoFiles;
     
     if (videoFiles.length === 0) {
-      console.warn('No trailer video to analyze');
+      // No trailer video to analyze
       return;
     }
     
@@ -1068,7 +1117,6 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         const analysis = await analyzeTrailer(videoFiles[0]);
         setReviewTrailerAnalysis(analysis);
         
-        console.log('Review trailer analysis complete:', analysis);
         haptics.success();
       } else {
         // Monthly module - analyze multiple trailers
@@ -1080,7 +1128,6 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         setMonthlyTrailerAnalyses(analyses);
         
         const stats = getCompilationStats(analyses);
-        console.log('Monthly compilation analysis complete:', stats);
         haptics.success();
       }
     } catch (error) {
@@ -1135,13 +1182,9 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
           audioSettings
         );
         
-        console.log('Shotstack Config:', shotstackConfig);
-        
         // Render video
         const renderResult = await renderVideo(shotstackConfig);
         setReviewRenderId(renderResult.id);
-        
-        console.log('Render started:', renderResult);
       }
     } catch (error) {
       console.error('Error generating video:', error);
@@ -2656,6 +2699,11 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                       onClick={() => {
                         haptics.light();
                         setMonthlyAspectRatio(ratio);
+                        // Update lower third aspect ratio to match
+                        setMonthlyLowerThirdConfig(prev => ({
+                          ...prev,
+                          aspectRatio: ratio
+                        }));
                         setPromptStatus('outdated');
                       }}
                       className={`flex-1 px-4 py-2 rounded-xl transition-all duration-300 ${
@@ -2746,6 +2794,40 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 }}
               />
             )}
+
+            {/* Lower Thirds Configuration */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-gray-900 dark:text-white block">
+                    Lower Thirds
+                  </label>
+                  <p className="text-sm text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                    Add title overlays showing movie names and release dates
+                  </p>
+                </div>
+                <Switch
+                  checked={monthlyEnableLowerThirds}
+                  onCheckedChange={(checked) => {
+                    haptics.light();
+                    setMonthlyEnableLowerThirds(checked);
+                    setPromptStatus('outdated');
+                  }}
+                />
+              </div>
+
+              {monthlyEnableLowerThirds && (
+                <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
+                  <LowerThirdEditor
+                    onSave={(config) => {
+                      setMonthlyLowerThirdConfig(config);
+                      setPromptStatus('outdated');
+                      toast.success('Lower third configuration saved');
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -3877,42 +3959,145 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
             {/* Live Preview */}
             <div>
-              <label className="text-gray-900 dark:text-white mb-3 block">
-                Live Preview
-                <span className="text-xs text-gray-500 dark:text-[#6B7280] ml-2">
-                  (Kinetic caption label: {captionWordsPerLine} {captionWordsPerLine === 1 ? 'word' : 'words'} per segment)
-                </span>
-              </label>
-              <div className="relative bg-gray-900 rounded-xl overflow-hidden aspect-video flex items-center justify-center">
-                <div className={`absolute ${
-                  captionPosition === 'Top' ? 'top-8' : 
-                  captionPosition === 'Center' ? 'top-1/2 -translate-y-1/2' : 
-                  captionPosition === 'Bottom-Center' ? 'bottom-[20%]' : 
-                  'bottom-8'
-                } left-0 right-0 px-8 flex ${captionAlignment === 'Left' ? 'justify-start' : captionAlignment === 'Right' ? 'justify-end' : 'justify-center'}`}>
-                  <div 
-                    className="px-4 py-2 rounded inline-block"
-                    style={{
-                      backgroundColor: `${captionBgColor}${Math.round(captionBgOpacity * 2.55).toString(16).padStart(2, '0')}`,
-                      color: captionTextColor,
-                      fontFamily: captionFontFamily,
-                      fontSize: `${captionFontSize}px`,
-                      fontWeight: captionFontWeight === 'Regular' ? 400 : captionFontWeight === 'Medium' ? 500 : captionFontWeight === 'Bold' ? 700 : 900,
-                      textShadow: captionShadow ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
-                      ...(captionStrokeWidth > 0 && { WebkitTextStroke: `${captionStrokeWidth}px ${captionStrokeColor}` }),
-                    }}
-                  >
-                    {(() => {
-                      const samplePhrase = "this is a banger";
-                      const words = samplePhrase.split(' ');
-                      const segmentWords = words.slice(0, captionWordsPerLine);
-                      return segmentWords.join(' ') + '.';
-                    })()}
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-sm text-gray-700 dark:text-gray-300">
+                  Live Preview
+                </label>
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    setIsCaptionPreviewPlaying(true);
+                    setTimeout(() => {
+                      setIsCaptionPreviewPlaying(false);
+                    }, 2000);
+                  }}
+                  disabled={isCaptionPreviewPlaying}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#ec1e24] text-white rounded-lg hover:bg-[#d11a20] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isCaptionPreviewPlaying ? (
+                    <>
+                      <Pause className="w-4 h-4" />
+                      <span className="text-sm">Playing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4" />
+                      <span className="text-sm">Preview</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              <div className={`relative w-full bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-xl ${
+                captionPreviewAspectRatio === '16:9' ? 'aspect-video' : 
+                captionPreviewAspectRatio === '9:16' ? 'aspect-[9/16]' : 
+                'aspect-square'
+              }`}>
+                {/* Simulated video background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
+                  <div className="absolute inset-0 opacity-20">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-500 text-center">
+                      <Monitor className="w-16 h-16 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Video Preview Area</p>
+                    </div>
                   </div>
                 </div>
+
+                {/* Caption Preview */}
+                {isCaptionPreviewPlaying && (
+                  <div className={`absolute ${ 
+                    captionPosition === 'Top' ? 'top-8' : 
+                    captionPosition === 'Center' ? 'top-1/2 -translate-y-1/2' : 
+                    captionPosition === 'Bottom-Center' ? 'bottom-[20%]' : 
+                    'bottom-8'
+                  } left-0 right-0 px-8 flex ${captionAlignment === 'Left' ? 'justify-start' : captionAlignment === 'Right' ? 'justify-end' : 'justify-center'}`}>
+                    <div 
+                      className="px-4 py-2 rounded inline-block animate-in fade-in duration-300"
+                      style={{
+                        backgroundColor: `${captionBgColor}${Math.round(captionBgOpacity * 2.55).toString(16).padStart(2, '0')}`,
+                        color: captionTextColor,
+                        fontFamily: captionFontFamily,
+                        fontSize: `${captionFontSize}px`,
+                        fontWeight: captionFontWeight === 'Regular' ? 400 : captionFontWeight === 'Medium' ? 500 : captionFontWeight === 'Bold' ? 700 : 900,
+                        textShadow: captionShadow ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
+                        ...(captionStrokeWidth > 0 && { WebkitTextStroke: `${captionStrokeWidth}px ${captionStrokeColor}` }),
+                      }}
+                    >
+                      {(() => {
+                        const samplePhrase = "this is a banger";
+                        const words = samplePhrase.split(' ');
+                        const segmentWords = words.slice(0, captionWordsPerLine);
+                        return segmentWords.join(' ') + '.';
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-2 italic">
-                Each caption segment will appear separately as the video plays
+
+              {/* Aspect Ratio Selection */}
+              <div className="mt-4">
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-3">
+                  Aspect Ratio
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setCaptionPreviewAspectRatio('16:9');
+                    }}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                      captionPreviewAspectRatio === '16:9'
+                        ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                        : 'border-gray-200 dark:border-[#333333] hover:border-gray-300 dark:hover:border-[#444444]'
+                    }`}
+                  >
+                    <Monitor className={`w-6 h-6 ${captionPreviewAspectRatio === '16:9' ? 'text-[#ec1e24]' : 'text-gray-600 dark:text-[#9CA3AF]'}`} />
+                    <div className="text-center">
+                      <div className="text-sm text-gray-900 dark:text-white">16:9</div>
+                      <div className="text-xs text-gray-500 dark:text-[#9CA3AF]">Cinematic</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setCaptionPreviewAspectRatio('9:16');
+                    }}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                      captionPreviewAspectRatio === '9:16'
+                        ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                        : 'border-gray-200 dark:border-[#333333] hover:border-gray-300 dark:hover:border-[#444444]'
+                    }`}
+                  >
+                    <Smartphone className={`w-6 h-6 ${captionPreviewAspectRatio === '9:16' ? 'text-[#ec1e24]' : 'text-gray-600 dark:text-[#9CA3AF]'}`} />
+                    <div className="text-center">
+                      <div className="text-sm text-gray-900 dark:text-white">9:16</div>
+                      <div className="text-xs text-gray-500 dark:text-[#9CA3AF]">Vertical</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setCaptionPreviewAspectRatio('1:1');
+                    }}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                      captionPreviewAspectRatio === '1:1'
+                        ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                        : 'border-gray-200 dark:border-[#333333] hover:border-gray-300 dark:hover:border-[#444444]'
+                    }`}
+                  >
+                    <Square className={`w-6 h-6 ${captionPreviewAspectRatio === '1:1' ? 'text-[#ec1e24]' : 'text-gray-600 dark:text-[#9CA3AF]'}`} />
+                    <div className="text-center">
+                      <div className="text-sm text-gray-900 dark:text-white">1:1</div>
+                      <div className="text-xs text-gray-500 dark:text-[#9CA3AF]">Square</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-3 italic">
+                <span className="text-gray-700 dark:text-gray-400">Kinetic caption label: {captionWordsPerLine} {captionWordsPerLine === 1 ? 'word' : 'words'} per segment.</span> Each caption segment will appear separately as the video plays
               </p>
             </div>
 
@@ -4082,21 +4267,13 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
             {/* Shadow Toggle */}
             <div className="flex items-center justify-between">
               <label className="text-gray-900 dark:text-white">Text Shadow</label>
-              <button
-                onClick={() => {
+              <Switch
+                checked={captionShadow}
+                onCheckedChange={(checked) => {
                   haptics.light();
-                  setCaptionShadow(!captionShadow);
+                  setCaptionShadow(checked);
                 }}
-                className={`w-12 h-6 rounded-full transition-all duration-200 ${
-                  captionShadow ? 'bg-[#ec1e24]' : 'bg-gray-300 dark:bg-[#333333]'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 bg-white rounded-full transition-all duration-200 ${
-                    captionShadow ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
+              />
             </div>
 
             {/* Animation */}

@@ -54,9 +54,13 @@ export function VideoDetailsPage({ onNavigate, previousPage }: VideoDetailsPageP
   
   // Initialize video posts with timestamps (stored in localStorage)
   const [videoPosts, setVideoPosts] = useState<VideoPost[]>(() => {
-    const stored = localStorage.getItem('videoPosts');
-    if (stored) {
-      return JSON.parse(stored);
+    try {
+      const stored = localStorage.getItem('videoPosts');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Failed to load video posts from localStorage:', e);
     }
     
     // Initial demo data with timestamps
@@ -75,7 +79,11 @@ export function VideoDetailsPage({ onNavigate, previousPage }: VideoDetailsPageP
 
   // Save video posts to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('videoPosts', JSON.stringify(videoPosts));
+    try {
+      localStorage.setItem('videoPosts', JSON.stringify(videoPosts));
+    } catch (e) {
+      console.error('Failed to save video posts to localStorage:', e);
+    }
   }, [videoPosts]);
 
   // Auto-delete posts older than 24 hours

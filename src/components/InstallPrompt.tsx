@@ -21,9 +21,14 @@ export function InstallPrompt() {
     }
 
     // Check if user has dismissed the prompt before
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    if (dismissed) {
-      return;
+    try {
+      const dismissed = localStorage.getItem('pwa-install-dismissed');
+      if (dismissed) {
+        return;
+      }
+    } catch (e) {
+      // localStorage not available (private browsing, etc.)
+      console.error('localStorage access failed:', e);
     }
 
     // Wait a bit before showing the prompt (better UX)
@@ -56,7 +61,12 @@ export function InstallPrompt() {
   const handleDismiss = () => {
     haptics.light();
     setShowPrompt(false);
-    localStorage.setItem('pwa-install-dismissed', 'true');
+    try {
+      localStorage.setItem('pwa-install-dismissed', 'true');
+    } catch (e) {
+      // localStorage not available
+      console.error('Failed to save dismiss state:', e);
+    }
   };
 
   // Don't render if already installed or can't install

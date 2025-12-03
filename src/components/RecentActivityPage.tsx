@@ -39,9 +39,13 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
   
   // Initialize activities with timestamps (stored in localStorage)
   const [activities, setActivities] = useState<Activity[]>(() => {
-    const stored = localStorage.getItem('recentActivities');
-    if (stored) {
-      return JSON.parse(stored);
+    try {
+      const stored = localStorage.getItem('recentActivities');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.error('Failed to load activities from localStorage:', e);
     }
     
     // Initial demo data with timestamps
@@ -75,7 +79,11 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
 
   // Save activities to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('recentActivities', JSON.stringify(activities));
+    try {
+      localStorage.setItem('recentActivities', JSON.stringify(activities));
+    } catch (e) {
+      console.error('Failed to save activities to localStorage:', e);
+    }
   }, [activities]);
 
   // Auto-delete activities older than 24 hours

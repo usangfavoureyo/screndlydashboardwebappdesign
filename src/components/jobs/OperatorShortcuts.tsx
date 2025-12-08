@@ -40,7 +40,7 @@ function DuplicateAndSwapModal({ isOpen, onClose, sourceJobId }: DuplicateAndSwa
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+      <DialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             Duplicate Job & Swap File
@@ -120,7 +120,7 @@ function ApplyTemplateModal({ isOpen, onClose, targetJobId }: ApplyTemplateModal
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+      <DialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             Apply Metadata Template
@@ -233,7 +233,7 @@ function GenerateTitlesModal({ isOpen, onClose, jobId }: GenerateTitlesModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+      <DialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             Generate Title Variants

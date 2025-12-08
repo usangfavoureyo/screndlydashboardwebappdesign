@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Play, Pause, Monitor, Smartphone, Square } from 'lucide-react';
+import { Play, Pause, Monitor, Smartphone, Square, Save, MoreVertical, Edit2, Trash2, Check, X } from 'lucide-react';
 import { LowerThird } from './LowerThird';
 import { haptics } from '../utils/haptics';
 import ColorPickerPopup from './ColorPickerPopup';
+import { toast } from 'sonner@2.0.3';
 
 interface LowerThirdEditorProps {
   onSave?: (config: LowerThirdConfig) => void;
 }
 
 export interface LowerThirdConfig {
-  position: 'bottom-left' | 'bottom-center' | 'bottom-right' | 'middle-bottom-center' | 'middle-left' | 'middle-center' | 'middle-right';
+  position: 'bottom-left' | 'bottom-center' | 'bottom-right' | 'middle-left' | 'middle-center' | 'middle-right';
   aspectRatio: '16:9' | '9:16' | '1:1';
   size: 'small' | 'medium' | 'large';
   duration: number;
@@ -18,6 +19,7 @@ export interface LowerThirdConfig {
 }
 
 const STORAGE_KEY = 'screndly_lower_third_config';
+const TEMPLATES_STORAGE_KEY = 'screndly_saved_lower_third_templates';
 
 // Default configuration
 const defaultConfig: LowerThirdConfig = {
@@ -28,6 +30,12 @@ const defaultConfig: LowerThirdConfig = {
   backgroundColor: '#000000',
   textColor: '#FFFFFF',
 };
+
+interface SavedTemplate {
+  name: string;
+  config: LowerThirdConfig;
+  savedAt: string;
+}
 
 // Load saved configuration from localStorage
 const loadSavedConfig = (): LowerThirdConfig => {
@@ -65,9 +73,29 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
   const [showBgColorPicker, setShowBgColorPicker] = useState(false);
   const [showTextColorPicker, setShowTextColorPicker] = useState(false);
 
+  // Template management state
+  const [savedTemplates, setSavedTemplates] = useState<SavedTemplate[]>([]);
+  const [showNameDialog, setShowNameDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renamingTemplate, setRenamingTemplate] = useState<string | null>(null);
+  const [showRenameMenu, setShowRenameMenu] = useState<string | null>(null);
+
   // Sample data for preview
   const sampleTitle = "Sinners";
   const sampleSubtitle = "April 13";
+
+  // Load saved templates from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+    if (saved) {
+      try {
+        setSavedTemplates(JSON.parse(saved));
+      } catch (e) {
+        console.error('Error loading saved lower third templates:', e);
+      }
+    }
+  }, []);
 
   const handlePreview = () => {
     haptics.light();
@@ -96,6 +124,109 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
       duration,
       backgroundColor,
       textColor,
+    });
+  };
+
+  const handleSaveTemplate = () => {
+    haptics.medium();
+    setTemplateName('');
+    setIsRenaming(false);
+    setShowNameDialog(true);
+  };
+
+  const saveTemplateWithName = () => {
+    if (!templateName.trim()) return;
+    
+    // Check for duplicate names
+    if (savedTemplates.some(t => t.name === templateName.trim())) {
+      alert('A template with this name already exists. Please choose a different name.');
+      return;
+    }
+    
+    haptics.medium();
+    const timestamp = new Date().toLocaleString();
+    
+    const templateData: SavedTemplate = {
+      name: templateName.trim(),
+      config: {
+        position,
+        aspectRatio,
+        size,
+        duration,
+        backgroundColor,
+        textColor,
+      },
+      savedAt: timestamp,
+    };
+    
+    const updatedTemplates = [...savedTemplates, templateData];
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(updatedTemplates));
+    
+    setShowNameDialog(false);
+    toast.success('Template saved!', {
+      description: `"${templateName.trim()}" has been saved to your templates.`
+    });
+  };
+
+  const loadTemplate = (template: SavedTemplate) => {
+    haptics.light();
+    setPosition(template.config.position);
+    setAspectRatio(template.config.aspectRatio);
+    setSize(template.config.size);
+    setDuration(template.config.duration);
+    setBackgroundColor(template.config.backgroundColor);
+    setTextColor(template.config.textColor);
+    
+    toast.success('Template loaded!', {
+      description: `Applied "${template.name}" configuration.`
+    });
+  };
+
+  const deleteTemplate = (templateName: string) => {
+    haptics.medium();
+    const updatedTemplates = savedTemplates.filter(t => t.name !== templateName);
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(updatedTemplates));
+    
+    toast.success('Template deleted', {
+      description: `"${templateName}" has been removed.`
+    });
+  };
+
+  const renameTemplate = (oldName: string) => {
+    haptics.light();
+    setRenamingTemplate(oldName);
+    setTemplateName(oldName);
+    setIsRenaming(true);
+    setShowNameDialog(true);
+    setShowRenameMenu(null);
+  };
+
+  const confirmRename = () => {
+    if (!templateName.trim() || !renamingTemplate) return;
+    
+    // Check for duplicate names (excluding the current template)
+    if (savedTemplates.some(t => t.name === templateName.trim() && t.name !== renamingTemplate)) {
+      alert('A template with this name already exists. Please choose a different name.');
+      return;
+    }
+    
+    haptics.medium();
+    const updatedTemplates = savedTemplates.map(t => 
+      t.name === renamingTemplate 
+        ? { ...t, name: templateName.trim() }
+        : t
+    );
+    
+    setSavedTemplates(updatedTemplates);
+    localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(updatedTemplates));
+    
+    setShowNameDialog(false);
+    setRenamingTemplate(null);
+    
+    toast.success('Template renamed', {
+      description: `Renamed to "${templateName.trim()}"`
     });
   };
 
@@ -170,6 +301,71 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
         </div>
       </div>
 
+      {/* Saved Templates Section */}
+      {savedTemplates.length > 0 && (
+        <div>
+          <label className="text-sm text-gray-700 dark:text-gray-300 mb-3 block">My Saved Templates</label>
+          <div className="space-y-2">
+            {savedTemplates.map((template) => (
+              <div
+                key={template.name}
+                className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg"
+              >
+                <button
+                  onClick={() => loadTemplate(template)}
+                  className="flex-1 text-left hover:text-[#ec1e24] transition-colors"
+                >
+                  <div className="text-sm text-gray-900 dark:text-white">{template.name}</div>
+                  <div className="text-xs text-gray-500 dark:text-[#6B7280] mt-0.5">
+                    {template.config.position.replace(/-/g, ' ')} • {template.config.size} • {template.config.duration}s
+                  </div>
+                </button>
+                
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setShowRenameMenu(showRenameMenu === template.name ? null : template.name);
+                    }}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
+                  >
+                    <MoreVertical className="w-4 h-4 text-gray-600 dark:text-[#9CA3AF]" />
+                  </button>
+                  
+                  {showRenameMenu === template.name && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-10" 
+                        onClick={() => setShowRenameMenu(null)}
+                      />
+                      <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333333] rounded-lg shadow-lg z-20 overflow-hidden">
+                        <button
+                          onClick={() => renameTemplate(template.name)}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#2A2A2A] flex items-center gap-2"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          Rename
+                        </button>
+                        <button
+                          onClick={() => {
+                            deleteTemplate(template.name);
+                            setShowRenameMenu(null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-[#2A2A2A] flex items-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Aspect Ratio Selection */}
       <div>
         <label className="block text-sm text-gray-700 dark:text-gray-300 mb-3">
@@ -199,7 +395,7 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
             onClick={() => {
               haptics.light();
               setAspectRatio('9:16');
-              setPosition('middle-bottom-center'); // Reset to good default
+              setPosition('bottom-center'); // Reset to good default
             }}
             className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
               aspectRatio === '9:16'
@@ -279,19 +475,6 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
             }`}
           >
             Bottom Right
-          </button>
-          <button
-            onClick={() => {
-              haptics.light();
-              setPosition('middle-bottom-center');
-            }}
-            className={`p-3 rounded-xl border-2 text-sm transition-all ${
-              position === 'middle-bottom-center'
-                ? 'border-[#ec1e24] bg-[#ec1e24]/5 text-gray-900 dark:text-white'
-                : 'border-gray-200 dark:border-[#333333] text-gray-600 dark:text-[#9CA3AF] hover:border-gray-300 dark:hover:border-[#444444]'
-            }`}
-          >
-            Middle Bottom
           </button>
           <button
             onClick={() => {
@@ -420,31 +603,6 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
         </div>
       </div>
 
-      {/* Background Color Picker */}
-      <div>
-        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-3">
-          Background Color
-        </label>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => {
-              haptics.light();
-              setShowBgColorPicker(true);
-            }}
-            className="w-12 h-12 rounded-lg border border-gray-200 dark:border-[#333333] cursor-pointer hover:scale-105 transition-transform"
-            style={{ backgroundColor: backgroundColor }}
-            title={backgroundColor}
-          />
-          <input
-            type="text"
-            value={backgroundColor}
-            onChange={(e) => setBackgroundColor(e.target.value)}
-            className="flex-1 px-4 py-2 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white uppercase text-sm"
-            placeholder="#000000"
-          />
-        </div>
-      </div>
-
       {/* Text Color Picker */}
       <div>
         <label className="block text-sm text-gray-700 dark:text-gray-300 mb-3">
@@ -464,8 +622,33 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
             type="text"
             value={textColor}
             onChange={(e) => setTextColor(e.target.value)}
-            className="flex-1 px-4 py-2 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white uppercase text-sm"
+            className="flex-1 px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white uppercase text-sm"
             placeholder="#FFFFFF"
+          />
+        </div>
+      </div>
+
+      {/* Background Color Picker */}
+      <div>
+        <label className="block text-sm text-gray-700 dark:text-gray-300 mb-3">
+          Background Color
+        </label>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              haptics.light();
+              setShowBgColorPicker(true);
+            }}
+            className="w-12 h-12 rounded-lg border border-gray-200 dark:border-[#333333] cursor-pointer hover:scale-105 transition-transform"
+            style={{ backgroundColor: backgroundColor }}
+            title={backgroundColor}
+          />
+          <input
+            type="text"
+            value={backgroundColor}
+            onChange={(e) => setBackgroundColor(e.target.value)}
+            className="flex-1 px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg text-gray-900 dark:text-white uppercase text-sm"
+            placeholder="#000000"
           />
         </div>
       </div>
@@ -501,14 +684,80 @@ export function LowerThirdEditor({ onSave }: LowerThirdEditorProps) {
         </div>
       </div>
 
-      {/* Save Button */}
-      {onSave && (
+      {/* Save Buttons */}
+      <div className="flex gap-3">
         <button
-          onClick={handleSave}
-          className="w-full py-3 bg-[#ec1e24] text-white rounded-xl hover:bg-[#d11a20] transition-colors"
+          onClick={handleSaveTemplate}
+          className="flex-1 py-3 bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-2 border-gray-200 dark:border-[#333333] rounded-xl hover:border-[#ec1e24] dark:hover:border-[#ec1e24] transition-colors flex items-center justify-center gap-2"
         >
-          Save Configuration
+          Save Template
         </button>
+        
+        {onSave && (
+          <button
+            onClick={handleSave}
+            className="flex-1 py-3 bg-[#ec1e24] text-white rounded-xl hover:bg-[#d11a20] transition-colors"
+          >
+            Save Configuration
+          </button>
+        )}
+      </div>
+
+      {/* Template Name Dialog */}
+      {showNameDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl p-6 max-w-md w-full border border-gray-200 dark:border-[#333333] shadow-2xl">
+            <h3 className="text-lg text-gray-900 dark:text-white mb-4">
+              {isRenaming ? 'Rename Template' : 'Save Template'}
+            </h3>
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  if (isRenaming) {
+                    confirmRename();
+                  } else {
+                    saveTemplateWithName();
+                  }
+                } else if (e.key === 'Escape') {
+                  setShowNameDialog(false);
+                }
+              }}
+              placeholder="Enter template name..."
+              className="w-full px-4 py-3 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white mb-4"
+              autoFocus
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  haptics.light();
+                  setShowNameDialog(false);
+                  setRenamingTemplate(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gray-100 dark:bg-[#2A2A2A] text-gray-900 dark:text-white rounded-xl hover:bg-gray-200 dark:hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (isRenaming) {
+                    confirmRename();
+                  } else {
+                    saveTemplateWithName();
+                  }
+                }}
+                disabled={!templateName.trim()}
+                className="flex-1 px-4 py-2 bg-[#ec1e24] text-white rounded-xl hover:bg-[#d11a20] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                {isRenaming ? 'Rename' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Color Picker Popups */}

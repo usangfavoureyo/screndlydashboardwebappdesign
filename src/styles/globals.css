@@ -597,3 +597,75 @@ input[type="range"]::-moz-range-thumb:active {
 .dark input[type="range"]::-moz-range-thumb {
   border: 2px solid #000000;
 }
+
+/* Select dropdown option styling */
+select option {
+  background-color: white !important;
+  color: black !important;
+}
+
+.dark select option {
+  background-color: #000000 !important;
+  color: white !important;
+}
+
+/* Selected/highlighted option - brand red */
+select option:checked,
+select option:hover,
+select option:focus {
+  background-color: #ec1e24 !important;
+  color: white !important;
+}
+
+/* Force color scheme for select elements */
+select {
+  color-scheme: light;
+  accent-color: #ec1e24 !important;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  appearance: menulist;
+}
+
+.dark select {
+  color-scheme: dark;
+  accent-color: #ec1e24 !important;
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  appearance: menulist;
+}
+
+/* Mobile-specific select styling */
+@media (max-width: 768px) {
+  select {
+    accent-color: #ec1e24 !important;
+    -webkit-tap-highlight-color: rgba(236, 30, 36, 0.3);
+  }
+  
+  select option {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .dark select option {
+    background-color: #000000 !important;
+    color: white !important;
+  }
+  
+  select option:checked {
+    background: #ec1e24 !important;
+    color: white !important;
+  }
+}
+
+/* Webkit-specific for iOS/Safari */
+select::-webkit-color-swatch {
+  border: none;
+}
+
+select::-webkit-scrollbar {
+  background: white;
+}
+
+.dark select::-webkit-scrollbar {
+  background: #000000;
+}

@@ -22,7 +22,7 @@ export function Navigation({ currentPage, onNavigate, onToggleSettings, onToggle
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'channels', label: 'Channels', icon: Youtube },
     { id: 'platforms', label: 'Platforms', icon: Share2 },
-    { id: 'rss', label: 'RSS Feed', icon: Rss },
+    { id: 'rss', label: 'RSS Feeds', icon: Rss },
     { id: 'tmdb', label: 'TMDb Feeds', icon: Clapperboard },
     { id: 'video-studio', label: 'Video Studio', icon: Film },
   ];

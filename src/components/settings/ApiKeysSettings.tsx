@@ -15,7 +15,10 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
       <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-3">
         <button 
           className="text-gray-900 dark:text-white p-1" 
-          onClick={onBack}
+          onClick={() => {
+            haptics.light();
+            onBack();
+          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12H2M9 19l-7-7 7-7"/>
@@ -118,6 +121,42 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
               haptics.light();
               updateSetting('s3Key', e.target.value);
             }}
+            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+          />
+        </div>
+        <div>
+          <Label className="text-gray-600 dark:text-[#9CA3AF]">Backblaze B2 Key ID</Label>
+          <Input
+            type="password"
+            value={settings.backblazeKeyId || ''}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('backblazeKeyId', e.target.value);
+            }}
+            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+          />
+        </div>
+        <div>
+          <Label className="text-gray-600 dark:text-[#9CA3AF]">Backblaze B2 Application Key</Label>
+          <Input
+            type="password"
+            value={settings.backblazeApplicationKey || ''}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('backblazeApplicationKey', e.target.value);
+            }}
+            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+          />
+        </div>
+        <div>
+          <Label className="text-gray-600 dark:text-[#9CA3AF]">Backblaze B2 Bucket Name</Label>
+          <Input
+            value={settings.backblazeBucketName || ''}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('backblazeBucketName', e.target.value);
+            }}
+            placeholder="my-screndly-bucket"
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
         </div>

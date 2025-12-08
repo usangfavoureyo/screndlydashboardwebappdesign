@@ -1,9 +1,10 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Scissors } from 'lucide-react';
 import { Button } from './ui/button';
 import { useEffect, useState } from 'react';
 import { haptics } from '../utils/haptics';
 import { SwipeableActivityItem } from './SwipeableActivityItem';
 import { useUndo } from './UndoContext';
+import { getRecentActivities } from '../utils/activityStore';
 
 interface Activity {
   id: string;
@@ -11,7 +12,7 @@ interface Activity {
   platform: string;
   status: 'success' | 'failed';
   time: string;
-  type: 'video' | 'videostudio' | 'rss' | 'tmdb';
+  type: 'video' | 'videostudio' | 'rss' | 'tmdb' | 'scenes';
   timestamp: number;
 }
 
@@ -40,9 +41,9 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
   // Initialize activities with timestamps (stored in localStorage)
   const [activities, setActivities] = useState<Activity[]>(() => {
     try {
-      const stored = localStorage.getItem('recentActivities');
-      if (stored) {
-        return JSON.parse(stored);
+      const stored = getRecentActivities();
+      if (stored && stored.length > 0) {
+        return stored;
       }
     } catch (e) {
       console.error('Failed to load activities from localStorage:', e);

@@ -15,7 +15,7 @@ interface LogEntry {
   timestamp: string;
   error?: string;
   errorDetails?: string;
-  type: 'video' | 'rss' | 'tmdb' | 'videostudio';
+  type: 'video' | 'rss' | 'tmdb' | 'videostudio' | 'scenes';
 }
 
 const mockLogs: LogEntry[] = [
@@ -184,7 +184,16 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <Select 
+              value={typeFilter} 
+              onValueChange={(value) => {
+                haptics.light();
+                setTypeFilter(value);
+              }}
+              onOpenChange={(open) => {
+                if (!open) haptics.light(); // Haptic on collapse
+              }}
+            >
               <SelectTrigger className="rounded-lg border-gray-200 dark:border-[#333333]">
                 <SelectValue placeholder="All Sources" />
               </SelectTrigger>
@@ -194,11 +203,21 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
                 <SelectItem value="rss">RSS</SelectItem>
                 <SelectItem value="tmdb">TMDb Feeds</SelectItem>
                 <SelectItem value="videostudio">Video Studio</SelectItem>
+                <SelectItem value="scenes">Scenes</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select 
+              value={statusFilter} 
+              onValueChange={(value) => {
+                haptics.light();
+                setStatusFilter(value);
+              }}
+              onOpenChange={(open) => {
+                if (!open) haptics.light(); // Haptic on collapse
+              }}
+            >
               <SelectTrigger className="rounded-lg border-gray-200 dark:border-[#333333]">
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
@@ -210,7 +229,16 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
             </Select>
           </div>
           <div>
-            <Select value={platformFilter} onValueChange={setPlatformFilter}>
+            <Select 
+              value={platformFilter} 
+              onValueChange={(value) => {
+                haptics.light();
+                setPlatformFilter(value);
+              }}
+              onOpenChange={(open) => {
+                if (!open) haptics.light(); // Haptic on collapse
+              }}
+            >
               <SelectTrigger className="rounded-lg border-gray-200 dark:border-[#333333]">
                 <SelectValue placeholder="All Platforms" />
               </SelectTrigger>
@@ -226,7 +254,16 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
             </Select>
           </div>
           <div>
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
+            <Select 
+              value={timeFilter} 
+              onValueChange={(value) => {
+                haptics.light();
+                setTimeFilter(value);
+              }}
+              onOpenChange={(open) => {
+                if (!open) haptics.light(); // Haptic on collapse
+              }}
+            >
               <SelectTrigger className="rounded-lg border-gray-200 dark:border-[#333333]">
                 <SelectValue placeholder="All Time" />
               </SelectTrigger>
@@ -280,7 +317,10 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              onClick={() => {
+                haptics.light();
+                setCurrentPage(prev => Math.max(1, prev - 1));
+              }}
               disabled={currentPage === 1}
               className="rounded-lg"
             >
@@ -289,7 +329,10 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              onClick={() => {
+                haptics.light();
+                setCurrentPage(prev => Math.min(totalPages, prev + 1));
+              }}
               disabled={currentPage === totalPages}
               className="rounded-lg"
             >

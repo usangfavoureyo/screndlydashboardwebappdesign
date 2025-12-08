@@ -154,7 +154,10 @@ export function PWASettings({ onBack }: PWASettingsProps) {
       <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-3">
         <button 
           className="text-gray-900 dark:text-white p-1" 
-          onClick={onBack}
+          onClick={() => {
+            haptics.light();
+            onBack();
+          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12H2M9 19l-7-7 7-7"/>

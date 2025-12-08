@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 interface LowerThirdProps {
   title: string;
   subtitle: string;
-  position: 'bottom-left' | 'bottom-center' | 'bottom-right' | 'middle-bottom-center' | 'middle-left' | 'middle-center' | 'middle-right';
+  position: 'bottom-left' | 'bottom-center' | 'bottom-right' | 'middle-left' | 'middle-center' | 'middle-right';
   aspectRatio: '16:9' | '9:16' | '1:1';
   size: 'small' | 'medium' | 'large';
   isVisible: boolean;
@@ -70,8 +70,6 @@ export function LowerThird({
           return `${baseClasses} bottom-[8%] left-1/2 -translate-x-1/2`;
         case 'bottom-right':
           return `${baseClasses} bottom-[8%] right-[5%]`;
-        case 'middle-bottom-center':
-          return `${baseClasses} bottom-[15%] left-1/2 -translate-x-1/2`;
         case 'middle-left':
           return `${baseClasses} bottom-[20%] left-[5%]`;
         case 'middle-center':
@@ -90,8 +88,6 @@ export function LowerThird({
           return `${baseClasses} bottom-[20%] left-1/2 -translate-x-1/2`;
         case 'bottom-right':
           return `${baseClasses} bottom-[20%] right-[5%]`;
-        case 'middle-bottom-center':
-          return `${baseClasses} bottom-[25%] left-1/2 -translate-x-1/2`;
         case 'middle-left':
           return `${baseClasses} bottom-[30%] left-[5%]`;
         case 'middle-center':
@@ -99,7 +95,7 @@ export function LowerThird({
         case 'middle-right':
           return `${baseClasses} bottom-[30%] right-[5%]`;
         default:
-          return `${baseClasses} bottom-[25%] left-1/2 -translate-x-1/2`;
+          return `${baseClasses} bottom-[20%] left-1/2 -translate-x-1/2`;
       }
     } else {
       // Square/1:1
@@ -110,8 +106,6 @@ export function LowerThird({
           return `${baseClasses} bottom-[12%] left-1/2 -translate-x-1/2`;
         case 'bottom-right':
           return `${baseClasses} bottom-[12%] right-[5%]`;
-        case 'middle-bottom-center':
-          return `${baseClasses} bottom-[18%] left-1/2 -translate-x-1/2`;
         case 'middle-left':
           return `${baseClasses} bottom-[23%] left-[5%]`;
         case 'middle-center':

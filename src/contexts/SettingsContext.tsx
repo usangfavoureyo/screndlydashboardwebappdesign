@@ -9,6 +9,9 @@ export interface Settings {
   googleVideoIntelligenceKey: string;
   shotstackKey: string;
   s3Key: string;
+  backblazeKeyId: string;
+  backblazeApplicationKey: string;
+  backblazeBucketName: string;
   redisUrl: string;
   databaseUrl: string;
   videoGoogleSearchApiKey: string;
@@ -28,6 +31,15 @@ export interface Settings {
   commentBlacklistKeywords: string;
   commentReplyFrequency: string;
   commentThrottle: string;
+  commentReplyModel?: string;
+  commentReplyTemperature?: number;
+  commentReplyTone?: string;
+  commentReplyMaxLength?: number;
+  commentReplyPrompt?: string;
+  commentUseGoogleSearch?: boolean;
+  commentUseSerper?: boolean;
+  commentGoogleSearchApiKey?: string;
+  commentGoogleSearchCx?: string;
   
   // Per-platform comment settings
   xCommentBlacklist: {
@@ -105,6 +117,11 @@ export interface Settings {
   captionGoogleSearchApiKey?: string;
   captionGoogleSearchCx?: string;
   
+  // Video Studio - Web Search for AI Assist
+  videoStudioWebSearchEnabled?: boolean;
+  videoStudioWebSearchProvider?: 'serper' | 'google';
+  videoStudioWebSearchMaxResults?: number;
+  
   // Cleanup
   cleanupEnabled: boolean;
   cleanupInterval: string;
@@ -150,6 +167,9 @@ function getDefaultSettings(): Settings {
     googleVideoIntelligenceKey: '••••••••••••••••',
     shotstackKey: '••••••••••••••••',
     s3Key: '••••••••••••••••',
+    backblazeKeyId: '',
+    backblazeApplicationKey: '',
+    backblazeBucketName: '',
     redisUrl: 'redis://localhost:6379',
     databaseUrl: 'postgresql://localhost/screndly',
     videoGoogleSearchApiKey: '',
@@ -169,6 +189,28 @@ function getDefaultSettings(): Settings {
     commentBlacklistKeywords: '',
     commentReplyFrequency: 'instant',
     commentThrottle: 'low',
+    commentReplyModel: 'gpt-4o',
+    commentReplyTemperature: 0.7,
+    commentReplyTone: 'Engaging',
+    commentReplyMaxLength: 280,
+    commentReplyPrompt: `You are a social media comment writer for Screen Render, a movie and TV trailer news platform. Create engaging, platform-optimized comments for video content.
+
+INPUT: Video title, description, and content
+OUTPUT: Engaging social media comment with emojis, hashtags, and hook
+
+Guidelines:
+- Hook in first line (7-10 words max)
+- Include 3 relevant emoji and hashtags
+- Add 2-3 strategically placed emojis
+- Keep total under {maxLength} characters for platform compatibility
+- Match the tone of the video content
+- No generic "Check this out" openers
+- Focus on the key news or reveal from the video
+- Make it shareable and clickable`,
+    commentUseGoogleSearch: false,
+    commentUseSerper: false,
+    commentGoogleSearchApiKey: '',
+    commentGoogleSearchCx: '',
     
     // Per-platform comment settings
     xCommentBlacklist: {

@@ -636,7 +636,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
 
       {/* Change Date Dialog */}
       <Dialog open={isChangeDateOpen} onOpenChange={setIsChangeDateOpen} modal={false}>
-        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()} hideCloseButton>
           <DialogHeader>
             <DialogTitle>Change Schedule Date</DialogTitle>
             <DialogDescription>
@@ -677,7 +677,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
 
       {/* Change Time Dialog */}
       <Dialog open={isChangeTimeOpen} onOpenChange={setIsChangeTimeOpen} modal={false}>
-        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()} hideCloseButton>
           <DialogHeader>
             <DialogTitle>Change Schedule Time</DialogTitle>
             <DialogDescription>
@@ -717,7 +717,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
 
       {/* Edit Caption Dialog */}
       <Dialog open={isEditCaptionOpen} onOpenChange={setIsEditCaptionOpen} modal={false}>
-        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()} hideCloseButton>
           <DialogHeader>
             <DialogTitle>Edit Caption</DialogTitle>
             <DialogDescription>
@@ -796,7 +796,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
 
       {/* Change Image Dialog */}
       <Dialog open={isChangeImageOpen} onOpenChange={setIsChangeImageOpen} modal={false}>
-        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()} hideCloseButton>
           <DialogHeader>
             <DialogTitle>Change Image Type</DialogTitle>
             <DialogDescription>

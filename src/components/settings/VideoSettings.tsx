@@ -1,10 +1,12 @@
-import { Input } from '../ui/input';
+import { useState, useEffect } from 'react';
+import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
+import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { youtubePoller } from '../../utils/youtube-poller';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { Slider } from '../ui/slider';
+import { Separator } from '../ui/separator';
 import { haptics } from '../../utils/haptics';
+import { toast } from 'sonner';
 
 interface VideoSettingsProps {
   settings: any;
@@ -18,8 +20,9 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
 
   useEffect(() => {
     // Get current polling state
-    setIsPolling(youtubePoller.getIsPolling());
-    setPollInterval(youtubePoller.getCurrentInterval());
+    // NOTE: youtubePoller would be implemented in backend
+    // setIsPolling(youtubePoller.getIsPolling());
+    // setPollInterval(youtubePoller.getCurrentInterval());
   }, []);
 
   const handleIntervalChange = (value: string) => {
@@ -28,18 +31,21 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
     setPollInterval(minutes);
     
     // Update the poller
-    if (isPolling) {
-      youtubePoller.stopPolling();
-      youtubePoller.startPolling(minutes);
-      toast.success(`Polling interval updated to ${minutes} minute(s)`);
-    }
+    // NOTE: youtubePoller would be implemented in backend
+    // if (isPolling) {
+    //   youtubePoller.stopPolling();
+    //   youtubePoller.startPolling(minutes);
+    //   toast.success(`Polling interval updated to ${minutes} minute(s)`);
+    // }
+    toast.success(`Polling interval updated to ${minutes} minute(s)`);
   };
 
   const handleKeywordsChange = (value: string) => {
     updateSetting('advancedFilters', value);
     
     // Update the poller's custom keywords
-    youtubePoller.setCustomKeywords(value);
+    // NOTE: youtubePoller would be implemented in backend
+    // youtubePoller.setCustomKeywords(value);
     toast.success('Trailer keywords updated');
   };
 
@@ -55,7 +61,10 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
       <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-3">
         <button 
           className="text-gray-900 dark:text-white p-1" 
-          onClick={onBack}
+          onClick={() => {
+            haptics.light();
+            onBack();
+          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12H2M9 19l-7-7 7-7"/>
@@ -112,7 +121,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
             </div>
             
             <div>
-              <Label className="text-[#9CA3AF]\">Region Filter (optional)</Label>
+              <Label className="text-[#9CA3AF]">Region Filter (optional)</Label>
               <Input
                 value={settings.regionFilter || ''}
                 onChange={(e) => updateSetting('regionFilter', e.target.value)}

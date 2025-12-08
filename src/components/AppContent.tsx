@@ -5,7 +5,6 @@ import { Navigation } from "./Navigation";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { SettingsPanel } from "./SettingsPanel";
 import { NotificationPanel } from "./NotificationPanel";
-import { ToastContainer, ToastAction } from "./Toast";
 import { InstallPrompt } from "./InstallPrompt";
 import { NotFoundPage } from "./NotFoundPage";
 import { UndoToast } from "./UndoToast";
@@ -60,16 +59,7 @@ export function AppContent() {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isCaptionEditorOpen, setIsCaptionEditorOpen] = useState(false);
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
-  
-  // Toast notifications state
-  const [toasts, setToasts] = useState<Array<{
-    id: string;
-    type: 'success' | 'error' | 'info' | 'warning';
-    title: string;
-    message?: string;
-    action?: ToastAction;
-    duration?: number;
-  }>>([]);
+  const [isNavDragging, setIsNavDragging] = useState(false);
 
   // List of all valid pages
   const validPages = [
@@ -155,32 +145,9 @@ export function AppContent() {
     }
   };
 
-  const toggleNotifications = () => {
+  const handleToggleNotifications = () => {
     setIsNotificationsOpen(!isNotificationsOpen);
     setIsSettingsOpen(false);
-  };
-  
-  // Toast notification helper
-  const showToast = (
-    type: 'success' | 'error' | 'info' | 'warning',
-    title: string,
-    message?: string,
-    action?: ToastAction,
-    duration?: number
-  ) => {
-    const toast = {
-      id: Date.now().toString(),
-      type,
-      title,
-      message,
-      action,
-      duration,
-    };
-    setToasts(prev => [...prev, toast]);
-  };
-  
-  const dismissToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
   };
   
   // Handle notification actions (approve, schedule, view, dismiss)
@@ -190,16 +157,13 @@ export function AppContent() {
     // Handle different action types
     switch (actionType) {
       case 'approve':
-        showToast('success', 'Approved', 'Post has been approved and scheduled');
         // Remove the notification after action
         deleteNotification(notificationId);
         break;
       case 'schedule':
-        showToast('info', 'Scheduling', 'Opening schedule dialog...');
         // Navigate to appropriate page
         break;
       case 'view':
-        showToast('info', 'Opening details');
         // Navigate to details page
         break;
       case 'dismiss':
@@ -208,8 +172,43 @@ export function AppContent() {
     }
   };
 
-  // Bottom navigation pages in order
-  const bottomNavPages = ['dashboard', 'channels', 'platforms', 'rss', 'tmdb', 'video-studio'];
+  // Bottom navigation pages in order - read from localStorage to match user's custom order
+  const [bottomNavPages, setBottomNavPages] = useState<string[]>(() => {
+    const savedOrder = localStorage.getItem('bottomNavOrder');
+    if (savedOrder) {
+      try {
+        return JSON.parse(savedOrder);
+      } catch {
+        return ['dashboard', 'channels', 'platforms', 'rss', 'tmdb', 'video-studio'];
+      }
+    }
+    return ['dashboard', 'channels', 'platforms', 'rss', 'tmdb', 'video-studio'];
+  });
+
+  // Listen for changes to bottomNavOrder in localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedOrder = localStorage.getItem('bottomNavOrder');
+      if (savedOrder) {
+        try {
+          setBottomNavPages(JSON.parse(savedOrder));
+        } catch {
+          // Ignore parse errors
+        }
+      }
+    };
+
+    // Listen for storage events (from other tabs/windows)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for changes from same tab
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Swipe navigation handlers
   const handleSwipeLeft = () => {
@@ -268,7 +267,7 @@ export function AppContent() {
     // Special case: Swipe right on dashboard opens notifications
     if (currentPage === 'dashboard') {
       haptics.light();
-      toggleNotifications();
+      handleToggleNotifications();
       return;
     }
     
@@ -279,9 +278,9 @@ export function AppContent() {
   };
 
   // Only enable swipe navigation on bottom nav pages or when notifications/settings are open
-  // Disable swipe when caption editor is open
+  // Disable swipe when caption editor is open or nav is being dragged
   const isBottomNavPage = bottomNavPages.includes(currentPage);
-  const isSwipeEnabled = (isBottomNavPage || isNotificationsOpen || isSettingsOpen) && !isCaptionEditorOpen;
+  const isSwipeEnabled = (isBottomNavPage || isNotificationsOpen || isSettingsOpen) && !isCaptionEditorOpen && !isNavDragging;
 
   useSwipeNavigation({
     onSwipeLeft: isSwipeEnabled ? handleSwipeLeft : () => {},
@@ -295,7 +294,7 @@ export function AppContent() {
   useDesktopShortcuts({
     onNavigate: handleNavigate,
     onToggleSettings: toggleSettings,
-    onToggleNotifications: toggleNotifications,
+    onToggleNotifications: handleToggleNotifications,
     currentPage,
     isSettingsOpen,
     isNotificationsOpen,
@@ -317,11 +316,11 @@ export function AppContent() {
       {!isAuthenticated ? (
         <>
           {currentPage === 'terms' ? (
-            <TermsPage onNavigate={handleNavigate} isAuthenticated={false} />
+            <Suspense fallback={<PageLoader />}><TermsPage onNavigate={handleNavigate} isAuthenticated={false} /></Suspense>
           ) : currentPage === 'privacy' ? (
-            <PrivacyPage onNavigate={handleNavigate} isAuthenticated={false} />
+            <Suspense fallback={<PageLoader />}><PrivacyPage onNavigate={handleNavigate} isAuthenticated={false} /></Suspense>
           ) : currentPage === 'disclaimer' ? (
-            <DisclaimerPage onNavigate={handleNavigate} isAuthenticated={false} />
+            <Suspense fallback={<PageLoader />}><DisclaimerPage onNavigate={handleNavigate} isAuthenticated={false} /></Suspense>
           ) : (
             <LoginPage onLogin={handleLogin} onNavigate={handleNavigate} />
           )}
@@ -337,7 +336,7 @@ export function AppContent() {
             currentPage={currentPage}
             onNavigate={handleNavigate}
             onToggleSettings={toggleSettings}
-            onToggleNotifications={toggleNotifications}
+            onToggleNotifications={handleToggleNotifications}
             onLogout={handleLogout}
             unreadNotifications={unreadCount}
           />
@@ -393,6 +392,7 @@ export function AppContent() {
           <MobileBottomNav
             currentPage={currentPage}
             onNavigate={handleNavigate}
+            onDragStateChange={setIsNavDragging}
           />
           {isSettingsOpen && (
             <SettingsPanel
@@ -415,9 +415,6 @@ export function AppContent() {
             onDeleteNotification={deleteNotification}
             onNotificationAction={handleNotificationAction}
           />
-          
-          {/* Toast Container */}
-          <ToastContainer toasts={toasts} onDismiss={dismissToast} />
           
           {/* Undo Toast */}
           <UndoToast />

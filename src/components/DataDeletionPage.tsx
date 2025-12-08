@@ -9,6 +9,7 @@ import { ExternalLink, Trash2, Shield, Info } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
+import { haptics } from '../utils/haptics';
 
 interface DataDeletionPageProps {
   onNavigate: (page: string) => void;
@@ -16,12 +17,17 @@ interface DataDeletionPageProps {
 }
 
 export function DataDeletionPage({ onNavigate, isAuthenticated = false }: DataDeletionPageProps) {
+  const handleBack = () => {
+    haptics.light();
+    onNavigate(isAuthenticated ? 'settings' : 'login');
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#000000] flex flex-col">
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
         <div className="flex items-start gap-4 mb-8">
           <button
-            onClick={() => onNavigate(isAuthenticated ? 'settings' : 'login')}
+            onClick={handleBack}
             className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2 mt-1"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">

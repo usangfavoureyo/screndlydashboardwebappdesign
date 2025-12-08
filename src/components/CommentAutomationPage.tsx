@@ -111,7 +111,7 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
               <p className="text-2xl text-gray-900 dark:text-white mb-1">87%</p>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Success Rate</p>
             </div>
-            <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333]">
+            <div className="bg-white dark:bg-[#000000] rounded-xl p-4 border border-gray-200 dark:border-[#333333] col-span-2 lg:col-span-1">
               <p className="text-2xl text-gray-900 dark:text-white mb-1">3</p>
               <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Active Platforms</p>
             </div>

@@ -217,7 +217,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
       <div className="space-y-4">
         <div>
           <h3 className="text-gray-900 dark:text-white mb-1">Caption Generation</h3>
-          <p className="text-sm text-gray-600 dark:text-white">
+          <p className="text-sm text-[#9CA3AF]">
             AI-powered caption generation for TMDb feed posts
           </p>
         </div>

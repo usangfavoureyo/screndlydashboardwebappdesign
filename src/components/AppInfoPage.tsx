@@ -8,6 +8,7 @@
 import { Play, Shield, Zap, CheckCircle2, Lock, Users, ExternalLink } from 'lucide-react';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
+import { haptics } from '../utils/haptics';
 
 interface AppInfoPageProps {
   onNavigate: (page: string) => void;
@@ -430,28 +431,40 @@ export function AppInfoPage({ onNavigate }: AppInfoPageProps) {
           <h2 className="text-gray-900 dark:text-white mb-4">Legal & Documentation</h2>
           <div className="space-y-2">
             <a
-              onClick={() => onNavigate('privacy')}
+              onClick={() => {
+                haptics.light();
+                onNavigate('privacy');
+              }}
               className="flex items-center gap-2 text-sm text-[#ec1e24] hover:underline cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />
               Privacy Policy (Full Details)
             </a>
             <a
-              onClick={() => onNavigate('terms')}
+              onClick={() => {
+                haptics.light();
+                onNavigate('terms');
+              }}
               className="flex items-center gap-2 text-sm text-[#ec1e24] hover:underline cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />
               Terms of Service
             </a>
             <a
-              onClick={() => onNavigate('data-deletion')}
+              onClick={() => {
+                haptics.light();
+                onNavigate('data-deletion');
+              }}
               className="flex items-center gap-2 text-sm text-[#ec1e24] hover:underline cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />
               Data Deletion Instructions
             </a>
             <a
-              onClick={() => onNavigate('contact')}
+              onClick={() => {
+                haptics.light();
+                onNavigate('contact');
+              }}
               className="flex items-center gap-2 text-sm text-[#ec1e24] hover:underline cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />

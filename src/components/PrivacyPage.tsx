@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState, useEffect } from 'react';
+import { haptics } from '../utils/haptics';
 
 interface PrivacyPageProps {
   onNavigate: (page: string) => void;
@@ -21,6 +22,7 @@ export function PrivacyPage({ onNavigate, isAuthenticated = true }: PrivacyPageP
   }, []);
 
   const handleBack = () => {
+    haptics.light();
     if (!isAuthenticated) {
       onNavigate('login');
     } else if (isDesktop) {

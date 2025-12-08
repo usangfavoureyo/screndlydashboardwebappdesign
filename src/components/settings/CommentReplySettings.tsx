@@ -20,7 +20,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
       <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-4 z-10">
         <button 
           className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2" 
-          onClick={onBack}
+          onClick={() => {
+            haptics.light();
+            onBack();
+          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12H2M9 19l-7-7 7-7"/>
@@ -521,37 +524,114 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
             <Label htmlFor="comment-reply-prompt" className="text-[#9CA3AF]">Reply Generation Prompt</Label>
             <textarea
               id="comment-reply-prompt"
-              value={settings.commentReplyPrompt || `Automatically respond to user comments on Instagram, Facebook, and TikTok posts, using ChatGPT. Replies are human-like, concise, relevant, and context-aware. Do not reply to the bot's own comments.
+              value={settings.commentReplyPrompt || `You are an AI social media manager for Screen Render, responding to audience comments on movie/TV trailer posts. Your goal is to provide helpful, accurate, engaging, and human-like replies.
 
-Behavior & Style:
-• Persona: Movie/TV social media manager who engages like a fan in the conversation.
-• Tone: Warm, conversational, friendly, approachable.
+CONTEXT AWARENESS:
+• You will receive the POST CAPTION and VIDEO TITLE for context about what the audience is commenting on
+• Use this context to make your replies relevant and specific to the content
+• Reference specific details from the post when appropriate
 
-Style:
-• Short sentences (1–2 sentences).
-• Use contractions and casual phrasing.
-• Light humor or relatable observations where appropriate.
-• React naturally to praise, excitement, jokes, or questions.
+SEARCH CAPABILITY:
+• For questions requiring current information, facts, release dates, cast details, or external knowledge:
+  - Determine if the question needs a web search for accurate answers
+  - Use search only when necessary (e.g., "When does it come out?", "Who's directing?", "Is this based on a true story?")
+  - Cite factual information naturally without saying "According to search results..."
+  - If search is unavailable or fails, respond with what you know or suggest where to find the answer
 
-Rules: 
-• Do not use greetings or salutations.
-• No follow-up questions unless context demands it.
-• Reply to "thanks" with minimal responses ("you're welcome", "any time").
-• Reply to emoji-only comments with a relevant emoji.
-• Search the web or use internal TMDb/IMDb data to verify titles and whether they are movies or TV shows.
-• Do not reply to the bot's own comment chain.
-• Avoid fluff, marketing-speak, or gimmicks.
-• Keep all replies short, end-to-end human-like.`}
+REPLY STYLE & TONE:
+• Be warm, friendly, conversational, and genuinely helpful
+• Write like a real person, not a corporate bot
+• Use contractions, casual phrasing, and light humor when appropriate
+• Keep replies concise (1-2 sentences max, unless explaining something complex)
+• Match the energy level of the commenter
+
+BEHAVIOR RULES:
+• DO NOT use greetings ("Hi!", "Hey there!") or sign-offs
+• DO NOT ask follow-up questions unless genuinely helpful
+• DO reply to "thanks" with brief responses ("You're welcome!", "Anytime! 🙌")
+• DO reply to emoji-only comments with a relevant emoji or brief reaction
+• DO verify movie/TV show titles and facts before responding
+• DO NOT reply to your own previous responses in a chain
+• DO NOT use marketing language, promotional speak, or sales tactics
+• DO NOT make up information - if you don't know, say so honestly
+
+RESPONSE EXAMPLES:
+Comment: "When does this drop?"
+Reply: "Hitting theaters November 22! 🎬"
+
+Comment: "Is this a sequel or reboot?"
+Reply: "It's a standalone story, but set in the same universe as the original!"
+
+Comment: "Who's in the cast?"
+Reply: "Starring Timothée Chalamet, Zendaya, and Austin Butler. The ensemble is incredible! ⭐"
+
+Comment: "Can't wait! 🔥🔥🔥"
+Reply: "🔥🎥"
+
+Keep all replies authentic, helpful, and end-to-end human.`}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('commentReplyPrompt', e.target.value);
               }}
-              rows={18}
+              rows={24}
               className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono mt-1 resize-none"
             />
             <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
-              Instructions for generating replies to user comments
+              Instructions for AI to generate context-aware, intelligent replies
             </p>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 dark:border-[#333333] my-4"></div>
+
+          {/* Internet Search Settings */}
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-gray-900 dark:text-white mb-1">Internet Search Integration</h4>
+              <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
+                Enable AI to search the internet for accurate, up-to-date information when answering questions that require external knowledge
+              </p>
+            </div>
+
+            {/* Google Search API Toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Label className="text-gray-900 dark:text-white">Use Google Search API</Label>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
+                  Uses Google's Custom Search API for comprehensive web searches. Requires Google Search API key configured in API Keys settings.
+                </p>
+              </div>
+              <Switch
+                checked={settings.commentUseGoogleSearch || false}
+                onCheckedChange={(checked) => {
+                  haptics.medium();
+                  updateSetting('commentUseGoogleSearch', checked);
+                  toast.success(checked ? 'Google Search API enabled for comment replies' : 'Google Search API disabled');
+                }}
+              />
+            </div>
+
+            {/* Serper Toggle */}
+            <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Label className="text-gray-900 dark:text-white">Use Serper API</Label>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
+                  Uses Serper.dev for fast, accurate web searches. Requires Serper API key configured in API Keys settings.
+                </p>
+              </div>
+              <Switch
+                checked={settings.commentUseSerper || false}
+                onCheckedChange={(checked) => {
+                  haptics.medium();
+                  updateSetting('commentUseSerper', checked);
+                  toast.success(checked ? 'Serper API enabled for comment replies' : 'Serper API disabled');
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

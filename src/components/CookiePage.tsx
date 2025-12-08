@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import { useState, useEffect } from 'react';
+import { haptics } from '../utils/haptics';
 
 interface CookiePageProps {
   onNavigate: (page: string) => void;
@@ -20,6 +21,7 @@ export function CookiePage({ onNavigate }: CookiePageProps) {
   }, []);
 
   const handleBack = () => {
+    haptics.light();
     if (isDesktop) {
       onNavigate('dashboard');
     } else {

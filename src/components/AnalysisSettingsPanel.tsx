@@ -1,8 +1,10 @@
-import { Settings2, Zap, Shield, AlertCircle, Mic, Database, TrendingUp } from 'lucide-react';
+import { Settings2, Zap, Shield, AlertCircle, Mic, Database, TrendingUp, Brain } from 'lucide-react';
 import { haptics } from '../utils/haptics';
+import { Switch } from './ui/switch';
 
 type AnalysisBackend = 'google-vi' | 'ffmpeg-fallback';
 type QualityMode = 'fast' | 'quality';
+type AIModel = 'gpt-4' | 'gpt-4-turbo' | 'gpt-3.5-turbo' | 'claude-3.5-sonnet';
 
 interface AnalysisSettingsPanelProps {
   backend: AnalysisBackend;
@@ -14,6 +16,8 @@ interface AnalysisSettingsPanelProps {
   estimatedCost: number;
   monthlyBudget: number;
   monthlySpend: number;
+  aiModel?: AIModel;
+  onAIModelChange?: (model: AIModel) => void;
 }
 
 export function AnalysisSettingsPanel({
@@ -25,7 +29,9 @@ export function AnalysisSettingsPanel({
   onEnableSTTChange,
   estimatedCost,
   monthlyBudget,
-  monthlySpend
+  monthlySpend,
+  aiModel,
+  onAIModelChange
 }: AnalysisSettingsPanelProps) {
   const budgetPercentage = (monthlySpend / monthlyBudget) * 100;
   const budgetColor = budgetPercentage > 90 ? 'text-[#ec1e24]' : budgetPercentage > 70 ? 'text-amber-500' : 'text-green-500';
@@ -35,7 +41,7 @@ export function AnalysisSettingsPanel({
       {/* Header */}
       <div className="flex items-center gap-2">
         <Settings2 className="w-5 h-5 text-[#ec1e24]" />
-        <h3 className="text-gray-900 dark:text-white">Analysis Settings</h3>
+        <h3 className="text-gray-900 dark:text-white">Video Studio Settings</h3>
       </div>
 
       {/* Backend Selection */}
@@ -89,6 +95,86 @@ export function AnalysisSettingsPanel({
           </div>
         )}
       </div>
+
+      {/* AI Model Selection */}
+      {aiModel && onAIModelChange && (
+        <div className="space-y-2">
+          <label className="text-sm text-[#ec1e24]">AI Model (Scene Detection)</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => {
+                haptics.light();
+                onAIModelChange('gpt-4');
+              }}
+              className={`p-3 rounded-lg border-2 transition-all ${
+                aiModel === 'gpt-4'
+                  ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Brain className={`w-4 h-4 ${aiModel === 'gpt-4' ? 'text-[#ec1e24]' : 'text-gray-500'}`} />
+                <span className="text-sm text-gray-900 dark:text-white">GPT-4</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Most accurate</p>
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                onAIModelChange('gpt-4-turbo');
+              }}
+              className={`p-3 rounded-lg border-2 transition-all ${
+                aiModel === 'gpt-4-turbo'
+                  ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Zap className={`w-4 h-4 ${aiModel === 'gpt-4-turbo' ? 'text-[#ec1e24]' : 'text-gray-500'}`} />
+                <span className="text-sm text-gray-900 dark:text-white">GPT-4 Turbo</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Faster & cheaper</p>
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                onAIModelChange('gpt-3.5-turbo');
+              }}
+              className={`p-3 rounded-lg border-2 transition-all ${
+                aiModel === 'gpt-3.5-turbo'
+                  ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Shield className={`w-4 h-4 ${aiModel === 'gpt-3.5-turbo' ? 'text-[#ec1e24]' : 'text-gray-500'}`} />
+                <span className="text-sm text-gray-900 dark:text-white">GPT-3.5 Turbo</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Budget-friendly</p>
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.light();
+                onAIModelChange('claude-3.5-sonnet');
+              }}
+              className={`p-3 rounded-lg border-2 transition-all ${
+                aiModel === 'claude-3.5-sonnet'
+                  ? 'border-[#ec1e24] bg-[#ec1e24]/5'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className={`w-4 h-4 ${aiModel === 'claude-3.5-sonnet' ? 'text-[#ec1e24]' : 'text-gray-500'}`} />
+                <span className="text-sm text-gray-900 dark:text-white">Claude 3.5</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Alternative</p>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quality Mode */}
       <div className="space-y-2">
@@ -151,21 +237,13 @@ export function AnalysisSettingsPanel({
               )}
             </div>
           </div>
-          <button
-            onClick={() => {
+          <Switch
+            checked={enableSTT}
+            onCheckedChange={(checked) => {
               haptics.light();
-              onEnableSTTChange(!enableSTT);
+              onEnableSTTChange(checked);
             }}
-            className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
-              enableSTT ? 'bg-[#ec1e24]' : 'bg-gray-300 dark:bg-gray-700'
-            }`}
-          >
-            <div
-              className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                enableSTT ? 'translate-x-6' : 'translate-x-0'
-              }`}
-            />
-          </button>
+          />
         </div>
       </div>
 

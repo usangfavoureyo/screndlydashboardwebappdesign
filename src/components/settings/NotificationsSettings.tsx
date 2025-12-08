@@ -2,6 +2,7 @@ import { Switch } from '../ui/switch';
 import { Bell, BellOff, Clock, Filter } from 'lucide-react';
 import { haptics } from '../../utils/haptics';
 import { desktopNotifications } from '../../utils/desktopNotifications';
+import { Label } from '../ui/label';
 
 interface NotificationsSettingsProps {
   settings: any;
@@ -36,31 +37,32 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
   return (
     <div className="fixed top-0 right-0 bottom-0 w-full lg:w-[600px] bg-white dark:bg-[#000000] z-50 overflow-y-auto">
       {/* Header */}
-      <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-3">
+      <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center gap-3 z-10">
         <button 
           className="text-gray-900 dark:text-white p-1" 
-          onClick={onBack}
+          onClick={() => {
+            haptics.light();
+            onBack();
+          }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 12H2M9 19l-7-7 7-7"/>
           </svg>
         </button>
-        <Bell className="w-5 h-5 text-[#ec1e24]" />
         <h2 className="text-gray-900 dark:text-white text-xl">Notifications</h2>
       </div>
 
       <div className="p-6 space-y-6">
         {/* General Settings */}
         <div>
-          <h3 className="text-sm text-gray-900 dark:text-white mb-3">General</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-[#6B7280]" />
-                <div>
-                  <span className="text-sm text-gray-900 dark:text-white block">In-App Notifications</span>
-                  <span className="text-xs text-[#6B7280]">Show notifications in the app</span>
-                </div>
+          <h3 className="text-black dark:text-white mb-4">General</h3>
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">In-App Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Show notifications in the app
+                </p>
               </div>
               <Switch
                 checked={settings.inAppNotifications ?? true}
@@ -71,13 +73,12 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div className="flex items-center gap-3">
-                <Bell className="w-5 h-5 text-[#6B7280]" />
-                <div>
-                  <span className="text-sm text-gray-900 dark:text-white block">Desktop Notifications</span>
-                  <span className="text-xs text-[#6B7280]">Push notifications to your desktop</span>
-                </div>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">Desktop Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Push notifications to your desktop
+                </p>
               </div>
               <Switch
                 checked={settings.desktopNotifications ?? false}
@@ -85,13 +86,12 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div className="flex items-center gap-3">
-                <BellOff className="w-5 h-5 text-[#6B7280]" />
-                <div>
-                  <span className="text-sm text-gray-900 dark:text-white block">Sound</span>
-                  <span className="text-xs text-[#6B7280]">Play sound for notifications</span>
-                </div>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">Sound</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Play sound for notifications
+                </p>
               </div>
               <Switch
                 checked={settings.notificationSound ?? true}
@@ -105,13 +105,15 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
         </div>
 
         {/* Notification Categories */}
-        <div>
-          <h3 className="text-sm text-gray-900 dark:text-white mb-3">Categories</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div>
-                <span className="text-sm text-gray-900 dark:text-white block">Upload Notifications</span>
-                <span className="text-xs text-[#6B7280]">Video uploads and processing</span>
+        <div className="pt-6 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-black dark:text-white mb-4">Categories</h3>
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">Upload Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Video uploads and processing
+                </p>
               </div>
               <Switch
                 checked={settings.notifyUploads ?? true}
@@ -122,10 +124,12 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div>
-                <span className="text-sm text-gray-900 dark:text-white block">RSS Feed Notifications</span>
-                <span className="text-xs text-[#6B7280]">New trailer feeds detected</span>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">RSS Feeds Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  New trailer feeds detected
+                </p>
               </div>
               <Switch
                 checked={settings.notifyRSS ?? true}
@@ -136,10 +140,12 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div>
-                <span className="text-sm text-gray-900 dark:text-white block">TMDb Notifications</span>
-                <span className="text-xs text-[#6B7280]">Movie/TV updates from TMDb</span>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">TMDb Feeds Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Movie/TV updates from TMDb
+                </p>
               </div>
               <Switch
                 checked={settings.notifyTMDb ?? true}
@@ -150,10 +156,12 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div>
-                <span className="text-sm text-gray-900 dark:text-white block">Video Studio Notifications</span>
-                <span className="text-xs text-[#6B7280]">Video generation and processing</span>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">Video Studio Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Video generation and processing
+                </p>
               </div>
               <Switch
                 checked={settings.notifyVideoStudio ?? true}
@@ -164,10 +172,12 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div>
-                <span className="text-sm text-gray-900 dark:text-white block">System Notifications</span>
-                <span className="text-xs text-[#6B7280]">App updates and maintenance</span>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">System Notifications</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  App updates and maintenance
+                </p>
               </div>
               <Switch
                 checked={settings.notifySystem ?? true}
@@ -181,16 +191,15 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
         </div>
 
         {/* Notification Timing */}
-        <div>
-          <h3 className="text-sm text-gray-900 dark:text-white mb-3">Timing</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div className="flex items-center gap-3">
-                <Clock className="w-5 h-5 text-[#6B7280]" />
-                <div>
-                  <span className="text-sm text-gray-900 dark:text-white block">Auto-dismiss Toasts</span>
-                  <span className="text-xs text-[#6B7280]">Automatically close toast notifications</span>
-                </div>
+        <div className="pt-6 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-black dark:text-white mb-4">Timing</h3>
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">Auto-dismiss Toasts</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Automatically close toast notifications
+                </p>
               </div>
               <Switch
                 checked={settings.autoDismissToasts ?? true}
@@ -201,10 +210,10 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               />
             </div>
 
-            <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <label className="text-sm text-gray-900 dark:text-white block mb-2">
+            <div>
+              <Label className="text-[#9CA3AF] mb-2 block">
                 Toast Duration
-              </label>
+              </Label>
               <select
                 value={settings.toastDuration ?? 5000}
                 onChange={(e) => {
@@ -223,16 +232,15 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
         </div>
 
         {/* Do Not Disturb */}
-        <div>
-          <h3 className="text-sm text-gray-900 dark:text-white mb-3">Do Not Disturb</h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-              <div className="flex items-center gap-3">
-                <BellOff className="w-5 h-5 text-[#6B7280]" />
-                <div>
-                  <span className="text-sm text-gray-900 dark:text-white block">Enable Do Not Disturb</span>
-                  <span className="text-xs text-[#6B7280]">Mute all notifications during set hours</span>
-                </div>
+        <div className="pt-6 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-black dark:text-white mb-4">Do Not Disturb</h3>
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <Label className="text-[#9CA3AF]">Enable Do Not Disturb</Label>
+                <p className="text-xs text-gray-600 dark:text-[#9CA3AF] mt-0.5">
+                  Mute all notifications during set hours
+                </p>
               </div>
               <Switch
                 checked={settings.doNotDisturb ?? false}
@@ -245,8 +253,8 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
 
             {settings.doNotDisturb && (
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-                  <label className="text-xs text-[#6B7280] block mb-2">Start Time</label>
+                <div>
+                  <Label className="text-gray-900 dark:text-white block mb-2">Start Time</Label>
                   <input
                     type="time"
                     value={settings.dndStartTime ?? '22:00'}
@@ -257,8 +265,8 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
                     className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white"
                   />
                 </div>
-                <div className="p-3 bg-gray-50 dark:bg-[#1A1A1A] rounded-lg">
-                  <label className="text-xs text-[#6B7280] block mb-2">End Time</label>
+                <div>
+                  <Label className="text-gray-900 dark:text-white block mb-2">End Time</Label>
                   <input
                     type="time"
                     value={settings.dndEndTime ?? '08:00'}

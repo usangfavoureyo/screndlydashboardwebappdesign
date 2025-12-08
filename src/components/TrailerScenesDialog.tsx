@@ -108,7 +108,7 @@ export function TrailerScenesDialog({ open, onOpenChange, analysis, onSelectScen
 
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#000000]">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col bg-white dark:bg-[#000000]" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">All Detected Scenes</DialogTitle>
           <DialogDescription className="text-xs sm:text-sm text-gray-600 dark:text-[#9CA3AF]">

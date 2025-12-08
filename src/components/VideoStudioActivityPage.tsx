@@ -1,4 +1,4 @@
-import { Film, Calendar, CheckCircle, XCircle, Clock, Download, RefreshCw, Share2, Send } from 'lucide-react';
+import { Film, Calendar, CheckCircle, XCircle, Clock, Download, RefreshCw, Share2, Send, Scissors } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
 import { toast } from 'sonner';
@@ -11,10 +11,11 @@ import { ThreadsIcon } from './icons/ThreadsIcon';
 import { XIcon } from './icons/XIcon';
 import { YouTubeIcon } from './icons/YouTubeIcon';
 import { TikTokIcon } from './icons/TikTokIcon';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
 import { useUndo } from './UndoContext';
+import { getVideoStudioActivities, VideoStudioActivity, updateVideoStudioActivity } from '../utils/activityStore';
 
 interface VideoStudioActivityPageProps {
   onNavigate: (page: string) => void;
@@ -24,70 +25,97 @@ interface VideoStudioActivityPageProps {
 export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudioActivityPageProps) {
   const { settings } = useSettings();
   const { showUndo } = useUndo();
-  const [activities, setActivities] = useState([
-    {
-      id: '1',
-      type: 'review' as const,
-      title: 'Dune: Part Three - Official Trailer',
-      status: 'completed' as const,
-      timestamp: '2 hours ago',
-      aspectRatio: '16:9',
-      duration: '2:15',
-      downloads: 3,
-      published: true,
-      platforms: ['X', 'Threads', 'Facebook']
-    },
-    {
-      id: '2',
-      type: 'monthly' as const,
-      title: 'December 2024 Movie Releases Compilation',
-      status: 'processing' as const,
-      timestamp: '1 hour ago',
-      aspectRatio: '9:16',
-      duration: '4:30',
-      progress: 67,
-      downloads: 0,
-      published: false,
-      platforms: []
-    },
-    {
-      id: '3',
-      type: 'review' as const,
-      title: 'Wicked - Official Trailer 2',
-      status: 'completed' as const,
-      timestamp: '5 hours ago',
-      aspectRatio: '1:1',
-      duration: '1:45',
-      downloads: 8,
-      published: false,
-      platforms: []
-    },
-    {
-      id: '4',
-      type: 'review' as const,
-      title: 'Gladiator II - Final Trailer',
-      status: 'failed' as const,
-      timestamp: '1 day ago',
-      aspectRatio: '16:9',
-      duration: '2:30',
-      error: 'Visla API timeout - insufficient credits',
-      downloads: 0,
-      published: false,
-      platforms: []
-    },
-    {
-      id: '5',
-      type: 'monthly' as const,
-      title: 'November 2024 TV Show Releases',
-      status: 'completed' as const,
-      timestamp: '2 days ago',
-      aspectRatio: '16:9',
-      duration: '5:00',
-      downloads: 12,
-      published: true,
-      platforms: ['X', 'Threads', 'Facebook']
+  
+  // Load activities from localStorage
+  const [activities, setActivities] = useState<VideoStudioActivity[]>(() => {
+    const stored = getVideoStudioActivities();
+    
+    // If no stored activities, return demo data
+    if (stored.length === 0) {
+      const now = Date.now();
+      return [
+        {
+          id: '1',
+          type: 'review' as const,
+          title: 'Dune: Part Three - Official Trailer',
+          status: 'completed' as const,
+          timestamp: new Date(now - 2 * 3600000).toISOString(),
+          timestampMs: now - 2 * 3600000,
+          aspectRatio: '16:9',
+          duration: '2:15',
+          downloads: 3,
+          published: true,
+          platforms: ['X', 'Threads', 'Facebook']
+        },
+        {
+          id: '2',
+          type: 'monthly' as const,
+          title: 'December 2024 Movie Releases Compilation',
+          status: 'processing' as const,
+          timestamp: new Date(now - 1 * 3600000).toISOString(),
+          timestampMs: now - 1 * 3600000,
+          aspectRatio: '9:16',
+          duration: '4:30',
+          progress: 67,
+          downloads: 0,
+          published: false,
+          platforms: []
+        },
+        {
+          id: '3',
+          type: 'review' as const,
+          title: 'Wicked - Official Trailer 2',
+          status: 'completed' as const,
+          timestamp: new Date(now - 5 * 3600000).toISOString(),
+          timestampMs: now - 5 * 3600000,
+          aspectRatio: '1:1',
+          duration: '1:45',
+          downloads: 8,
+          published: false,
+          platforms: []
+        },
+        {
+          id: '4',
+          type: 'review' as const,
+          title: 'Gladiator II - Final Trailer',
+          status: 'failed' as const,
+          timestamp: new Date(now - 24 * 3600000).toISOString(),
+          timestampMs: now - 24 * 3600000,
+          aspectRatio: '16:9',
+          duration: '2:30',
+          error: 'Visla API timeout - insufficient credits',
+          downloads: 0,
+          published: false,
+          platforms: []
+        },
+        {
+          id: '5',
+          type: 'monthly' as const,
+          title: 'November 2024 TV Show Releases',
+          status: 'completed' as const,
+          timestamp: new Date(now - 48 * 3600000).toISOString(),
+          timestampMs: now - 48 * 3600000,
+          aspectRatio: '16:9',
+          duration: '5:00',
+          downloads: 12,
+          published: true,
+          platforms: ['X', 'Threads', 'Facebook']
+        }
+      ];
     }
-  ]);
+    
+    return stored;
+  });
+  
+  // Reload activities when page becomes visible
+  useEffect(() => {
+    const handleFocus = () => {
+      setActivities(getVideoStudioActivities());
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   // Calculate stats
   const completedCount = activities.filter(a => a.status === 'completed').length;
@@ -129,6 +157,8 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
       // Simulate voiceover transcript based on video type and title
       const mockTranscript = activity.type === 'review' 
         ? `${activity.title} - Experience the cinematic masterpiece everyone's talking about. Coming to theaters soon.`
+        : activity.type === 'scenes'
+        ? `${activity.title} - Exclusive scene cut from the movie.`
         : `${activity.title} - Your monthly dose of the best new releases in cinema. Don't miss these incredible films.`;
       
       // Simulate API call delay
@@ -136,26 +166,44 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
       
       // Generate mock caption based on tone
       let caption = '';
-      switch (captionSettings.captionTone) {
-        case 'hype':
-          caption = activity.type === 'review'
-            ? `🔥 ${activity.title.toUpperCase()} 🎬\n\nThis is THE movie event you can't miss!\n\n#Movies #MustWatch #Cinema #FilmTwitter #Premiere`
-            : `🎬 ${activity.title.toUpperCase()} 🚀\n\nYour cinema guide is HERE! Check out what's hitting screens!\n\n#NewReleases #Movies #Cinema #FilmLovers #MustWatch`;
-          break;
-        case 'professional':
-          caption = activity.type === 'review'
-            ? `${activity.title}\n\nA compelling addition to this year's theatrical releases. Now in theaters.\n\n#Cinema #NewRelease #Film #Movies`
-            : `${activity.title}\n\nComprehensive overview of this month's most anticipated theatrical releases.\n\n#NewMovies #FilmReleases #Cinema`;
-          break;
-        case 'casual':
-          caption = activity.type === 'review'
-            ? `Yo ${activity.title} looks absolutely FIRE 🔥🍿\n\nGotta see this one!\n\n#Movies #MustWatch #FilmTwitter #Cinema`
-            : `This month's movie lineup is STACKED 🎬✨\n\nSo many good ones!\n\n#Movies #NewReleases #FilmTwitter #Cinema`;
-          break;
-        default: // engaging
-          caption = activity.type === 'review'
-            ? `${activity.title} ✨\n\nThe cinematic experience you've been waiting for. Don't miss it.\n\n#Movies #ComingSoon #MustWatch #Cinema #Film`
-            : `${activity.title} 🎬\n\nYour complete guide to this month's must-see releases.\n\n#NewReleases #Movies #MustWatch #Cinema #FilmLovers`;
+      
+      if (activity.type === 'scenes') {
+        // Special captions for scene cuts
+        switch (captionSettings.captionTone) {
+          case 'hype':
+            caption = `🎬 EXCLUSIVE SCENE! ${activity.title.toUpperCase()} ✂️\n\nCheck out this EPIC moment!\n\n#MovieScenes #BehindTheScenes #Cinema #FilmClips`;
+            break;
+          case 'professional':
+            caption = `${activity.title}\n\nPrecision-cut scene showcasing a key moment.\n\n#Cinema #MovieClips #FilmAnalysis`;
+            break;
+          case 'casual':
+            caption = `Just cut this sick scene! ${activity.title} 🎬✂️\n\n#MovieMoments #FilmClips #Cinema`;
+            break;
+          default:
+            caption = `${activity.title} ✨\n\nA perfectly crafted scene moment.\n\n#MovieScenes #Cinema #FilmClips`;
+        }
+      } else {
+        switch (captionSettings.captionTone) {
+          case 'hype':
+            caption = activity.type === 'review'
+              ? `🔥 ${activity.title.toUpperCase()} 🎬\n\nThis is THE movie event you can't miss!\n\n#Movies #MustWatch #Cinema #FilmTwitter #Premiere`
+              : `🎬 ${activity.title.toUpperCase()} 🚀\n\nYour cinema guide is HERE! Check out what's hitting screens!\n\n#NewReleases #Movies #Cinema #FilmLovers #MustWatch`;
+            break;
+          case 'professional':
+            caption = activity.type === 'review'
+              ? `${activity.title}\n\nA compelling addition to this year's theatrical releases. Now in theaters.\n\n#Cinema #NewRelease #Film #Movies`
+              : `${activity.title}\n\nComprehensive overview of this month's most anticipated theatrical releases.\n\n#NewMovies #FilmReleases #Cinema`;
+            break;
+          case 'casual':
+            caption = activity.type === 'review'
+              ? `Yo ${activity.title} looks absolutely FIRE 🔥🍿\n\nGotta see this one!\n\n#Movies #MustWatch #FilmTwitter #Cinema`
+              : `This month's movie lineup is STACKED 🎬✨\n\nSo many good ones!\n\n#Movies #NewReleases #FilmTwitter #Cinema`;
+            break;
+          default: // engaging
+            caption = activity.type === 'review'
+              ? `${activity.title} ✨\n\nThe cinematic experience you've been waiting for. Don't miss it.\n\n#Movies #ComingSoon #MustWatch #Cinema #Film`
+              : `${activity.title} 🎬\n\nYour complete guide to this month's must-see releases.\n\n#NewReleases #Movies #MustWatch #Cinema #FilmLovers`;
+        }
       }
       
       // Trim to max length if needed
@@ -172,6 +220,21 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
     }
   };
 
+  // Helper to format timestamp
+  const getTimeAgo = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    const now = Date.now();
+    const diff = now - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes} min ago`;
+    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    return `${days} day${days > 1 ? 's' : ''} ago`;
+  };
+  
   const handleDelete = (id: string, title: string) => {
     haptics.medium();
     
@@ -295,13 +358,46 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
                   </div>
 
                   <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 dark:text-[#9CA3AF] mb-2">
-                    <span>{activity.timestamp}</span>
-                    <span>•</span>
-                    <span>{activity.aspectRatio}</span>
-                    <span>•</span>
-                    <span>{activity.duration}</span>
+                    <span>{getTimeAgo(activity.timestamp)}</span>
+                    {activity.type === 'scenes' ? (
+                      <>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <Scissors className="w-3 h-3" />
+                          Scene Cut
+                        </span>
+                        <span>•</span>
+                        <span>{activity.duration}</span>
+                        {activity.sceneStart && activity.sceneEnd && (
+                          <>
+                            <span>•</span>
+                            <span>{activity.sceneStart} → {activity.sceneEnd}</span>
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {activity.aspectRatio && (
+                          <>
+                            <span>•</span>
+                            <span>{activity.aspectRatio}</span>
+                          </>
+                        )}
+                        <span>•</span>
+                        <span>{activity.duration}</span>
+                      </>
+                    )}
                   </div>
 
+                  {/* Scene Source Info */}
+                  {activity.type === 'scenes' && activity.sceneSource && activity.sceneSourceName && (
+                    <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-[#9CA3AF] mb-2">
+                      <span className="px-2 py-1 bg-gray-100 dark:bg-[#1f1f1f] rounded">
+                        {activity.sceneSource === 'local' ? '📁 Local' : '☁️ Backblaze'}: {activity.sceneSourceName}
+                      </span>
+                    </div>
+                  )}
+                  
                   {/* Error Message */}
                   {activity.status === 'failed' && activity.error && (
                     <p className="text-sm text-[#EF4444] mt-1">{activity.error}</p>
@@ -401,7 +497,7 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
 
       {/* Publish Dialog */}
       <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">Publish Video</DialogTitle>
             <DialogDescription className="text-[#6B7280] dark:text-[#9CA3AF]">

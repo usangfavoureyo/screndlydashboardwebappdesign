@@ -129,6 +129,7 @@ export function PlatformConnectionModal({
 
   const handleClose = () => {
     if (!isConnecting) {
+      haptics.light();
       onClose();
       setStep('info');
     }
@@ -136,7 +137,7 @@ export function PlatformConnectionModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="w-10 h-10 flex items-center justify-center">

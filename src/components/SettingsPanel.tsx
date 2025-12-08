@@ -44,7 +44,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
 
   // Define all settings items with searchable terms
   const settingsItems = [
-    { id: 'apikeys', label: 'API Keys', icon: Key, keywords: ['api', 'keys', 'youtube', 'openai', 'serper', 'tmdb', 's3', 'redis', 'database', 'integration'] },
+    { id: 'apikeys', label: 'API Keys', icon: Key, keywords: ['api', 'keys', 'youtube', 'openai', 'serper', 'tmdb', 's3', 'backblaze', 'b2', 'redis', 'database', 'integration'] },
     { id: 'video', label: 'Video', icon: Video, keywords: ['video', 'fetch', 'interval', 'region', 'filter', 'trailer', 'monitoring'] },
     { id: 'comment', label: 'Comment Automation', icon: MessageSquare, keywords: ['comment', 'reply', 'automation', 'ai', 'blacklist', 'throttle', 'frequency'] },
     { id: 'rss', label: 'RSS Feeds', icon: Rss, keywords: ['rss', 'feed', 'posting', 'image', 'platform', 'deduplication', 'fetch'] },

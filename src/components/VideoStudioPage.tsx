@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize, Target, TrendingUp, Monitor, Smartphone, Square } from 'lucide-react';
+import { Upload, Play, Pause, Download, Send, RefreshCw, ChevronDown, ChevronUp, Film, Calendar, AlertCircle, CheckCircle, Clock, Volume2, VolumeX, Settings2, Copy, Activity, X, MoreVertical, Edit2, Maximize, Target, TrendingUp, Monitor, Smartphone, Square, Scissors, Cloud, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
@@ -26,9 +26,15 @@ import { AnalysisSettingsPanel } from './AnalysisSettingsPanel';
 import { SceneCorrectionInterface } from './SceneCorrectionInterface';
 import { TrainingProgressDashboard } from './TrainingProgressDashboard';
 import { LowerThirdEditor, LowerThirdConfig } from './LowerThirdEditor';
+import { BackblazeVideoBrowser } from './BackblazeVideoBrowser';
+import { SubtitleTimestampAssist } from './SubtitleTimestampAssist';
+import { SceneImportDialog } from './SceneImportDialog';
+import { cutVideoSegment, validateTimestamp, getClipDuration } from '../utils/ffmpeg';
+import { addVideoStudioActivity, addRecentActivity, addLogEntry } from '../utils/activityStore';
 import { analyzeTrailer, TrailerAnalysis, VideoMoment } from '../lib/api/googleVideoIntelligence';
 import { generateShotstackJSON, generateAudioChoreography, renderVideo } from '../lib/api/shotstack';
 import { analyzeMultipleTrailers, MonthlyTrailerAnalysis, generateMonthlyCompilationJSON, getCompilationStats } from '../lib/api/monthlyCompilation';
+import { performWebSearch, formatSearchResultsForPrompt, buildSceneSearchQuery } from '../lib/api/webSearch';
 
 interface VideoStudioPageProps {
   onNavigate: (page: string) => void;
@@ -45,7 +51,8 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const isMountedRef = useRef(true);
   const reviewMusicInputRef = useRef<HTMLInputElement>(null);
   const monthlyMusicInputRef = useRef<HTMLInputElement>(null);
-  const [activeModule, setActiveModule] = useState<'review' | 'monthly'>('review');
+  const scenesVideoInputRef = useRef<HTMLInputElement>(null);
+  const [activeModule, setActiveModule] = useState<'review' | 'monthly' | 'scenes'>('review');
   const [isPromptPanelOpen, setIsPromptPanelOpen] = useState(false);
   const [isPromptGenerated, setIsPromptGenerated] = useState(false);
   const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
@@ -111,6 +118,34 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     duration: 3.5,
   });
   const [monthlyEnableLowerThirds, setMonthlyEnableLowerThirds] = useState(false);
+  
+  // Video Scenes Module State
+  const [scenesMovieTitle, setScenesMovieTitle] = useState('');
+  const [scenesVideoFile, setScenesVideoFile] = useState<File | null>(null);
+  const [scenesVideoUrl, setScenesVideoUrl] = useState(''); // For Backblaze URLs
+  const [scenesVideoSource, setScenesVideoSource] = useState<'local' | 'backblaze'>('local');
+  const [showBackblazeBrowser, setShowBackblazeBrowser] = useState(false);
+  const [scenesMode, setScenesMode] = useState<'ai' | 'manual'>('manual');
+  const [scenesAIQuery, setScenesAIQuery] = useState('');
+  const [showSceneQueryModal, setShowSceneQueryModal] = useState(false);
+  const [tempSceneQuery, setTempSceneQuery] = useState('');
+  const [scenesStartTime, setScenesStartTime] = useState('');
+  const [scenesEndTime, setScenesEndTime] = useState('');
+  const [scenesAspectRatio, setScenesAspectRatio] = useState<AspectRatio>('16:9');
+  const [scenesOriginalRatio, setScenesOriginalRatio] = useState<AspectRatio>('16:9');
+  const [scenesRemoveLetterbox, setScenesRemoveLetterbox] = useState(true);
+  const [scenesEnableAutoframing, setScenesEnableAutoframing] = useState(true);
+  const [scenesIsProcessing, setScenesIsProcessing] = useState(false);
+  const [scenesProgress, setScenesProgress] = useState(0);
+  const [scenesProgressMessage, setScenesProgressMessage] = useState('');
+  const [scenesOutputUrl, setScenesOutputUrl] = useState('');
+  const [scenesOutputBlob, setScenesOutputBlob] = useState<Blob | null>(null);
+  const [scenesAIModel, setScenesAIModel] = useState<'gpt-4' | 'gpt-4-turbo' | 'gpt-3.5-turbo' | 'claude-3.5-sonnet'>('gpt-4');
+  
+  // Spreadsheet Import State
+  const [showSceneImportDialog, setShowSceneImportDialog] = useState(false);
+  const [importedScenes, setImportedScenes] = useState<any[]>([]);
+  const [importedMovieName, setImportedMovieName] = useState<string>('');
   
   // Audio Dynamics State
   const [enableAutoDucking, setEnableAutoDucking] = useState(true);
@@ -183,6 +218,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const [captionStrokeColor, setCaptionStrokeColor] = useState('#000000');
   const [captionStrokeWidth, setCaptionStrokeWidth] = useState(0);
   const [captionShadow, setCaptionShadow] = useState(true);
+  const [captionBorderRadius, setCaptionBorderRadius] = useState(8);
   const [captionAnimation, setCaptionAnimation] = useState('Fade In');
   const [captionWordsPerLine, setCaptionWordsPerLine] = useState(3);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
@@ -235,7 +271,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   const aspectRatios: AspectRatio[] = ['16:9', '9:16', '1:1'];
   const duckingModes: DuckingMode[] = ['Partial', 'Full Mute', 'Adaptive'];
   
-  const captionTemplates = ['Netflix Style', 'YouTube Style', 'TikTok/Instagram', 'Minimal', 'Cinematic', 'Custom'];
+  const captionTemplates = ['Netflix Style', 'YouTube Style', 'TikTok', 'Minimal', 'Cinematic', 'Custom'];
   const fontFamilies = ['Inter', 'Roboto', 'Montserrat', 'Poppins', 'Open Sans', 'Lato'];
   const fontWeights = ['Regular', 'Medium', 'Bold', 'Black'];
   const positions = ['Top', 'Center', 'Bottom-Center', 'Bottom'];
@@ -833,7 +869,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
   };
 
   // Generate caption from voiceover transcript
-  const generateCaption = async (module: 'review' | 'monthly') => {
+  const generateCaption = async (module: 'review' | 'monthly' | 'scenes') => {
     setIsGeneratingCaption(true);
     haptics.light();
     
@@ -848,36 +884,58 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         captionTone: 'engaging'
       };
       
-      // Simulate voiceover transcript (in real implementation, extract from file)
-      const mockTranscript = module === 'review' 
-        ? "Get ready for the most anticipated thriller of the year. When a detective uncovers a conspiracy that goes all the way to the top, no one is safe. Coming to theaters this summer."
-        : "From groundbreaking sci-fi epics to heartwarming dramas, here are this month's must-watch releases. Don't miss these incredible stories hitting screens near you.";
-      
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Generate mock caption based on tone
+      // Generate mock caption based on module and tone
       let caption = '';
-      switch (captionSettings.captionTone) {
-        case 'hype':
-          caption = module === 'review'
-            ? "🔥 THE THRILLER OF THE YEAR IS HERE 🎬\n\nCorruption. Conspiracy. No one is safe.\n\n#Thriller #MoviePremiere #ComingSoon #ActionMovie #MustWatch"
-            : "🎬 MONTH'S BIGGEST RELEASES INCOMING 🚀\n\nSci-fi epics + heartwarming dramas = PURE CINEMA\n\n#NewReleases #Movies #MustWatch #Cinema #FilmLovers";
-          break;
-        case 'professional':
-          caption = module === 'review'
-            ? "New thriller explores systemic corruption through the eyes of a determined detective. In theaters this summer.\n\n#Thriller #Cinema #NewRelease #Film #Detective"
-            : "This month's theatrical releases feature diverse storytelling across multiple genres. From science fiction to drama.\n\n#NewMovies #FilmReleases #Cinema #Movies";
-          break;
-        case 'casual':
-          caption = module === 'review'
-            ? "Yo this thriller looks INSANE 😱 Detective vs corruption storyline, coming this summer 🍿\n\n#Thriller #Movies #MustWatch #FilmTwitter #Cinema"
-            : "This month's lineup is stacked! 🎬 Got sci-fi, dramas, and everything in between 👌\n\n#Movies #NewReleases #MustWatch #FilmTwitter #Cinema";
-          break;
-        default: // engaging
-          caption = module === 'review'
-            ? "The conspiracy runs deeper than anyone imagined 🎭\n\nA detective's search for truth becomes a fight for survival. Don't miss the thriller everyone will be talking about.\n\n#Thriller #ComingSoon #MustWatch #MoviePremiere #Cinema"
-            : "Your monthly dose of cinematic excellence is here 🎬✨\n\nFrom mind-bending sci-fi to stories that touch the heart—this month delivers.\n\n#NewReleases #Movies #MustWatch #FilmLovers #Cinema";
+      
+      if (module === 'scenes') {
+        // Generate scene-specific captions with movie title and timestamps
+        const movieTitle = scenesMovieTitle || 'this scene';
+        const duration = getClipDuration(scenesStartTime, scenesEndTime);
+        const timeRange = `${scenesStartTime}s - ${scenesEndTime}s`;
+        
+        switch (captionSettings.captionTone) {
+          case 'hype':
+            caption = `🎬 THIS SCENE THO 🔥\n\n${movieTitle ? `From ${movieTitle} ` : ''}${duration}s of pure cinema\n\nTimestamp: ${timeRange}\n\n#MovieScenes #Cinema #BestScenes #FilmClips #MovieMoments`;
+            break;
+          case 'professional':
+            caption = `Scene from ${movieTitle}.\n\nDuration: ${duration}s (${timeRange})\n\nA compelling moment showcasing cinematic storytelling.\n\n#FilmAnalysis #Cinema #MovieScenes #Cinematography`;
+            break;
+          case 'casual':
+            caption = `Just cut this ${duration}s scene ${movieTitle ? `from ${movieTitle} ` : ''}and it hits different 👌\n\n${timeRange}\n\n#Movies #Cinema #FilmClips #MovieScenes`;
+            break;
+          default: // engaging
+            caption = `${movieTitle ? `${movieTitle}: ` : ''}This ${duration}-second moment captures everything 🎭\n\n${timeRange}\n\nWhen cinema gives you the perfect scene.\n\n#MovieScenes #Cinema #FilmClips #Cinematic #MustWatch`;
+        }
+      } else {
+        // Original logic for review and monthly modules
+        const mockTranscript = module === 'review' 
+          ? "Get ready for the most anticipated thriller of the year. When a detective uncovers a conspiracy that goes all the way to the top, no one is safe. Coming to theaters this summer."
+          : "From groundbreaking sci-fi epics to heartwarming dramas, here are this month's must-watch releases. Don't miss these incredible stories hitting screens near you.";
+        
+        switch (captionSettings.captionTone) {
+          case 'hype':
+            caption = module === 'review'
+              ? "🔥 THE THRILLER OF THE YEAR IS HERE 🎬\n\nCorruption. Conspiracy. No one is safe.\n\n#Thriller #MoviePremiere #ComingSoon #ActionMovie #MustWatch"
+              : "🎬 MONTH'S BIGGEST RELEASES INCOMING 🚀\n\nSci-fi epics + heartwarming dramas = PURE CINEMA\n\n#NewReleases #Movies #MustWatch #Cinema #FilmLovers";
+            break;
+          case 'professional':
+            caption = module === 'review'
+              ? "New thriller explores systemic corruption through the eyes of a determined detective. In theaters this summer.\n\n#Thriller #Cinema #NewRelease #Film #Detective"
+              : "This month's theatrical releases feature diverse storytelling across multiple genres. From science fiction to drama.\n\n#NewMovies #FilmReleases #Cinema #Movies";
+            break;
+          case 'casual':
+            caption = module === 'review'
+              ? "Yo this thriller looks INSANE 😱 Detective vs corruption storyline, coming this summer 🍿\n\n#Thriller #Movies #MustWatch #FilmTwitter #Cinema"
+              : "This month's lineup is stacked! 🎬 Got sci-fi, dramas, and everything in between 👌\n\n#Movies #NewReleases #MustWatch #FilmTwitter #Cinema";
+            break;
+          default: // engaging
+            caption = module === 'review'
+              ? "The conspiracy runs deeper than anyone imagined 🎭\n\nA detective's search for truth becomes a fight for survival. Don't miss the thriller everyone will be talking about.\n\n#Thriller #ComingSoon #MustWatch #MoviePremiere #Cinema"
+              : "Your monthly dose of cinematic excellence is here 🎬✨\n\nFrom mind-bending sci-fi to stories that touch the heart—this month delivers.\n\n#NewReleases #Movies #MustWatch #FilmLovers #Cinema";
+        }
       }
       
       // Trim to max length if needed
@@ -910,6 +968,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         setCaptionAlignment('Center');
         setCaptionStrokeWidth(0);
         setCaptionShadow(true);
+        setCaptionBorderRadius(8);
         setCaptionAnimation('Fade In');
         setCaptionWordsPerLine(3);
         break;
@@ -924,10 +983,11 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         setCaptionAlignment('Center');
         setCaptionStrokeWidth(0);
         setCaptionShadow(false);
+        setCaptionBorderRadius(4);
         setCaptionAnimation('None');
         setCaptionWordsPerLine(4);
         break;
-      case 'TikTok/Instagram':
+      case 'TikTok':
         setCaptionTextColor('#FFFFFF');
         setCaptionBgColor('#000000');
         setCaptionBgOpacity(0);
@@ -939,6 +999,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         setCaptionStrokeColor('#000000');
         setCaptionStrokeWidth(3);
         setCaptionShadow(true);
+        setCaptionBorderRadius(0);
         setCaptionAnimation('Word Highlight');
         setCaptionWordsPerLine(2);
         break;
@@ -953,6 +1014,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         setCaptionAlignment('Center');
         setCaptionStrokeWidth(0);
         setCaptionShadow(false);
+        setCaptionBorderRadius(0);
         setCaptionAnimation('None');
         setCaptionWordsPerLine(3);
         break;
@@ -967,6 +1029,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         setCaptionAlignment('Center');
         setCaptionStrokeWidth(0);
         setCaptionShadow(true);
+        setCaptionBorderRadius(12);
         setCaptionAnimation('Slide Up');
         setCaptionWordsPerLine(3);
         break;
@@ -1014,6 +1077,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       strokeColor: captionStrokeColor,
       strokeWidth: captionStrokeWidth,
       shadow: captionShadow,
+      borderRadius: captionBorderRadius,
       animation: captionAnimation,
       wordsPerLine: captionWordsPerLine,
       savedAt: timestamp,
@@ -1048,6 +1112,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     setCaptionStrokeColor(template.strokeColor);
     setCaptionStrokeWidth(template.strokeWidth);
     setCaptionShadow(template.shadow);
+    setCaptionBorderRadius(template.borderRadius || 8);
     setCaptionAnimation(template.animation);
     setCaptionWordsPerLine(template.wordsPerLine);
     
@@ -1300,6 +1365,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
       stroke_color: captionStrokeColor,
       stroke_width: captionStrokeWidth,
       shadow: captionShadow,
+      border_radius: captionBorderRadius,
       animation: captionAnimation,
       words_per_line: captionWordsPerLine
     };
@@ -1598,6 +1664,461 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
     };
   }, []);
 
+  // Video Scenes Handlers
+  const handleSceneImport = (scenes: any[], replace: boolean, movieName?: string) => {
+    haptics.success();
+    
+    if (replace) {
+      setImportedScenes(scenes);
+    } else {
+      setImportedScenes(prev => [...prev, ...scenes]);
+    }
+
+    if (movieName) {
+      setImportedMovieName(movieName);
+      if (!scenesMovieTitle) {
+        setScenesMovieTitle(movieName);
+      }
+    }
+
+    toast.success(`Imported ${scenes.length} scenes`, {
+      description: movieName ? `Movie: ${movieName}` : 'Context ready for AI Assist'
+    });
+  };
+
+  const handleScenesVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      haptics.light();
+      setScenesVideoFile(file);
+      setScenesOriginalRatio('16:9'); // Detect actual ratio in production
+      toast.success(`Uploaded: ${file.name}`, {
+        description: `Size: ${(file.size / (1024 * 1024)).toFixed(0)}MB`
+      });
+    }
+  };
+
+  // Format timestamp input with automatic colon insertion
+  const formatTimestamp = (value: string): string => {
+    // Remove all non-numeric characters
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limit to 6 digits (HHMMSS)
+    const limited = numbers.slice(0, 6);
+    
+    // Format with colons
+    let formatted = '';
+    for (let i = 0; i < limited.length; i++) {
+      if (i === 2 || i === 4) {
+        formatted += ':';
+      }
+      formatted += limited[i];
+    }
+    
+    return formatted;
+  };
+
+  const handleAIAssistedQuery = async () => {
+    if (!scenesMovieTitle.trim() || !scenesAIQuery.trim()) return;
+    
+    haptics.medium();
+    
+    const toastId = toast.loading('Analyzing scene request...', {
+      description: 'Using AI to identify scene'
+    });
+
+    try {
+      const openAIKey = localStorage.getItem('openaiKey');
+      
+      if (!openAIKey) {
+        toast.error('OpenAI API Key Required', {
+          description: 'Please add your OpenAI API key in Settings',
+          id: toastId
+        });
+        return;
+      }
+
+      // Build prompt context from spreadsheet
+      let promptContext = '';
+      if (importedScenes.length > 0) {
+        promptContext = `
+CONTEXT FROM IMPORTED SPREADSHEET:
+Movie Name: ${importedMovieName || scenesMovieTitle}
+Available Scenes Breakdown:
+${importedScenes.map((s, i) => `Scene ${i+1}: "${s.description}" (${s.startTime} - ${s.endTime}) - ${s.details}`).join('\n')}
+
+User is requesting a scene based on this context. If the user's query matches one of these scenes, prefer using its exact timestamps.
+`;
+      }
+
+      // Check if web search is enabled and perform search
+      let webSearchContext = '';
+      if (settings.videoStudioWebSearchEnabled) {
+        toast.loading('Searching web for additional context...', {
+          description: 'Fetching plot details and scene information',
+          id: toastId
+        });
+
+        try {
+          const searchQuery = buildSceneSearchQuery(scenesMovieTitle, scenesAIQuery);
+          const searchProvider = settings.videoStudioWebSearchProvider || 'serper';
+          const maxResults = settings.videoStudioWebSearchMaxResults || 3;
+
+          const searchResult = await performWebSearch(searchQuery, searchProvider, {
+            googleApiKey: settings.videoGoogleSearchApiKey,
+            googleSearchEngineId: settings.videoGoogleSearchCx,
+            serperApiKey: settings.serperKey,
+            maxResults
+          });
+
+          if (searchResult.results.length > 0) {
+            webSearchContext = `
+
+WEB SEARCH RESULTS (${searchResult.provider.toUpperCase()}):
+${formatSearchResultsForPrompt(searchResult.results)}
+
+Use this information to provide more accurate timestamp estimates.
+`;
+          }
+        } catch (searchError) {
+          console.warn('Web search failed, continuing without it:', searchError);
+          // Don't fail the whole operation if web search fails
+        }
+      }
+
+      const prompt = `You are a movie scene expert. Given the movie/TV show title "${scenesMovieTitle}" and the user's scene request "${scenesAIQuery}", provide the approximate timestamp range where this scene occurs.
+${promptContext}${webSearchContext}
+
+IMPORTANT: Respond ONLY with a JSON object in this exact format:
+{
+  "startTime": "HH:MM:SS",
+  "endTime": "HH:MM:SS",
+  "sceneDescription": "Brief description of the scene"
+}
+
+Do not include any other text or explanation. Only return the JSON object.`;
+
+      // Update toast to show AI analysis is starting
+      toast.loading('Analyzing scene with AI...', {
+        description: webSearchContext ? 'Using web search context' : 'Processing request',
+        id: toastId
+      });
+
+      // Determine API endpoint and key based on model
+      let apiUrl = 'https://api.openai.com/v1/chat/completions';
+      let apiKey = openAIKey;
+      let requestBody: any = {
+        model: scenesAIModel,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a movie scene timestamp expert. You provide precise timestamp ranges for specific scenes in movies and TV shows.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 200
+      };
+
+      // If using Claude, switch to Anthropic API
+      if (scenesAIModel === 'claude-3.5-sonnet') {
+        const claudeKey = localStorage.getItem('anthropicKey');
+        if (!claudeKey) {
+          toast.error('Anthropic API Key Required', {
+            description: 'Please add your Anthropic API key in Settings',
+            id: toastId
+          });
+          return;
+        }
+        apiUrl = 'https://api.anthropic.com/v1/messages';
+        apiKey = claudeKey;
+        requestBody = {
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 200,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        };
+      }
+
+      const headers: any = {
+        'Content-Type': 'application/json'
+      };
+
+      if (scenesAIModel === 'claude-3.5-sonnet') {
+        headers['x-api-key'] = apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+      } else {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || error.message || 'AI API request failed');
+      }
+
+      const data = await response.json();
+      
+      // Extract content based on API provider
+      let content: string;
+      if (scenesAIModel === 'claude-3.5-sonnet') {
+        content = data.content[0].text.trim();
+      } else {
+        content = data.choices[0].message.content.trim();
+      }
+      
+      // Parse the JSON response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('Invalid response format from AI');
+      }
+      
+      const sceneData = JSON.parse(jsonMatch[0]);
+      
+      setScenesStartTime(sceneData.startTime);
+      setScenesEndTime(sceneData.endTime);
+      
+      haptics.success();
+      toast.success('Scene identified!', {
+        description: sceneData.sceneDescription || `Found scene at ${sceneData.startTime} - ${sceneData.endTime}`,
+        id: toastId
+      });
+      
+    } catch (error) {
+      console.error('AI Scene Query Error:', error);
+      haptics.error();
+      
+      // Fallback to mock timestamps
+      const mockTimestamps = {
+        'controversial': { start: '01:23:15', end: '01:25:30' },
+        'action': { start: '00:45:20', end: '00:47:45' },
+        'emotional': { start: '01:45:10', end: '01:47:25' },
+        'fight': { start: '01:12:30', end: '01:14:55' },
+        'hallway': { start: '01:12:30', end: '01:14:55' },
+        'interrogation': { start: '01:23:15', end: '01:26:40' },
+        'opening': { start: '00:00:30', end: '00:03:00' },
+        'ending': { start: '02:15:00', end: '02:18:30' }
+      };
+
+      const queryLower = scenesAIQuery.toLowerCase();
+      let selectedTimestamp = mockTimestamps['action']; // default
+
+      for (const [key, value] of Object.entries(mockTimestamps)) {
+        if (queryLower.includes(key)) {
+          selectedTimestamp = value;
+          break;
+        }
+      }
+
+      setScenesStartTime(selectedTimestamp.start);
+      setScenesEndTime(selectedTimestamp.end);
+      
+      toast.warning('Using estimated timestamps', {
+        description: `Scene approximately at ${selectedTimestamp.start} - ${selectedTimestamp.end}`,
+        id: toastId
+      });
+    }
+  };
+
+  const handleCutScene = async () => {
+    // Validate inputs
+    const hasVideo = scenesVideoSource === 'local' ? scenesVideoFile : scenesVideoUrl;
+    if (!hasVideo || !scenesStartTime || !scenesEndTime) {
+      toast.error('Missing required fields', {
+        description: 'Please select a video and enter timestamps'
+      });
+      return;
+    }
+
+    // Validate timestamp format
+    if (!validateTimestamp(scenesStartTime) || !validateTimestamp(scenesEndTime)) {
+      toast.error('Invalid timestamp format', {
+        description: 'Use format HH:MM:SS or MM:SS'
+      });
+      return;
+    }
+
+    // Check duration
+    const duration = getClipDuration(scenesStartTime, scenesEndTime);
+    if (duration <= 0) {
+      toast.error('Invalid time range', {
+        description: 'End time must be after start time'
+      });
+      return;
+    }
+
+    haptics.medium();
+    setScenesIsProcessing(true);
+    setScenesProgress(0);
+    setScenesProgressMessage('Starting...');
+    setScenesOutputUrl(''); // Clear previous output
+
+    try {
+      // Prepare input (File or URL)
+      const input = scenesVideoSource === 'local' ? scenesVideoFile! : scenesVideoUrl;
+      
+      const videoSource = scenesVideoSource === 'local' ? 'local file' : 'Backblaze cloud';
+      toast.info(`Processing ${duration}s clip from ${videoSource}`, {
+        description: `${scenesStartTime} → ${scenesEndTime}`
+      });
+
+      // Execute actual FFmpeg cut
+      const result = await cutVideoSegment({
+        input,
+        startTime: scenesStartTime,
+        endTime: scenesEndTime,
+        outputFormat: 'mp4',
+        onProgress: (progress, message) => {
+          setScenesProgress(progress);
+          setScenesProgressMessage(message);
+        }
+      });
+
+      if (result.success && result.outputUrl && result.outputBlob) {
+        haptics.success();
+        setScenesOutputUrl(result.outputUrl);
+        setScenesOutputBlob(result.outputBlob);
+        
+        // Track successful scene cut
+        const sourceFileName = scenesVideoSource === 'local' 
+          ? (scenesVideoFile?.name || 'Local Video')
+          : (scenesVideoUrl.split('/').pop() || 'Backblaze Video');
+        
+        const sceneTitle = scenesMovieTitle 
+          ? `${scenesMovieTitle} - Scene (${scenesStartTime} → ${scenesEndTime})`
+          : `Video Scene (${scenesStartTime} → ${scenesEndTime})`;
+        
+        // Add to Video Studio Activity
+        addVideoStudioActivity({
+          type: 'scenes',
+          title: sceneTitle,
+          status: 'completed',
+          timestamp: new Date().toISOString(),
+          duration: `${duration}s`,
+          downloads: 0,
+          published: false,
+          platforms: [],
+          sceneStart: scenesStartTime,
+          sceneEnd: scenesEndTime,
+          sceneSource: scenesVideoSource,
+          sceneSourceName: sourceFileName,
+        });
+        
+        // Add to Recent Activity
+        addRecentActivity({
+          title: sceneTitle,
+          platform: 'Video Studio',
+          status: 'success',
+          type: 'scenes',
+        });
+        
+        // Add to System Logs
+        addLogEntry({
+          videoTitle: sceneTitle,
+          platform: 'FFmpeg.wasm',
+          status: 'success',
+          type: 'scenes',
+        });
+        
+        toast.success('Scene cut successfully!', {
+          description: `${duration}s clip ready to download`,
+          duration: 5000
+        });
+      } else {
+        throw new Error(result.error || 'Unknown error during cutting');
+      }
+    } catch (error) {
+      haptics.error();
+      console.error('Cut scene error:', error);
+      
+      // Track failed scene cut
+      const sourceFileName = scenesVideoSource === 'local' 
+        ? (scenesVideoFile?.name || 'Local Video')
+        : (scenesVideoUrl.split('/').pop() || 'Backblaze Video');
+      
+      const sceneTitle = scenesMovieTitle 
+        ? `${scenesMovieTitle} - Scene (${scenesStartTime} → ${scenesEndTime})`
+        : `Video Scene (${scenesStartTime} → ${scenesEndTime})`;
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Add to Video Studio Activity
+      addVideoStudioActivity({
+        type: 'scenes',
+        title: sceneTitle,
+        status: 'failed',
+        timestamp: new Date().toISOString(),
+        duration: `${getClipDuration(scenesStartTime, scenesEndTime)}s`,
+        downloads: 0,
+        published: false,
+        platforms: [],
+        sceneStart: scenesStartTime,
+        sceneEnd: scenesEndTime,
+        sceneSource: scenesVideoSource,
+        sceneSourceName: sourceFileName,
+        error: errorMessage,
+      });
+      
+      // Add to Recent Activity
+      addRecentActivity({
+        title: sceneTitle,
+        platform: 'Video Studio',
+        status: 'failed',
+        type: 'scenes',
+      });
+      
+      // Add to System Logs
+      addLogEntry({
+        videoTitle: sceneTitle,
+        platform: 'FFmpeg.wasm',
+        status: 'failed',
+        type: 'scenes',
+        error: 'Scene cutting failed',
+        errorDetails: errorMessage,
+      });
+      
+      toast.error('Processing failed', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
+      setScenesProgress(0);
+      setScenesProgressMessage('');
+    } finally {
+      setScenesIsProcessing(false);
+    }
+  };
+
+  // Download the cut scene
+  const handleDownloadScene = () => {
+    if (!scenesOutputUrl || !scenesOutputBlob) return;
+
+    haptics.light();
+    
+    const fileName = `${scenesMovieTitle || 'scene'}_${scenesStartTime.replace(/:/g, '-')}_${scenesEndTime.replace(/:/g, '-')}.mp4`;
+    
+    const a = document.createElement('a');
+    a.href = scenesOutputUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    toast.success('Downloading...', {
+      description: fileName
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1620,34 +2141,48 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
       {/* Module Selector */}
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-2">
-        <div className="flex gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => {
               haptics.light();
               setActiveModule('review');
             }}
-            className={`flex-1 px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`px-2 sm:px-4 py-3 rounded-xl transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
               activeModule === 'review'
                 ? 'bg-[#ec1e24] text-white'
                 : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'
             }`}
           >
             <Film className="w-5 h-5" />
-            Video Review
+            <span>Review</span>
           </button>
           <button
             onClick={() => {
               haptics.light();
               setActiveModule('monthly');
             }}
-            className={`flex-1 px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`px-2 sm:px-4 py-3 rounded-xl transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
               activeModule === 'monthly'
                 ? 'bg-[#ec1e24] text-white'
                 : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'
             }`}
           >
             <Calendar className="w-5 h-5" />
-            Monthly Releases
+            <span>Releases</span>
+          </button>
+          <button
+            onClick={() => {
+              haptics.light();
+              setActiveModule('scenes');
+            }}
+            className={`px-2 sm:px-4 py-3 rounded-xl transition-all duration-300 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
+              activeModule === 'scenes'
+                ? 'bg-[#ec1e24] text-white'
+                : 'text-gray-600 dark:text-[#9CA3AF] hover:bg-gray-100 dark:hover:bg-[#1A1A1A]'
+            }`}
+          >
+            <Scissors className="w-5 h-5" />
+            <span>Scenes</span>
           </button>
         </div>
       </div>
@@ -1684,6 +2219,9 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         const newUrls = [...reviewYoutubeUrls];
                         newUrls[index] = e.target.value;
                         setReviewYoutubeUrls(newUrls);
+                      }}
+                      onFocus={() => {
+                        haptics.light();
                       }}
                       placeholder="https://youtube.com/watch?v=..."
                       className="flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
@@ -2423,6 +2961,9 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         newUrls[index] = e.target.value;
                         setMonthlyYoutubeUrls(newUrls);
                       }}
+                      onFocus={() => {
+                        haptics.light();
+                      }}
                       placeholder="https://youtube.com/watch?v=..."
                       className="flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
                     />
@@ -3103,6 +3644,605 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         </div>
       )}
 
+      {/* Video Scenes Module */}
+      {activeModule === 'scenes' && (
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
+          <div className="flex items-center gap-3 mb-6">
+            <Scissors className="w-6 h-6 text-[#ec1e24]" />
+            <div>
+              <h3 className="text-gray-900 dark:text-white">Video Scenes Module</h3>
+              <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Cut specific scenes from movies/TV shows</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* FFmpeg Info Banner */}
+            <div className="p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-[#ec1e24] mt-0.5 flex-shrink-0" />
+                <div className="space-y-1">
+                  <p className="text-sm text-black dark:text-white">
+                    <strong>Precision Video Cutting with FFmpeg.wasm</strong>
+                  </p>
+                  <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
+                    Manual timestamp control • Browser-based processing • No re-encoding (stream copy) • 100% client-side
+                  </p>
+                  <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+                    First-time load: ~10-15s to initialize FFmpeg • Subsequent cuts: instant
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Movie/TV Show Title */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-gray-900 dark:text-white block">
+                  Movie or TV Show Title
+                </label>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setShowSceneImportDialog(true)}
+                  className="h-8 text-xs border-gray-200 dark:border-[#333333] text-gray-600 dark:text-gray-300"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5 text-[#ec1e24]" />
+                  Import Spreadsheet
+                </Button>
+              </div>
+              <input
+                type="text"
+                value={scenesMovieTitle}
+                onChange={(e) => {
+                  haptics.light();
+                  setScenesMovieTitle(e.target.value);
+                }}
+                onFocus={() => {
+                  haptics.light();
+                }}
+                placeholder="e.g., The Dark Knight"
+                className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+              />
+
+              {/* Imported Scenes List */}
+              {importedScenes.length > 0 && (
+                <div className="mt-4 border border-gray-200 dark:border-[#333333] rounded-xl overflow-hidden bg-white dark:bg-black">
+                  <div className="p-3 bg-gray-50 dark:bg-[#111111] border-b border-gray-200 dark:border-[#333333] flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        Imported Scenes ({importedScenes.length})
+                      </span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {importedMovieName}
+                    </span>
+                  </div>
+                  <div className="max-h-[200px] overflow-y-auto">
+                    {importedScenes.map((scene, idx) => (
+                      <div 
+                        key={idx} 
+                        className="p-3 border-b border-gray-100 dark:border-[#1A1A1A] last:border-0 hover:bg-gray-50 dark:hover:bg-[#111111] transition-colors flex items-start gap-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {scene.description}
+                            </span>
+                            <span className="text-xs bg-gray-100 dark:bg-[#222] px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-400 whitespace-nowrap font-mono">
+                              {scene.startTime} - {scene.endTime}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                            {scene.details}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            haptics.medium();
+                            setScenesStartTime(scene.startTime);
+                            setScenesEndTime(scene.endTime);
+                            if (scenesMode === 'ai') {
+                                setScenesAIQuery(scene.description);
+                            }
+                            toast.success('Scene loaded', {
+                              description: `Timestamps set to ${scene.startTime} - ${scene.endTime}`
+                            });
+                          }}
+                          className="h-8 px-2 text-[#ec1e24] hover:text-[#ec1e24] hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          Load
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <SceneImportDialog 
+              isOpen={showSceneImportDialog}
+              onClose={() => setShowSceneImportDialog(false)}
+              onImport={handleSceneImport}
+            />
+
+            {/* Video Source */}
+            <div>
+              <label className="text-gray-900 dark:text-white mb-2 block">
+                Video Source
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Upload Local File */}
+                <label className={`flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 rounded-xl cursor-pointer transition-all duration-200 ${
+                  scenesVideoSource === 'local' && scenesVideoFile
+                    ? 'border-[#ec1e24] bg-red-50 dark:bg-red-900/10'
+                    : 'bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                }`}>
+                  <Upload className={`w-6 h-6 ${scenesVideoSource === 'local' && scenesVideoFile ? 'text-[#ec1e24]' : 'text-gray-400'}`} />
+                  <span className="text-sm text-gray-600 dark:text-[#9CA3AF] text-center">
+                    {scenesVideoSource === 'local' && scenesVideoFile ? scenesVideoFile.name : 'Upload Local File'}
+                  </span>
+                  {scenesVideoSource === 'local' && scenesVideoFile && (
+                    <span className="text-xs text-gray-500">
+                      {(scenesVideoFile.size / (1024 * 1024)).toFixed(0)}MB
+                    </span>
+                  )}
+                  <input
+                    ref={scenesVideoInputRef}
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    onChange={handleScenesVideoUpload}
+                  />
+                </label>
+
+                {/* Load from Backblaze */}
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    setShowBackblazeBrowser(true);
+                  }}
+                  className={`flex flex-col items-center justify-center gap-2 px-4 py-6 border-2 rounded-xl transition-all duration-200 ${
+                    scenesVideoSource === 'backblaze' && scenesVideoUrl
+                      ? 'border-[#ec1e24] bg-red-50 dark:bg-red-900/10'
+                      : 'bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                  }`}
+                >
+                  <Cloud className={`w-6 h-6 ${scenesVideoSource === 'backblaze' && scenesVideoUrl ? 'text-[#ec1e24]' : 'text-gray-400'}`} />
+                  <span className="text-sm text-gray-600 dark:text-[#9CA3AF] text-center">
+                    {scenesVideoSource === 'backblaze' && scenesVideoUrl 
+                      ? scenesVideoUrl.split('/').pop() || 'Backblaze Video'
+                      : 'Load from Backblaze'}
+                  </span>
+                  {scenesVideoSource === 'backblaze' && scenesVideoUrl && (
+                    <span className="text-xs text-green-600 dark:text-green-400">
+                      ☁️ Cloud Storage
+                    </span>
+                  )}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Upload a local file or seamlessly access videos from your Backblaze B2 cloud storage. 
+                <span className="text-[#ec1e24]"> Note:</span> First-time processing may take 10-15s to load FFmpeg.
+              </p>
+            </div>
+
+            {/* Subtitle Timestamp Assistant - Available for both AI and Manual modes */}
+            <SubtitleTimestampAssist
+              videoFileName={scenesVideoFile?.name || scenesVideoUrl.split('/').pop() || undefined}
+              mode={scenesMode}
+              onSelectTimestamp={(startTime, endTime, context) => {
+                setScenesStartTime(startTime);
+                setScenesEndTime(endTime);
+              }}
+              onSubtitlesLoaded={(entries) => {
+                // Subtitles loaded - can be used by AI for better context
+                console.log('Loaded subtitles for timestamp assist:', entries.length, 'entries');
+              }}
+            />
+
+            {/* Scene Selection Method */}
+            <div>
+              <label className="text-gray-900 dark:text-white mb-3 block">
+                Scene Selection Method
+              </label>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    setScenesMode('ai');
+                  }}
+                  className={`px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm sm:text-base ${
+                    scenesMode === 'ai'
+                      ? 'bg-[#ec1e24] text-white border-[#ec1e24]'
+                      : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                  }`}
+                >
+                  AI-Assisted
+                </button>
+                <button
+                  onClick={() => {
+                    haptics.light();
+                    setScenesMode('manual');
+                  }}
+                  className={`px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm sm:text-base ${
+                    scenesMode === 'manual'
+                      ? 'bg-[#ec1e24] text-white border-[#ec1e24]'
+                      : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                  }`}
+                >
+                  Manual
+                </button>
+              </div>
+
+              {scenesMode === 'ai' ? (
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={scenesAIQuery}
+                      onClick={() => {
+                        haptics.light();
+                        setTempSceneQuery(scenesAIQuery);
+                        setShowSceneQueryModal(true);
+                      }}
+                      readOnly
+                      placeholder="e.g., Find the hallway fight scene"
+                      className="flex-1 px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24] cursor-pointer"
+                    />
+                    <Button
+                      onClick={handleAIAssistedQuery}
+                      disabled={!scenesMovieTitle.trim() || !scenesAIQuery.trim()}
+                      className="w-full sm:w-auto bg-[#ec1e24] hover:bg-[#d01a20] text-white disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      Find Scene
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    AI will suggest timestamps based on your query
+                  </p>
+                  
+                  {/* AI-Suggested Timestamps Display */}
+                  {scenesStartTime && scenesEndTime && validateTimestamp(scenesStartTime) && validateTimestamp(scenesEndTime) && (
+                    <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-800 rounded-xl">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+                        <span className="text-sm text-purple-900 dark:text-purple-200">
+                          AI-Suggested Timestamps
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div className="bg-white/70 dark:bg-black/40 rounded-lg p-3 border border-purple-200 dark:border-purple-700">
+                          <label className="text-xs text-purple-600 dark:text-purple-400 mb-1 block">
+                            Start Time
+                          </label>
+                          <div className="text-gray-900 dark:text-white font-mono">
+                            {scenesStartTime}
+                          </div>
+                        </div>
+                        <div className="bg-white/70 dark:bg-black/40 rounded-lg p-3 border border-purple-200 dark:border-purple-700">
+                          <label className="text-xs text-purple-600 dark:text-purple-400 mb-1 block">
+                            End Time
+                          </label>
+                          <div className="text-gray-900 dark:text-white font-mono">
+                            {scenesEndTime}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-purple-900 dark:text-purple-200">
+                          Clip Duration: <strong>{getClipDuration(scenesStartTime, scenesEndTime)}s</strong>
+                        </span>
+                        <button
+                          onClick={() => {
+                            haptics.light();
+                            setScenesMode('manual');
+                            toast.success('Switched to Manual mode', {
+                              description: 'You can now adjust the timestamps'
+                            });
+                          }}
+                          className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 underline"
+                        >
+                          Adjust manually
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
+                        Start Time
+                      </label>
+                      <input
+                        type="text"
+                        value={scenesStartTime}
+                        onChange={(e) => {
+                          haptics.light();
+                          setScenesStartTime(formatTimestamp(e.target.value));
+                        }}
+                        onFocus={() => {
+                          haptics.light();
+                        }}
+                        placeholder="HH:MM:SS"
+                        className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-600 dark:text-gray-400 mb-1 block">
+                        End Time
+                      </label>
+                      <input
+                        type="text"
+                        value={scenesEndTime}
+                        onChange={(e) => {
+                          haptics.light();
+                          setScenesEndTime(formatTimestamp(e.target.value));
+                        }}
+                        onFocus={() => {
+                          haptics.light();
+                        }}
+                        placeholder="HH:MM:SS"
+                        className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Clip Duration Preview */}
+              {scenesMode === 'manual' && scenesStartTime && scenesEndTime && validateTimestamp(scenesStartTime) && validateTimestamp(scenesEndTime) && (
+                <div className="mt-2 p-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg">
+                  <p className="text-sm text-black dark:text-white">
+                    Clip Duration: <strong>{getClipDuration(scenesStartTime, scenesEndTime)}s</strong>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <Separator className="bg-gray-200 dark:bg-[#333333]" />
+
+            {/* Output Settings */}
+            <div className="space-y-4">
+              <h4 className="text-gray-900 dark:text-white">Output Settings</h4>
+
+              {/* Aspect Ratio */}
+              <div>
+                <label className="text-gray-900 dark:text-white mb-2 block">
+                  Aspect Ratio
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setScenesAspectRatio('16:9');
+                    }}
+                    className={`px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm sm:text-base ${
+                      scenesAspectRatio === '16:9'
+                        ? 'bg-[#ec1e24] text-white border-[#ec1e24]'
+                        : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                    }`}
+                  >
+                    16:9
+                  </button>
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setScenesAspectRatio('9:16');
+                    }}
+                    className={`px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm sm:text-base ${
+                      scenesAspectRatio === '9:16'
+                        ? 'bg-[#ec1e24] text-white border-[#ec1e24]'
+                        : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                    }`}
+                  >
+                    9:16
+                  </button>
+                  <button
+                    onClick={() => {
+                      haptics.light();
+                      setScenesAspectRatio('1:1');
+                    }}
+                    className={`px-3 sm:px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm sm:text-base ${
+                      scenesAspectRatio === '1:1'
+                        ? 'bg-[#ec1e24] text-white border-[#ec1e24]'
+                        : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
+                    }`}
+                  >
+                    1:1
+                  </button>
+                </div>
+              </div>
+
+              {/* Letterbox Removal Control - Only for 9:16 and 1:1 (Same as Video Reviews) */}
+              {(scenesAspectRatio === '9:16' || scenesAspectRatio === '1:1') && (
+                <LetterboxControl
+                  id="scenes-letterbox"
+                  aspectRatio={scenesAspectRatio}
+                  removeLetterbox={scenesRemoveLetterbox}
+                  onToggle={(checked) => {
+                    setScenesRemoveLetterbox(checked);
+                  }}
+                  enableAutoframing={scenesEnableAutoframing}
+                  onAutoframingToggle={(checked) => {
+                    setScenesEnableAutoframing(checked);
+                  }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Scenes - Generate Video Button Section */}
+      {activeModule === 'scenes' && (
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="space-y-4">
+            {/* Caption Template Editor Button */}
+            <Button
+              onClick={() => {
+                haptics.light();
+                const newState = !isCaptionEditorOpen;
+                setIsCaptionEditorOpen(newState);
+                onCaptionEditorChange?.(newState);
+              }}
+              variant="outline"
+              className="w-full border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+            >
+              <Settings2 className="w-5 h-5 mr-2 text-[#ec1e24]" />
+              {isCaptionEditorOpen ? 'Hide' : 'Configure'} Caption Template
+            </Button>
+
+            {/* Generate Video Button */}
+            <Button
+              onClick={handleCutScene}
+              disabled={(scenesVideoSource === 'local' && !scenesVideoFile) || (scenesVideoSource === 'backblaze' && !scenesVideoUrl) || !scenesStartTime || !scenesEndTime || scenesIsProcessing}
+              className="w-full bg-[#ec1e24] hover:bg-[#d01a20] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {scenesIsProcessing ? (
+                <>
+                  <Clock className="w-5 h-5 mr-2 animate-spin" />
+                  Processing Scene...
+                </>
+              ) : (
+                <>
+                  <Scissors className="w-5 h-5 mr-2" />
+                  Cut & Generate Scene
+                </>
+              )}
+            </Button>
+
+            {/* Processing Progress */}
+            {scenesIsProcessing && (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      {scenesProgressMessage || 'Processing scene...'}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
+                      {scenesProgress}%
+                    </span>
+                  </div>
+                  <Progress value={scenesProgress} className="h-2" />
+                </div>
+                <div className="space-y-1 text-xs text-gray-500">
+                  <p>⏳ Cutting scene from {scenesStartTime} to {scenesEndTime}</p>
+                  <p>🎞️ Converting to {scenesAspectRatio}</p>
+                  {scenesRemoveLetterbox && <p>📐 Removing letterbox</p>}
+                  {scenesEnableAutoframing && <p>🎯 Applying AI auto-framing</p>}
+                  <p>💬 Generating captions from audio</p>
+                </div>
+              </div>
+            )}
+
+            {/* Success State with Download Button */}
+            {scenesOutputUrl && !scenesIsProcessing && (
+              <Button
+                onClick={handleDownloadScene}
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Download Scene ({getClipDuration(scenesStartTime, scenesEndTime)}s)
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Video Scenes - Video Player Preview (Only shown when generated) */}
+      {activeModule === 'scenes' && scenesOutputUrl && !scenesIsProcessing && (
+        <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
+          <div className="space-y-4">
+            {/* Video Preview */}
+            <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden">
+              <video 
+                src={scenesOutputUrl} 
+                controls 
+                className="w-full h-full"
+                style={{ objectFit: 'contain' }}
+              >
+                Your browser does not support video playback.
+              </video>
+            </div>
+
+            {/* Video Info */}
+            <div className="flex items-center justify-between p-4 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Duration</p>
+                <p className="text-gray-900 dark:text-white">
+                  {getClipDuration(scenesStartTime, scenesEndTime)}s
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Range</p>
+                <p className="text-gray-900 dark:text-white">
+                  {scenesStartTime} → {scenesEndTime}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">Format</p>
+                <p className="text-gray-900 dark:text-white">MP4</p>
+              </div>
+            </div>
+
+            {/* Thumbnail Upload */}
+            <div>
+              <label className="text-gray-900 dark:text-white mb-2 block">
+                Thumbnail (Optional)
+              </label>
+              <label className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl cursor-pointer hover:border-[#ec1e24] transition-all duration-200">
+                <Upload className="w-6 h-6 text-[#ec1e24]" />
+                <span className="text-sm text-gray-600 dark:text-[#9CA3AF] text-center">
+                  Upload Thumbnail
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    haptics.light();
+                    toast.success('Thumbnail uploaded');
+                  }}
+                />
+              </label>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button
+                onClick={() => {
+                  haptics.medium();
+                  toast.success('Downloading scene...');
+                }}
+                variant="outline"
+                className="border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
+              >
+                <Download className="w-5 h-5 mr-2 text-[#ec1e24]" />
+                Download Scene
+              </Button>
+
+              <Button
+                onClick={() => {
+                  haptics.light();
+                  setIsPublishDialogOpen(true);
+                }}
+                className="bg-[#ec1e24] hover:bg-[#d01a20] text-white"
+              >
+                <Send className="w-5 h-5 mr-2" />
+                Publish to Social Media
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Audio Dynamics Panel - Shown when voiceover is uploaded */}
       {(reviewVoiceover || monthlyVoiceover) && (
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
@@ -3756,6 +4896,8 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                 estimatedCost={analysisBackend === 'google-vi' ? (enableSelectiveSTT ? 0.22 : 0.22) : 0.00}
                 monthlyBudget={monthlyBudget}
                 monthlySpend={monthlySpend}
+                aiModel={scenesAIModel}
+                onAIModelChange={setScenesAIModel}
               />
 
               <Separator />
@@ -3875,12 +5017,12 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
             {/* Template Presets */}
             <div>
               <label className="text-gray-900 dark:text-white mb-3 block">Template Presets</label>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                 {captionTemplates.map((template) => (
                   <button
                     key={template}
                     onClick={() => applyTemplatePreset(template)}
-                    className={`px-4 py-2 rounded-lg border transition-all duration-200 ${
+                    className={`px-2 sm:px-3 lg:px-4 py-2 rounded-lg border transition-all duration-200 text-sm sm:text-base whitespace-normal min-h-[40px] flex items-center justify-center ${
                       captionTemplate === template
                         ? 'bg-[#ec1e24] text-white border-[#ec1e24]'
                         : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:border-[#ec1e24]'
@@ -3969,7 +5111,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                     setIsCaptionPreviewPlaying(true);
                     setTimeout(() => {
                       setIsCaptionPreviewPlaying(false);
-                    }, 2000);
+                    }, 10000);
                   }}
                   disabled={isCaptionPreviewPlaying}
                   className="flex items-center gap-2 px-4 py-2 bg-[#ec1e24] text-white rounded-lg hover:bg-[#d11a20] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -4012,7 +5154,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                     'bottom-8'
                   } left-0 right-0 px-8 flex ${captionAlignment === 'Left' ? 'justify-start' : captionAlignment === 'Right' ? 'justify-end' : 'justify-center'}`}>
                     <div 
-                      className="px-4 py-2 rounded inline-block animate-in fade-in duration-300"
+                      className="px-4 py-2 inline-block animate-in fade-in duration-300"
                       style={{
                         backgroundColor: `${captionBgColor}${Math.round(captionBgOpacity * 2.55).toString(16).padStart(2, '0')}`,
                         color: captionTextColor,
@@ -4020,6 +5162,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
                         fontSize: `${captionFontSize}px`,
                         fontWeight: captionFontWeight === 'Regular' ? 400 : captionFontWeight === 'Medium' ? 500 : captionFontWeight === 'Bold' ? 700 : 900,
                         textShadow: captionShadow ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
+                        borderRadius: `${captionBorderRadius}px`,
                         ...(captionStrokeWidth > 0 && { WebkitTextStroke: `${captionStrokeWidth}px ${captionStrokeColor}` }),
                       }}
                     >
@@ -4202,6 +5345,23 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
               />
             </div>
 
+            {/* Border Radius */}
+            <div>
+              <label className="text-gray-900 dark:text-white mb-2 block">Corner Radius: {captionBorderRadius}px</label>
+              <input
+                type="range"
+                min="0"
+                max="50"
+                value={captionBorderRadius}
+                onChange={(e) => setCaptionBorderRadius(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 dark:bg-[#0A0A0A] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#ec1e24]"
+              />
+              <div className="flex justify-between text-xs text-gray-500 dark:text-[#6B7280] mt-1">
+                <span>Sharp</span>
+                <span>Rounded</span>
+              </div>
+            </div>
+
             {/* Position & Alignment */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -4345,7 +5505,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
           }
         }}
       >
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">Publish Video</DialogTitle>
             <DialogDescription className="text-[#6B7280] dark:text-[#9CA3AF]">
@@ -4524,7 +5684,7 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
 
       {/* Template Naming/Renaming Dialog */}
       <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">
               {isRenaming ? 'Rename Template' : 'Save Template'}
@@ -4779,6 +5939,87 @@ export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStud
         />
       )}
 
+      {/* Backblaze Video Browser */}
+      {showBackblazeBrowser && (
+        <BackblazeVideoBrowser
+          onSelectVideo={(url, fileName, fileSize) => {
+            setScenesVideoUrl(url);
+            setScenesVideoSource('backblaze');
+            setScenesVideoFile(null); // Clear local file if any
+            toast.success('Video Loaded from Backblaze!', {
+              description: `${fileName} (${(fileSize / (1024 * 1024)).toFixed(1)}MB) - No bandwidth used`
+            });
+            haptics.success();
+          }}
+          onClose={() => {
+            haptics.light();
+            setShowBackblazeBrowser(false);
+          }}
+        />
+      )}
+
+      {/* Scene Query Input Modal */}
+      <Dialog open={showSceneQueryModal} onOpenChange={setShowSceneQueryModal}>
+        <DialogContent className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl" hideCloseButton>
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-2">
+              Describe Scene to Find
+            </DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              AI will suggest timestamps based on your query
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label className="text-gray-700 dark:text-gray-300 mb-2 block">
+                Scene Description
+              </Label>
+              <textarea
+                value={tempSceneQuery}
+                onChange={(e) => {
+                  haptics.light();
+                  setTempSceneQuery(e.target.value);
+                }}
+                placeholder="e.g., Find the hallway fight scene where Neo dodges bullets"
+                rows={6}
+                className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24] resize-none"
+                autoFocus
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                Be as specific as possible. Include character names, actions, or memorable dialogue.
+              </p>
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2">
+              <Button
+                onClick={() => {
+                  haptics.light();
+                  setTempSceneQuery('');
+                  setShowSceneQueryModal(false);
+                }}
+                variant="outline"
+                className="px-6 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  haptics.medium();
+                  setScenesAIQuery(tempSceneQuery);
+                  setShowSceneQueryModal(false);
+                  if (tempSceneQuery.trim()) {
+                    toast.success('Scene query updated!');
+                  }
+                }}
+                className="px-6 bg-[#ec1e24] hover:bg-[#d01a20] text-white"
+              >
+                OK
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

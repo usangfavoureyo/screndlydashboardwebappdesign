@@ -183,12 +183,15 @@ export function ChannelsPage() {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-[#ec1e24] hover:bg-[#d11b20] text-white rounded-xl gap-2">
+            <Button 
+              onClick={() => haptics.light()}
+              className="bg-[#ec1e24] hover:bg-[#d11b20] text-white rounded-xl gap-2"
+            >
               <Plus className="w-4 h-4" />
               Add Channel
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-2xl">
+          <DialogContent className="rounded-2xl" hideCloseButton>
             <DialogHeader>
               <DialogTitle>Add New Channel</DialogTitle>
               <DialogDescription>Enter the channel name and ID to add a new channel.</DialogDescription>
@@ -220,7 +223,10 @@ export function ChannelsPage() {
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="outline"
-                  onClick={() => setIsAddDialogOpen(false)}
+                  onClick={() => {
+                    haptics.light();
+                    setIsAddDialogOpen(false);
+                  }}
                   className="rounded-lg bg-white dark:bg-[#000000]"
                 >
                   Cancel
@@ -239,7 +245,7 @@ export function ChannelsPage() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl" hideCloseButton>
           <DialogHeader>
             <DialogTitle>Edit Channel</DialogTitle>
             <DialogDescription>Update the channel name and ID.</DialogDescription>
@@ -268,7 +274,10 @@ export function ChannelsPage() {
             <div className="flex gap-2 justify-end">
               <Button
                 variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
+                onClick={() => {
+                  haptics.light();
+                  setIsEditDialogOpen(false);
+                }}
                 className="rounded-lg bg-white dark:bg-[#000000]"
               >
                 Cancel

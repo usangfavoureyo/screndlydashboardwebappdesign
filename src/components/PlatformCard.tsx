@@ -99,12 +99,12 @@ export function PlatformCard({ platform, onUpdate, onConnect, onDisconnect }: Pl
   };
 
   return (
-    <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-xl dark:hover:shadow-[0_8px_24px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-1">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
+    <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4 sm:p-6 hover:shadow-xl dark:hover:shadow-[0_8px_24px_rgba(255,255,255,0.12)] transition-all duration-300 hover:-translate-y-1 flex flex-col">
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <button
             onClick={handleIconClick}
-            className="cursor-pointer hover:opacity-80 transition-all duration-300 hover:scale-110 active:scale-95"
+            className="cursor-pointer hover:opacity-80 transition-all duration-300 hover:scale-110 active:scale-95 flex-shrink-0"
             title={`Visit ${platform.name} profile`}
           >
             {platform.id === 'instagram' ? (
@@ -125,93 +125,104 @@ export function PlatformCard({ platform, onUpdate, onConnect, onDisconnect }: Pl
               <div className="text-3xl transition-transform duration-300">{platform.icon}</div>
             )}
           </button>
-          <div>
-            <h3 className="text-gray-900 dark:text-white transition-colors duration-200">{platform.name}</h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-gray-900 dark:text-white transition-colors duration-200 truncate">{platform.name}</h3>
             <div className={`flex items-center gap-1.5 mt-1 ${statusConfig.color} transition-colors duration-200`}>
               <StatusIcon className="w-4 h-4 flex-shrink-0 transition-transform duration-200" />
-              <span className="text-sm leading-none">{statusConfig.label}</span>
+              <span className="text-sm leading-none truncate">{statusConfig.label}</span>
             </div>
           </div>
         </div>
         
-        {/* Connect/Disconnect Button */}
-        <Button
-          onClick={() => platform.connected ? onDisconnect?.(platform.id) : onConnect(platform.id)}
-          variant={platform.connected ? "outline" : "default"}
-          size="sm"
-          className={`transition-all duration-300 hover:scale-105 active:scale-95 ${
-            platform.connected 
-              ? "bg-white dark:bg-[#000000] text-black dark:text-white border-black dark:border-[#333333] hover:bg-gray-100 dark:hover:bg-[#333333] hover:border-gray-800 dark:hover:border-[#444444]" 
-              : "bg-[#ec1e24] hover:bg-[#d11b20] text-white"
-          }`}
-        >
-          {platform.connected ? 'Disconnect' : 'Connect'}
-        </Button>
+        {/* Connect/Disconnect Button - Top Right */}
+        {!platform.connected && (
+          <Button
+            onClick={() => onConnect(platform.id)}
+            variant="default"
+            size="sm"
+            className="transition-all duration-300 hover:scale-105 active:scale-95 flex-shrink-0 bg-[#ec1e24] hover:bg-[#d11b20] text-white"
+          >
+            Connect
+          </Button>
+        )}
+        
+        {platform.connected && (
+          <Button
+            onClick={() => onDisconnect?.(platform.id)}
+            variant="outline"
+            size="sm"
+            className="transition-all duration-300 hover:scale-105 active:scale-95 flex-shrink-0 bg-white dark:bg-[#000000] text-black dark:text-white border-black dark:border-[#333333] hover:bg-gray-100 dark:hover:bg-[#333333] hover:border-gray-800 dark:hover:border-[#444444]"
+          >
+            Disconnect
+          </Button>
+        )}
       </div>
 
-      {platform.connected ? (
-        <div className="space-y-3">
-          {platform.lastPost && (
-            <div className="text-[#6B7280] dark:text-[#9CA3AF] text-sm pb-2 border-b border-gray-200 dark:border-[#374151] transition-colors duration-200">
-              Last post: {platform.lastPost}
+      <div>
+        {platform.connected ? (
+          <div className="space-y-3">
+            {platform.lastPost && (
+              <div className="text-[#6B7280] dark:text-[#9CA3AF] text-sm pb-2 border-b border-gray-200 dark:border-[#374151] transition-colors duration-200">
+                Last post: {platform.lastPost}
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-post</span>
+              <Switch
+                checked={platform.autoPost}
+                onCheckedChange={(checked) => onUpdate(platform.id, { autoPost: checked })}
+              />
             </div>
-          )}
-          
-          <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
-            <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-post</span>
-            <Switch
-              checked={platform.autoPost}
-              onCheckedChange={(checked) => onUpdate(platform.id, { autoPost: checked })}
-            />
-          </div>
 
-          <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
-            <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-thumbnail</span>
-            <Switch
-              checked={platform.autoThumbnail}
-              onCheckedChange={(checked) => onUpdate(platform.id, { autoThumbnail: checked })}
-            />
-          </div>
+            <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-thumbnail</span>
+              <Switch
+                checked={platform.autoThumbnail}
+                onCheckedChange={(checked) => onUpdate(platform.id, { autoThumbnail: checked })}
+              />
+            </div>
 
-          <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
-            <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-caption</span>
-            <Switch
-              checked={platform.autoCaption}
-              onCheckedChange={(checked) => onUpdate(platform.id, { autoCaption: checked })}
-            />
-          </div>
+            <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-caption</span>
+              <Switch
+                checked={platform.autoCaption}
+                onCheckedChange={(checked) => onUpdate(platform.id, { autoCaption: checked })}
+              />
+            </div>
 
-          <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
-            <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-hashtag</span>
-            <Switch
-              checked={platform.autoHashtag}
-              onCheckedChange={(checked) => onUpdate(platform.id, { autoHashtag: checked })}
-            />
-          </div>
+            <div className="flex items-center justify-between hover:bg-gray-50 dark:hover:bg-[#111111] p-2 rounded-lg transition-all duration-200">
+              <span className="text-[#6B7280] dark:text-[#9CA3AF] text-sm">Auto-hashtag</span>
+              <Switch
+                checked={platform.autoHashtag}
+                onCheckedChange={(checked) => onUpdate(platform.id, { autoHashtag: checked })}
+              />
+            </div>
 
-          <Button
-            variant="outline"
-            style={
-              platform.autoPost 
-                ? { backgroundColor: '#ec1e24', borderColor: '#ec1e24' } 
-                : undefined
-            }
-            className={`w-full rounded-lg gap-2 mt-4 transition-all duration-300 hover:scale-105 active:scale-95 ${
-              platform.autoPost 
-                ? "text-white hover:bg-[#d11b20] hover:border-[#d11b20] border-[#ec1e24]" 
-                : "bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-300 dark:border-[#333333] opacity-50 cursor-not-allowed"
-            }`}
-            disabled={!platform.autoPost}
-          >
-            <Send className="w-4 h-4 transition-transform duration-200" />
-            Test Publish
-          </Button>
-        </div>
-      ) : (
-        <div className="text-center py-8 text-[#6B7280] dark:text-[#9CA3AF] text-sm transition-colors duration-200">
-          Click "Connect" to enable automation features
-        </div>
-      )}
+            <Button
+              variant="outline"
+              style={
+                platform.autoPost 
+                  ? { backgroundColor: '#ec1e24', borderColor: '#ec1e24' } 
+                  : undefined
+              }
+              className={`w-full rounded-lg gap-2 mt-4 transition-all duration-300 hover:scale-105 active:scale-95 ${
+                platform.autoPost 
+                  ? "text-white hover:bg-[#d11b20] hover:border-[#d11b20] border-[#ec1e24]" 
+                  : "bg-white dark:bg-[#000000] text-gray-900 dark:text-white border-gray-300 dark:border-[#333333] opacity-50 cursor-not-allowed"
+              }`}
+              disabled={!platform.autoPost}
+            >
+              <Send className="w-4 h-4 transition-transform duration-200" />
+              Test Publish
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center pt-2 pb-4 text-[#6B7280] dark:text-[#9CA3AF] text-sm transition-colors duration-200">
+            Click "Connect" to enable automation features
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -33,6 +33,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.openaiKey || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('openaiKey', e.target.value);
@@ -45,6 +46,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.serperKey || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('serperKey', e.target.value);
@@ -57,6 +59,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.tmdbKey || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('tmdbKey', e.target.value);
@@ -69,6 +72,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.googleVideoIntelligenceKey || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('googleVideoIntelligenceKey', e.target.value);
@@ -81,6 +85,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.shotstackKey || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('shotstackKey', e.target.value);
@@ -93,6 +98,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.videoGoogleSearchApiKey || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('videoGoogleSearchApiKey', e.target.value);
@@ -105,6 +111,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.videoGoogleSearchCx || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('videoGoogleSearchCx', e.target.value);
@@ -117,6 +124,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Input
             type="password"
             value={settings.s3Key || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('s3Key', e.target.value);
@@ -124,46 +132,107 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
         </div>
-        <div>
-          <Label className="text-gray-600 dark:text-[#9CA3AF]">Backblaze B2 Key ID</Label>
-          <Input
-            type="password"
-            value={settings.backblazeKeyId || ''}
-            onChange={(e) => {
-              haptics.light();
-              updateSetting('backblazeKeyId', e.target.value);
-            }}
-            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
-          />
+
+        {/* Backblaze B2 Section - General Bucket */}
+        <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-gray-900 dark:text-white">Backblaze B2 - General Storage</h3>
+          <p className="text-xs text-[#6B7280]">
+            For trailers and general uploads
+          </p>
+          
+          <div>
+            <Label className="text-gray-600 dark:text-[#9CA3AF]">Key ID</Label>
+            <Input
+              type="password"
+              value={settings.backblazeKeyId || ''}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('backblazeKeyId', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-gray-600 dark:text-[#9CA3AF]">Application Key</Label>
+            <Input
+              type="password"
+              value={settings.backblazeApplicationKey || ''}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('backblazeApplicationKey', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-gray-600 dark:text-[#9CA3AF]">Bucket Name</Label>
+            <Input
+              value={settings.backblazeBucketName || ''}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('backblazeBucketName', e.target.value);
+              }}
+              placeholder="my-screndly-bucket"
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+          </div>
         </div>
-        <div>
-          <Label className="text-gray-600 dark:text-[#9CA3AF]">Backblaze B2 Application Key</Label>
-          <Input
-            type="password"
-            value={settings.backblazeApplicationKey || ''}
-            onChange={(e) => {
-              haptics.light();
-              updateSetting('backblazeApplicationKey', e.target.value);
-            }}
-            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
-          />
-        </div>
-        <div>
-          <Label className="text-gray-600 dark:text-[#9CA3AF]">Backblaze B2 Bucket Name</Label>
-          <Input
-            value={settings.backblazeBucketName || ''}
-            onChange={(e) => {
-              haptics.light();
-              updateSetting('backblazeBucketName', e.target.value);
-            }}
-            placeholder="my-screndly-bucket"
-            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
-          />
+
+        {/* Backblaze B2 Section - Videos Bucket */}
+        <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-gray-900 dark:text-white">Backblaze B2 - Videos Bucket</h3>
+          <p className="text-xs text-[#6B7280]">
+            For movies and TV shows (Video Scenes Module)
+          </p>
+          
+          <div>
+            <Label className="text-gray-600 dark:text-[#9CA3AF]">Key ID</Label>
+            <Input
+              type="password"
+              value={settings.backblazeVideosKeyId || ''}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('backblazeVideosKeyId', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-gray-600 dark:text-[#9CA3AF]">Application Key</Label>
+            <Input
+              type="password"
+              value={settings.backblazeVideosApplicationKey || ''}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('backblazeVideosApplicationKey', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-gray-600 dark:text-[#9CA3AF]">Bucket Name</Label>
+            <Input
+              value={settings.backblazeVideosBucketName || ''}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('backblazeVideosBucketName', e.target.value);
+              }}
+              placeholder="screndly-videos"
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+          </div>
         </div>
         <div>
           <Label className="text-gray-600 dark:text-[#9CA3AF]">Redis URL</Label>
           <Input
             value={settings.redisUrl || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('redisUrl', e.target.value);
@@ -175,6 +244,7 @@ export function ApiKeysSettings({ settings, updateSetting, onBack }: ApiKeysSett
           <Label className="text-gray-600 dark:text-[#9CA3AF]">Database URL</Label>
           <Input
             value={settings.databaseUrl || ''}
+            onFocus={() => haptics.light()}
             onChange={(e) => {
               haptics.light();
               updateSetting('databaseUrl', e.target.value);

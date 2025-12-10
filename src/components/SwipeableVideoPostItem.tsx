@@ -95,6 +95,20 @@ export function SwipeableVideoPostItem({ post, onDelete }: SwipeableVideoPostIte
         background: swipeX < 0 ? '#ec1e24' : 'transparent',
       }}
     >
+      {/* Delete indicator - positioned in the red background area */}
+      {swipeX < 0 && (
+        <div
+          className="flex flex-col items-center justify-center gap-1 text-white pointer-events-none lg:hidden absolute inset-y-0 right-0"
+          style={{
+            width: `${Math.abs(swipeX)}px`,
+            opacity: Math.min(Math.abs(swipeX) / 60, 1),
+          }}
+        >
+          <Trash2 className="w-5 h-5" />
+          <span className="text-xs font-medium whitespace-nowrap">Delete</span>
+        </div>
+      )}
+
       {/* Main content container */}
       <div
         onClick={() => haptics.light()}
@@ -104,24 +118,6 @@ export function SwipeableVideoPostItem({ post, onDelete }: SwipeableVideoPostIte
           transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Delete indicator - positioned to appear on red background when swiping */}
-        {swipeX < 0 && (
-          <div
-            className="flex flex-col items-center justify-center gap-1 text-white pointer-events-none lg:hidden"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              right: '16px',
-              transform: `translateX(${-swipeX}px) translateY(-50%)`,
-              opacity: Math.min(Math.abs(swipeX) / 60, 1),
-              zIndex: 2,
-            }}
-          >
-            <Trash2 className="w-5 h-5" />
-            <span className="text-xs font-medium whitespace-nowrap">Delete</span>
-          </div>
-        )}
-
         {/* Desktop delete button - positioned at bottom right */}
         <button
           onClick={(e) => {

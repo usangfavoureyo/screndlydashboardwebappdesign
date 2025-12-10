@@ -285,6 +285,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
               placeholder="Search settings..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => haptics.light()}
               className="pl-10 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white"
             />
             {searchQuery && (

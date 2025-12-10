@@ -50,7 +50,9 @@ export function DesignSystemPage({ onNavigate }: DesignSystemPageProps) {
         <button
           onClick={() => {
             haptics.light();
-            onNavigate('dashboard');
+            // Desktop: go to dashboard, Mobile/Tablet: go to settings
+            const isDesktop = window.innerWidth >= 1024; // lg breakpoint
+            onNavigate(isDesktop ? 'dashboard' : 'settings');
           }}
           className="text-gray-900 dark:text-white hover:text-[#ec1e24] p-2 -ml-2 mt-1"
         >

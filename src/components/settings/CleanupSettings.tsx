@@ -64,11 +64,15 @@ export function CleanupSettings({ settings, updateSetting, onBack }: CleanupSett
             <Input
               type="number"
               value={settings.videoStorageRetention || settings.storageRetention || '48'}
-              onChange={(e) => updateSetting('videoStorageRetention', e.target.value)}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('videoStorageRetention', e.target.value);
+              }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
             <p className="text-xs text-[#6B7280] mt-1">
-              Applies to processed videos
+              Applies to downloaded YouTube trailers
             </p>
           </div>
         </div>
@@ -99,11 +103,15 @@ export function CleanupSettings({ settings, updateSetting, onBack }: CleanupSett
             <Input
               type="number"
               value={settings.imageStorageRetention || settings.storageRetention || '48'}
-              onChange={(e) => updateSetting('imageStorageRetention', e.target.value)}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('imageStorageRetention', e.target.value);
+              }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
             <p className="text-xs text-[#6B7280] mt-1">
-              Applies to RSS feed images
+              Applies to all images: Google images, Serper images (RSS Feeds), TMDb posters, and TMDb backdrops
             </p>
           </div>
         </div>
@@ -135,7 +143,11 @@ export function CleanupSettings({ settings, updateSetting, onBack }: CleanupSett
             <Input
               type="number"
               value={settings.videoStudioStorageRetention || settings.storageRetention || '48'}
-              onChange={(e) => updateSetting('videoStudioStorageRetention', e.target.value)}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('videoStudioStorageRetention', e.target.value);
+              }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
             <p className="text-xs text-[#6B7280] mt-1">

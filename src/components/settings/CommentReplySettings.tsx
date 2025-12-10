@@ -37,7 +37,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
           <Label className="text-[#9CA3AF]">Reply Frequency</Label>
           <Select
             value={settings.commentReplyFrequency}
-            onValueChange={(value) => updateSetting('commentReplyFrequency', value)}
+            onValueChange={(value) => {
+              haptics.light();
+              updateSetting('commentReplyFrequency', value);
+            }}
           >
             <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
               <SelectValue />
@@ -77,19 +80,28 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
           </div>
           <div className="flex justify-between mt-1">
             <button
-              onClick={() => updateSetting('commentThrottle', 'low')}
+              onClick={() => {
+                haptics.light();
+                updateSetting('commentThrottle', 'low');
+              }}
               className="text-xs text-gray-500 dark:text-[#6B7280] hover:text-[#ec1e24]"
             >
               Low
             </button>
             <button
-              onClick={() => updateSetting('commentThrottle', 'medium')}
+              onClick={() => {
+                haptics.light();
+                updateSetting('commentThrottle', 'medium');
+              }}
               className="text-xs text-gray-500 dark:text-[#6B7280] hover:text-[#ec1e24]"
             >
               Medium
             </button>
             <button
-              onClick={() => updateSetting('commentThrottle', 'high')}
+              onClick={() => {
+                haptics.light();
+                updateSetting('commentThrottle', 'high');
+              }}
               className="text-xs text-gray-500 dark:text-[#6B7280] hover:text-[#ec1e24]"
             >
               High
@@ -103,7 +115,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
             <Label className="text-[#9CA3AF]">X (Twitter) Settings</Label>
             <Switch
               checked={settings.xCommentBlacklist.active}
-              onCheckedChange={(checked) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, active: checked })}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, active: checked });
+              }}
             />
           </div>
           <div className="space-y-3 pl-4 border-l-2 border-gray-200 dark:border-[#1F1F1F]">
@@ -111,7 +126,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.xCommentBlacklist.usernames}
-                onChange={(e) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, usernames: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, usernames: e.target.value });
+                }}
                 placeholder="spam_user, troll_account"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -120,7 +138,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.xCommentBlacklist.keywords}
-                onChange={(e) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, keywords: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, keywords: e.target.value });
+                }}
                 placeholder="spam, badword"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -129,21 +150,30 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <span className="text-xs text-[#9CA3AF]">Do not reply to emoji-only comments</span>
               <Switch
                 checked={settings.xCommentBlacklist.noEmojiOnly}
-                onCheckedChange={(checked) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, noEmojiOnly: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, noEmojiOnly: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Do not reply to comments containing links</span>
               <Switch
                 checked={settings.xCommentBlacklist.noLinks}
-                onCheckedChange={(checked) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, noLinks: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, noLinks: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Pause replies on older posts</span>
               <Switch
                 checked={settings.xCommentBlacklist.pauseOldPosts}
-                onCheckedChange={(checked) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, pauseOldPosts: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, pauseOldPosts: checked });
+                }}
               />
             </div>
             {settings.xCommentBlacklist.pauseOldPosts && (
@@ -152,7 +182,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.xCommentBlacklist.pauseAfterHours}
-                  onChange={(e) => updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, pauseAfterHours: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, pauseAfterHours: e.target.value });
+                  }}
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>
@@ -166,7 +199,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
             <Label className="text-[#9CA3AF]">Threads Settings</Label>
             <Switch
               checked={settings.threadsCommentBlacklist.active}
-              onCheckedChange={(checked) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, active: checked })}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, active: checked });
+              }}
             />
           </div>
           <div className="space-y-3 pl-4 border-l-2 border-gray-200 dark:border-[#1F1F1F]">
@@ -174,7 +210,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.threadsCommentBlacklist.usernames}
-                onChange={(e) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, usernames: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, usernames: e.target.value });
+                }}
                 placeholder="spam_user, troll_account"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -183,7 +222,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.threadsCommentBlacklist.keywords}
-                onChange={(e) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, keywords: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, keywords: e.target.value });
+                }}
                 placeholder="spam, badword"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -192,21 +234,30 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <span className="text-xs text-[#9CA3AF]">Do not reply to emoji-only comments</span>
               <Switch
                 checked={settings.threadsCommentBlacklist.noEmojiOnly}
-                onCheckedChange={(checked) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, noEmojiOnly: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, noEmojiOnly: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Do not reply to comments containing links</span>
               <Switch
                 checked={settings.threadsCommentBlacklist.noLinks}
-                onCheckedChange={(checked) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, noLinks: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, noLinks: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Pause replies on older posts</span>
               <Switch
                 checked={settings.threadsCommentBlacklist.pauseOldPosts}
-                onCheckedChange={(checked) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, pauseOldPosts: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, pauseOldPosts: checked });
+                }}
               />
             </div>
             {settings.threadsCommentBlacklist.pauseOldPosts && (
@@ -215,7 +266,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.threadsCommentBlacklist.pauseAfterHours}
-                  onChange={(e) => updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, pauseAfterHours: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, pauseAfterHours: e.target.value });
+                  }}
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>
@@ -229,7 +283,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
             <Label className="text-[#9CA3AF]">Facebook Settings</Label>
             <Switch
               checked={settings.facebookCommentBlacklist.active}
-              onCheckedChange={(checked) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, active: checked })}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, active: checked });
+              }}
             />
           </div>
           <div className="space-y-3 pl-4 border-l-2 border-gray-200 dark:border-[#1F1F1F]">
@@ -237,7 +294,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.facebookCommentBlacklist.usernames}
-                onChange={(e) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, usernames: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, usernames: e.target.value });
+                }}
                 placeholder="spam_user, troll_account"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -246,7 +306,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.facebookCommentBlacklist.keywords}
-                onChange={(e) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, keywords: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, keywords: e.target.value });
+                }}
                 placeholder="spam, badword"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -255,21 +318,30 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <span className="text-xs text-[#9CA3AF]">Do not reply to emoji-only comments</span>
               <Switch
                 checked={settings.facebookCommentBlacklist.noEmojiOnly}
-                onCheckedChange={(checked) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, noEmojiOnly: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, noEmojiOnly: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Do not reply to comments containing links</span>
               <Switch
                 checked={settings.facebookCommentBlacklist.noLinks}
-                onCheckedChange={(checked) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, noLinks: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, noLinks: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Pause replies on older posts</span>
               <Switch
                 checked={settings.facebookCommentBlacklist.pauseOldPosts}
-                onCheckedChange={(checked) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, pauseOldPosts: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, pauseOldPosts: checked });
+                }}
               />
             </div>
             {settings.facebookCommentBlacklist.pauseOldPosts && (
@@ -278,7 +350,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.facebookCommentBlacklist.pauseAfterHours}
-                  onChange={(e) => updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, pauseAfterHours: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, pauseAfterHours: e.target.value });
+                  }}
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>
@@ -292,7 +367,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
             <Label className="text-[#9CA3AF]">Instagram Settings</Label>
             <Switch
               checked={settings.instagramCommentBlacklist.active}
-              onCheckedChange={(checked) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, active: checked })}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, active: checked });
+              }}
             />
           </div>
           <div className="space-y-3 pl-4 border-l-2 border-gray-200 dark:border-[#1F1F1F]">
@@ -300,7 +378,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.instagramCommentBlacklist.usernames}
-                onChange={(e) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, usernames: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, usernames: e.target.value });
+                }}
                 placeholder="spam_user, troll_account"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -309,7 +390,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.instagramCommentBlacklist.keywords}
-                onChange={(e) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, keywords: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, keywords: e.target.value });
+                }}
                 placeholder="spam, badword"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -318,21 +402,30 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <span className="text-xs text-[#9CA3AF]">Do not reply to emoji-only comments</span>
               <Switch
                 checked={settings.instagramCommentBlacklist.noEmojiOnly}
-                onCheckedChange={(checked) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, noEmojiOnly: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, noEmojiOnly: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Do not reply to comments containing links</span>
               <Switch
                 checked={settings.instagramCommentBlacklist.noLinks}
-                onCheckedChange={(checked) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, noLinks: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, noLinks: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Pause replies on older posts</span>
               <Switch
                 checked={settings.instagramCommentBlacklist.pauseOldPosts}
-                onCheckedChange={(checked) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, pauseOldPosts: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, pauseOldPosts: checked });
+                }}
               />
             </div>
             {settings.instagramCommentBlacklist.pauseOldPosts && (
@@ -341,7 +434,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.instagramCommentBlacklist.pauseAfterHours}
-                  onChange={(e) => updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, pauseAfterHours: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, pauseAfterHours: e.target.value });
+                  }}
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>
@@ -355,7 +451,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
             <Label className="text-[#9CA3AF]">YouTube Settings</Label>
             <Switch
               checked={settings.youtubeCommentBlacklist.active}
-              onCheckedChange={(checked) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, active: checked })}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, active: checked });
+              }}
             />
           </div>
           <div className="space-y-3 pl-4 border-l-2 border-gray-200 dark:border-[#1F1F1F]">
@@ -363,7 +462,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.youtubeCommentBlacklist.usernames}
-                onChange={(e) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, usernames: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, usernames: e.target.value });
+                }}
                 placeholder="spam_user, troll_account"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -372,7 +474,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.youtubeCommentBlacklist.keywords}
-                onChange={(e) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, keywords: e.target.value })}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, keywords: e.target.value });
+                }}
                 placeholder="spam, badword"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[60px]"
               />
@@ -381,21 +486,30 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <span className="text-xs text-[#9CA3AF]">Do not reply to emoji-only comments</span>
               <Switch
                 checked={settings.youtubeCommentBlacklist.noEmojiOnly}
-                onCheckedChange={(checked) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, noEmojiOnly: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, noEmojiOnly: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Do not reply to comments containing links</span>
               <Switch
                 checked={settings.youtubeCommentBlacklist.noLinks}
-                onCheckedChange={(checked) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, noLinks: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, noLinks: checked });
+                }}
               />
             </div>
             <div className="flex items-center justify-between">
               <span className="text-xs text-[#9CA3AF]">Pause replies on older posts</span>
               <Switch
                 checked={settings.youtubeCommentBlacklist.pauseOldPosts}
-                onCheckedChange={(checked) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, pauseOldPosts: checked })}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, pauseOldPosts: checked });
+                }}
               />
             </div>
             {settings.youtubeCommentBlacklist.pauseOldPosts && (
@@ -404,7 +518,10 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.youtubeCommentBlacklist.pauseAfterHours}
-                  onChange={(e) => updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, pauseAfterHours: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, pauseAfterHours: e.target.value });
+                  }}
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>

@@ -45,9 +45,9 @@ export function BackblazeVideoBrowser({ onSelectVideo, onClose }: BackblazeVideo
   }, [searchQuery, files]);
 
   const loadFiles = async () => {
-    if (!settings.backblazeKeyId || !settings.backblazeApplicationKey || !settings.backblazeBucketName) {
-      toast.error('Backblaze not configured', {
-        description: 'Please add your Backblaze B2 credentials in Settings'
+    if (!settings.backblazeVideosKeyId || !settings.backblazeVideosApplicationKey || !settings.backblazeVideosBucketName) {
+      toast.error('Backblaze Videos Bucket not configured', {
+        description: 'Add credentials in Settings → API Keys → Videos Bucket'
       });
       return;
     }
@@ -57,9 +57,9 @@ export function BackblazeVideoBrowser({ onSelectVideo, onClose }: BackblazeVideo
 
     try {
       const result = await listBackblazeFiles(
-        settings.backblazeKeyId,
-        settings.backblazeApplicationKey,
-        settings.backblazeBucketName
+        settings.backblazeVideosKeyId,
+        settings.backblazeVideosApplicationKey,
+        settings.backblazeVideosBucketName
       );
 
       if (result.success && result.files) {

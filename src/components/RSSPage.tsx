@@ -7,7 +7,7 @@ import { FeedCard, Feed } from './rss/FeedCard';
 import { FeedEditor } from './rss/FeedEditor';
 import { FeedPreview } from './rss/FeedPreview';
 import { haptics } from '../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import { useSettings } from '../contexts/SettingsContext';
 import { enrichArticleWithImages } from '../lib/rss/image-enrichment';
 import { useUndo } from './UndoContext';

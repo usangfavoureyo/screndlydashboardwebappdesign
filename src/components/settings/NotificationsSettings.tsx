@@ -220,7 +220,7 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
                   haptics.light();
                   updateSetting('toastDuration', parseInt(e.target.value));
                 }}
-                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white"
+                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:outline-none focus:ring-0"
               >
                 <option value={3000}>3 seconds</option>
                 <option value={5000}>5 seconds</option>

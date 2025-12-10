@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { Eye, EyeOff } from 'lucide-react';
+import { haptics } from '../utils/haptics';
 import screndlyLoginLogoDark from 'figma:asset/4befd8c03a67f3889be83b77f34eb6ea0d3f36d2.png';
 import screndlyLoginLogoLight from 'figma:asset/651cd3122e66a0a82c96100f90fea6f2cdcb8b1c.png';
 
@@ -69,7 +70,11 @@ export function LoginPage({ onLogin, onNavigate }: LoginPageProps) {
                 type="email"
                 placeholder="admin@screndly.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setEmail(e.target.value);
+                }}
                 required
                 className="rounded-lg border-gray-300 dark:border-[#333333] placeholder:text-gray-400 dark:placeholder:text-white/30 focus:placeholder:opacity-0"
                 ref={emailInputRef}
@@ -84,7 +89,11 @@ export function LoginPage({ onLogin, onNavigate }: LoginPageProps) {
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => haptics.light()}
+                  onChange={(e) => {
+                    haptics.light();
+                    setPassword(e.target.value);
+                  }}
                   required
                   className="rounded-lg !bg-white dark:!bg-[#000000] border-gray-300 dark:border-[#333333] !text-gray-900 dark:!text-white placeholder:text-gray-400 dark:placeholder:text-white/30 focus:placeholder:opacity-0 autofill:!bg-white dark:autofill:!bg-[#000000] autofill:!text-gray-900 dark:autofill:!text-white pr-10 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
                   style={{
@@ -97,7 +106,10 @@ export function LoginPage({ onLogin, onNavigate }: LoginPageProps) {
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => {
+                    haptics.light();
+                    setShowPassword(!showPassword);
+                  }}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" aria-hidden="true" />
@@ -112,7 +124,10 @@ export function LoginPage({ onLogin, onNavigate }: LoginPageProps) {
               <Checkbox
                 id="remember"
                 checked={rememberMe}
-                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                onCheckedChange={(checked) => {
+                  haptics.light();
+                  setRememberMe(checked as boolean);
+                }}
               />
               <Label htmlFor="remember" className="text-gray-600 dark:text-[#9CA3AF] cursor-pointer">
                 Keep me signed in
@@ -122,6 +137,7 @@ export function LoginPage({ onLogin, onNavigate }: LoginPageProps) {
             <Button
               type="submit"
               className="w-full rounded-lg"
+              onClick={() => haptics.light()}
             >
               Sign in
             </Button>

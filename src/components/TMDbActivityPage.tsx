@@ -6,7 +6,7 @@ import { Textarea } from './ui/textarea';
 import { DatePicker } from './ui/date-picker';
 import { TimePicker } from './ui/time-picker';
 import { haptics } from '../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import { useTMDbPosts } from '../contexts/TMDbPostsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
 import { useUndo } from './UndoContext';

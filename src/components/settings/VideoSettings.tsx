@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Slider } from '../ui/slider';
 import { Separator } from '../ui/separator';
 import { haptics } from '../../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 
 interface VideoSettingsProps {
   settings: any;
@@ -26,6 +26,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
   }, []);
 
   const handleIntervalChange = (value: string) => {
+    haptics.light();
     const minutes = parseInt(value) || 2;
     updateSetting('fetchInterval', value);
     setPollInterval(minutes);
@@ -41,6 +42,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
   };
 
   const handleKeywordsChange = (value: string) => {
+    haptics.light();
     updateSetting('advancedFilters', value);
     
     // Update the poller's custom keywords
@@ -50,6 +52,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
   };
 
   const handlePostIntervalChange = (value: string) => {
+    haptics.light();
     const minutes = parseInt(value) || 10;
     updateSetting('postInterval', value);
     toast.success(`Post interval updated to ${minutes} minute(s)`);
@@ -84,6 +87,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
               min="1"
               max="60"
               value={settings.fetchInterval || pollInterval}
+              onFocus={() => haptics.light()}
               onChange={(e) => handleIntervalChange(e.target.value)}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
@@ -100,6 +104,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
               min="1"
               max="1440"
               value={settings.postInterval || 10}
+              onFocus={() => haptics.light()}
               onChange={(e) => handlePostIntervalChange(e.target.value)}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
@@ -114,6 +119,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
               <Label className="text-[#9CA3AF]">Trailer Keywords (comma-separated)</Label>
               <Input
                 value={settings.advancedFilters || 'trailer, teaser, official, first look, sneak peek'}
+                onFocus={() => haptics.light()}
                 onChange={(e) => handleKeywordsChange(e.target.value)}
                 placeholder="trailer, official, teaser"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
@@ -124,7 +130,11 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
               <Label className="text-[#9CA3AF]">Region Filter (optional)</Label>
               <Input
                 value={settings.regionFilter || ''}
-                onChange={(e) => updateSetting('regionFilter', e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('regionFilter', e.target.value);
+                }}
                 placeholder="US,UK,CA"
                 className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
               />
@@ -234,6 +244,7 @@ export function VideoSettings({ settings, updateSetting, onBack }: VideoSettings
             <Select
               value={settings.videoOpenaiModel || 'gpt-4o-mini'}
               onValueChange={(value) => {
+                haptics.light();
                 updateSetting('videoOpenaiModel', value);
                 toast.success(`AI Model changed to ${value}`);
               }}
@@ -326,6 +337,7 @@ Output Format (JSON):
 IMPORTANT: Return ONLY valid JSON. Use Google Search data for trending context and buzz.
 
 Tone: Platform-aware, optimized for engagement, culturally relevant`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoUniversalCaptionPrompt', e.target.value);
@@ -381,6 +393,7 @@ Guidelines:
 - Use title case
 
 Tone: Professional, SEO-optimized, consistent format`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoYoutubeTitlePrompt', e.target.value);
@@ -434,6 +447,7 @@ Studio: [Studio]
 #MovieTitle #Trailers #Movies #ComingSoon
 
 Tone: Professional, informative, SEO-rich`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoYoutubeDescriptionPrompt', e.target.value);
@@ -484,6 +498,7 @@ Example outputs:
 - Action movie in 4K releasing 2025: ["Movie Trailers", "Action Trailers", "4K Trailers", "Coming Soon 2025"]
 - Horror anime film: ["Anime Trailers", "Movie Trailers", "Horror Trailers"]
 - TV drama for awards season: ["TV Show Trailers", "Awards Season"]`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoYoutubePlaylistPrompt', e.target.value);
@@ -502,6 +517,7 @@ Example outputs:
             <textarea
               id="video-youtube-playlists"
               value={settings.videoYoutubePlaylists || 'Movie Trailers, TV Show Trailers, Movie Clips, Anime Trailers, Horror Trailers, Action Trailers, Comedy Trailers, Documentary Trailers, 4K Trailers, Coming Soon 2025, Awards Season'}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoYoutubePlaylists', e.target.value);

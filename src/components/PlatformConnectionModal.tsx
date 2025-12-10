@@ -218,9 +218,7 @@ export function PlatformConnectionModal({
 
         {step === 'success' && (
           <div className="py-8 flex flex-col items-center justify-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-[#ec1e24]/10 dark:bg-[#ec1e24]/20 flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-[#ec1e24]" />
-            </div>
+            <CheckCircle2 className="w-10 h-10 text-[#ec1e24]" />
             <div className="text-center space-y-2">
               <p className="text-gray-900 dark:text-white">
                 Successfully Connected!

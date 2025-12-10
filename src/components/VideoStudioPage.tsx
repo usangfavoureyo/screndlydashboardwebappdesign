@@ -8,6 +8,7 @@ import { Progress } from './ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
 import { Switch } from './ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { haptics } from '../utils/haptics';
 import { useSettings } from '../contexts/SettingsContext';
 import { InstagramIcon } from './icons/InstagramIcon';
@@ -38,6 +39,7 @@ import { performWebSearch, formatSearchResultsForPrompt, buildSceneSearchQuery }
 
 interface VideoStudioPageProps {
   onNavigate: (page: string) => void;
+  previousPage?: string | null;
   onCaptionEditorChange?: (isOpen: boolean) => void;
 }
 
@@ -46,7 +48,7 @@ type MusicGenre = 'Hip-Hop' | 'Trap' | 'Rap' | 'Pop' | 'Electronic' | 'R&B' | 'H
 type DuckingMode = 'Partial' | 'Full Mute' | 'Adaptive';
 type VideoFitMode = 'contain' | 'cover'; // 'contain' = show letterbox, 'cover' = fill/crop
 
-export function VideoStudioPage({ onNavigate, onCaptionEditorChange }: VideoStudioPageProps) {
+export function VideoStudioPage({ onNavigate, previousPage, onCaptionEditorChange }: VideoStudioPageProps) {
   const { settings } = useSettings();
   const isMountedRef = useRef(true);
   const reviewMusicInputRef = useRef<HTMLInputElement>(null);
@@ -2224,7 +2226,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                         haptics.light();
                       }}
                       placeholder="https://youtube.com/watch?v=..."
-                      className="flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                      className="flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                     />
                     {reviewYoutubeUrls.length > 1 && (
                       <button
@@ -2556,7 +2558,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       const seconds = reviewVideoLength !== 'auto' ? parseInt(reviewVideoLength) % 60 : 0;
                       setReviewVideoLength(String(minutes * 60 + seconds));
                     }}
-                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                   <input
                     type="number"
@@ -2569,7 +2571,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       const seconds = e.target.value === '' ? 0 : parseInt(e.target.value);
                       setReviewVideoLength(String(minutes * 60 + seconds));
                     }}
-                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                 </div>
               </div>
@@ -2965,7 +2967,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                         haptics.light();
                       }}
                       placeholder="https://youtube.com/watch?v=..."
-                      className="flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                      className="flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                     />
                     {monthlyYoutubeUrls.length > 1 && (
                       <button
@@ -3288,7 +3290,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       const seconds = monthlyVideoLength !== 'auto' ? parseInt(monthlyVideoLength) % 60 : 0;
                       setMonthlyVideoLength(String(minutes * 60 + seconds));
                     }}
-                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                   <input
                     type="number"
@@ -3301,7 +3303,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       const seconds = e.target.value === '' ? 0 : parseInt(e.target.value);
                       setMonthlyVideoLength(String(minutes * 60 + seconds));
                     }}
-                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-20 md:w-24 px-3 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white text-center focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                 </div>
               </div>
@@ -3684,7 +3686,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                   size="sm" 
                   variant="outline" 
                   onClick={() => setShowSceneImportDialog(true)}
-                  className="h-8 text-xs border-gray-200 dark:border-[#333333] text-gray-600 dark:text-gray-300"
+                  className="h-8 text-xs border-gray-200 dark:border-[#333333] text-gray-600 dark:text-gray-300 bg-white dark:bg-[#000000]"
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5 mr-1.5 text-[#ec1e24]" />
                   Import Spreadsheet
@@ -3701,7 +3703,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                   haptics.light();
                 }}
                 placeholder="e.g., The Dark Knight"
-                className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#292929]"
               />
 
               {/* Imported Scenes List */}
@@ -3890,7 +3892,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       }}
                       readOnly
                       placeholder="e.g., Find the hallway fight scene"
-                      className="flex-1 px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24] cursor-pointer"
+                      className="flex-1 px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#292929] cursor-pointer"
                     />
                     <Button
                       onClick={handleAIAssistedQuery}
@@ -3971,7 +3973,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                           haptics.light();
                         }}
                         placeholder="HH:MM:SS"
-                        className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                        className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#292929]"
                       />
                     </div>
                     <div>
@@ -3989,7 +3991,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                           haptics.light();
                         }}
                         placeholder="HH:MM:SS"
-                        className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                        className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#292929]"
                       />
                     </div>
                   </div>
@@ -4344,7 +4346,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       setDuckLevel(parseInt(e.target.value));
                       setPromptStatus('outdated');
                     }}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                 </div>
 
@@ -4359,7 +4361,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       setAttackMs(parseInt(e.target.value));
                       setPromptStatus('outdated');
                     }}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                 </div>
 
@@ -4374,7 +4376,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       setReleaseMs(parseInt(e.target.value));
                       setPromptStatus('outdated');
                     }}
-                    className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                    className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                   />
                 </div>
               </div>
@@ -4610,7 +4612,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                               setHookDuration(parseFloat(e.target.value));
                               setPromptStatus('outdated');
                             }}
-                            className={`flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24] ${
+                            className={`flex-1 px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929] ${
                               isHookDurationAuto ? 'opacity-50 cursor-not-allowed' : ''
                             }`}
                           />
@@ -4630,7 +4632,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                             setTrailerAudioVolume(parseInt(e.target.value));
                             setPromptStatus('outdated');
                           }}
-                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                         />
                       </div>
 
@@ -4648,7 +4650,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                             setCrossfadeDuration(parseFloat(e.target.value));
                             setPromptStatus('outdated');
                           }}
-                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#ec1e24]"
+                          className="w-full px-4 py-3 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#292929]"
                         />
                       </div>
                     </div>
@@ -5050,7 +5052,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                       >
                         <div className="font-medium">{template.name}</div>
                         <div className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
-                          {template.fontFamily} • {template.fontSize}px • {template.wordsPerLine} {template.wordsPerLine === 1 ? 'word' : 'words'} per segment
+                          {template.fontFamily} �� {template.fontSize}px • {template.wordsPerLine} {template.wordsPerLine === 1 ? 'word' : 'words'} per segment
                         </div>
                       </button>
                       <div className="relative">
@@ -5248,28 +5250,30 @@ Do not include any other text or explanation. Only return the JSON object.`;
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-gray-900 dark:text-white mb-2 block">Font Family</label>
-                <select
-                  value={captionFontFamily}
-                  onChange={(e) => setCaptionFontFamily(e.target.value)}
-                  className="w-full px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white"
-                >
-                  {fontFamilies.map((font) => (
-                    <option key={font} value={font}>{font}</option>
-                  ))}
-                </select>
+                <Select value={captionFontFamily} onValueChange={setCaptionFontFamily}>
+                  <SelectTrigger className="w-full bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:ring-[#ec1e24]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fontFamilies.map((font) => (
+                      <SelectItem key={font} value={font}>{font}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-gray-900 dark:text-white mb-2 block">Font Weight</label>
-                <select
-                  value={captionFontWeight}
-                  onChange={(e) => setCaptionFontWeight(e.target.value)}
-                  className="w-full px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white"
-                >
-                  {fontWeights.map((weight) => (
-                    <option key={weight} value={weight}>{weight}</option>
-                  ))}
-                </select>
+                <Select value={captionFontWeight} onValueChange={setCaptionFontWeight}>
+                  <SelectTrigger className="w-full bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:ring-[#ec1e24]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fontWeights.map((weight) => (
+                      <SelectItem key={weight} value={weight}>{weight}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -5366,28 +5370,30 @@ Do not include any other text or explanation. Only return the JSON object.`;
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-gray-900 dark:text-white mb-2 block">Position</label>
-                <select
-                  value={captionPosition}
-                  onChange={(e) => setCaptionPosition(e.target.value)}
-                  className="w-full px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white"
-                >
-                  {positions.map((pos) => (
-                    <option key={pos} value={pos}>{pos}</option>
-                  ))}
-                </select>
+                <Select value={captionPosition} onValueChange={setCaptionPosition}>
+                  <SelectTrigger className="w-full bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:ring-[#ec1e24]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {positions.map((pos) => (
+                      <SelectItem key={pos} value={pos}>{pos}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-gray-900 dark:text-white mb-2 block">Alignment</label>
-                <select
-                  value={captionAlignment}
-                  onChange={(e) => setCaptionAlignment(e.target.value)}
-                  className="w-full px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white"
-                >
-                  {alignments.map((align) => (
-                    <option key={align} value={align}>{align}</option>
-                  ))}
-                </select>
+                <Select value={captionAlignment} onValueChange={setCaptionAlignment}>
+                  <SelectTrigger className="w-full bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:ring-[#ec1e24]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {alignments.map((align) => (
+                      <SelectItem key={align} value={align}>{align}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -5439,15 +5445,16 @@ Do not include any other text or explanation. Only return the JSON object.`;
             {/* Animation */}
             <div>
               <label className="text-gray-900 dark:text-white mb-2 block">Animation</label>
-              <select
-                value={captionAnimation}
-                onChange={(e) => setCaptionAnimation(e.target.value)}
-                className="w-full px-4 py-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white"
-              >
-                {animations.map((anim) => (
-                  <option key={anim} value={anim}>{anim}</option>
-                ))}
-              </select>
+              <Select value={captionAnimation} onValueChange={setCaptionAnimation}>
+                <SelectTrigger className="w-full bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white focus:ring-[#ec1e24]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {animations.map((anim) => (
+                    <SelectItem key={anim} value={anim}>{anim}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Words Per Line */}
@@ -5983,7 +5990,7 @@ Do not include any other text or explanation. Only return the JSON object.`;
                 }}
                 placeholder="e.g., Find the hallway fight scene where Neo dodges bullets"
                 rows={6}
-                className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#ec1e24] resize-none"
+                className="w-full px-4 py-3 bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#292929] resize-none"
                 autoFocus
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">

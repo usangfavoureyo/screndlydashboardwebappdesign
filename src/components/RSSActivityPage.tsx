@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import { useRSSFeeds } from '../contexts/RSSFeedsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
 import { useUndo } from './UndoContext';

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent } from './ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { ScrollArea } from './ui/scroll-area';
@@ -172,12 +172,12 @@ export function SceneImportDialog({ isOpen, onClose, onImport }: SceneImportDial
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]" hideCloseButton>
         <div className="flex flex-col gap-2 text-center sm:text-left">
-          <h2 className="text-lg leading-none font-semibold">Import Scenes from Spreadsheet</h2>
-          <p className="text-muted-foreground text-sm">
+          <DialogTitle className="text-lg leading-none font-semibold">Import Scenes from Spreadsheet</DialogTitle>
+          <DialogDescription className="text-muted-foreground text-sm">
             Upload a CSV or Excel file with columns: Movie, Scene Description, Start Time, End Time, Scene Details.
-          </p>
+          </DialogDescription>
         </div>
 
         {!parsedScenes.length ? (
@@ -198,9 +198,7 @@ export function SceneImportDialog({ isOpen, onClose, onImport }: SceneImportDial
               onChange={handleFileSelect}
             />
             <div className="flex flex-col items-center gap-2">
-              <div className="bg-gray-100 p-3 rounded-full">
-                <FileSpreadsheet className="h-6 w-6 text-gray-600" />
-              </div>
+              <FileSpreadsheet className="h-6 w-6 text-gray-600 dark:text-[#9CA3AF]" />
               <p className="text-sm font-medium">Click to browse or drag file here</p>
               <p className="text-xs text-gray-500">Supports .xlsx, .xls, .csv</p>
             </div>

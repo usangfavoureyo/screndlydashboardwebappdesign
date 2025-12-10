@@ -298,7 +298,7 @@ export function SwipeableLogRow({
               haptics.medium();
               onDelete(log.id);
             }}
-            className="hidden lg:flex absolute bottom-2 right-2 items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 transition-colors"
+            className="hidden lg:group-hover:flex absolute bottom-2 right-2 items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 transition-colors"
             title="Delete log entry"
           >
             <Trash2 className="w-4 h-4" />

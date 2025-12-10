@@ -1,7 +1,7 @@
 import { Film, Calendar, CheckCircle, XCircle, Clock, Download, RefreshCw, Share2, Send, Scissors } from 'lucide-react';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
@@ -25,6 +25,9 @@ interface VideoStudioActivityPageProps {
 export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudioActivityPageProps) {
   const { settings } = useSettings();
   const { showUndo } = useUndo();
+  
+  // Tab filter state
+  const [activeTab, setActiveTab] = useState<'review' | 'releases' | 'scenes'>('review');
   
   // Load activities from localStorage
   const [activities, setActivities] = useState<VideoStudioActivity[]>(() => {
@@ -328,10 +331,58 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
 
       {/* Activity Feed */}
       <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-shadow duration-200">
-        <h3 className="text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <button
+            onClick={() => {
+              haptics.light();
+              setActiveTab('review');
+            }}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              activeTab === 'review'
+                ? 'bg-[#ec1e24] text-white'
+                : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1F1F1F]'
+            }`}
+          >
+            Review
+          </button>
+          <button
+            onClick={() => {
+              haptics.light();
+              setActiveTab('releases');
+            }}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              activeTab === 'releases'
+                ? 'bg-[#ec1e24] text-white'
+                : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1F1F1F]'
+            }`}
+          >
+            Releases
+          </button>
+          <button
+            onClick={() => {
+              haptics.light();
+              setActiveTab('scenes');
+            }}
+            className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+              activeTab === 'scenes'
+                ? 'bg-[#ec1e24] text-white'
+                : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-[#1F1F1F]'
+            }`}
+          >
+            Scenes
+          </button>
+        </div>
 
         <div className="space-y-4">
-          {activities.map((activity) => (
+          {activities
+            .filter(activity => {
+              if (activeTab === 'review') return activity.type === 'review';
+              if (activeTab === 'releases') return activity.type === 'monthly';
+              if (activeTab === 'scenes') return activity.type === 'scenes';
+              return true;
+            })
+            .map((activity) => (
             <SwipeableActivityCard
               key={activity.id}
               id={activity.id}

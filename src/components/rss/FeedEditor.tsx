@@ -163,7 +163,12 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        haptics.light();
+      }
+      onClose();
+    }}>
       <SheetContent className="w-full sm:max-w-2xl bg-white dark:bg-[#000000] overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="text-gray-900 dark:text-white">
@@ -184,6 +189,7 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onFocus={() => haptics.light()}
                   placeholder="e.g., Variety - Film News"
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
@@ -193,6 +199,7 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                 <Input
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  onFocus={() => haptics.light()}
                   placeholder="https://example.com/feed"
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
@@ -210,7 +217,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                   value={formData.interval?.toString()}
                   onValueChange={(value) => setFormData({ ...formData, interval: parseInt(value) })}
                 >
-                  <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                  <SelectTrigger 
+                    className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+                    onFocus={() => haptics.light()}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -244,7 +254,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                     filters: { ...formData.filters!, scope: value },
                   })}
                 >
-                  <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                  <SelectTrigger 
+                    className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+                    onFocus={() => haptics.light()}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -277,6 +290,7 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                       <Input
                         value={keyword.text}
                         onChange={(e) => updateKeyword('required', index, 'text', e.target.value)}
+                        onFocus={() => haptics.light()}
                         placeholder="keyword"
                         className="flex-1 bg-white dark:bg-[#000000] text-gray-900 dark:text-white text-sm border-gray-200 dark:border-[#333333]"
                       />
@@ -284,7 +298,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                         value={keyword.matchType}
                         onValueChange={(value) => updateKeyword('required', index, 'matchType', value)}
                       >
-                        <SelectTrigger className="w-28 bg-white dark:bg-[#000000] text-gray-900 dark:text-white text-xs border-gray-200 dark:border-[#333333]">
+                        <SelectTrigger 
+                          className="w-28 bg-white dark:bg-[#000000] text-gray-900 dark:text-white text-xs border-gray-200 dark:border-[#333333]"
+                          onFocus={() => haptics.light()}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -327,6 +344,7 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                       <Input
                         value={keyword.text}
                         onChange={(e) => updateKeyword('blocked', index, 'text', e.target.value)}
+                        onFocus={() => haptics.light()}
                         placeholder="keyword"
                         className="flex-1 bg-white dark:bg-[#000000] text-gray-900 dark:text-white text-sm border-gray-200 dark:border-[#333333]"
                       />
@@ -334,7 +352,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                         value={keyword.matchType}
                         onValueChange={(value) => updateKeyword('blocked', index, 'matchType', value)}
                       >
-                        <SelectTrigger className="w-28 bg-white dark:bg-[#000000] text-gray-900 dark:text-white text-xs border-gray-200 dark:border-[#333333]">
+                        <SelectTrigger 
+                          className="w-28 bg-white dark:bg-[#000000] text-gray-900 dark:text-white text-xs border-gray-200 dark:border-[#333333]"
+                          onFocus={() => haptics.light()}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -370,7 +391,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                   value={formData.imageCount}
                   onValueChange={(value: any) => setFormData({ ...formData, imageCount: value })}
                 >
-                  <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                  <SelectTrigger 
+                    className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+                    onFocus={() => haptics.light()}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -405,7 +429,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                           },
                         })}
                       >
-                        <SelectTrigger className="bg-white dark:bg-[#000000] text-gray-900 dark:text-white mt-1 text-sm border-gray-200 dark:border-[#333333]">
+                        <SelectTrigger 
+                          className="bg-white dark:bg-[#000000] text-gray-900 dark:text-white mt-1 text-sm border-gray-200 dark:border-[#333333]"
+                          onFocus={() => haptics.light()}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -433,6 +460,7 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                   type="number"
                   value={formData.dedupeDays}
                   onChange={(e) => setFormData({ ...formData, dedupeDays: parseInt(e.target.value) })}
+                  onFocus={() => haptics.light()}
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>
@@ -443,7 +471,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                   value={(formData as any).trickle || 'newest_first'}
                   onValueChange={(value) => setFormData({ ...formData, trickle: value } as any)}
                 >
-                  <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                  <SelectTrigger 
+                    className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+                    onFocus={() => haptics.light()}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

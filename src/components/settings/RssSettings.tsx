@@ -2,7 +2,7 @@ import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Input } from '../ui/input';
 import { Slider } from '../ui/slider';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import { haptics } from '../../utils/haptics';
 
 interface RssSettingsProps {
@@ -174,7 +174,10 @@ Guidelines:
           <Label className="text-[#6B7280] dark:text-[#9CA3AF]">Log Level</Label>
           <Select
             value={settings.rssLogLevel}
-            onValueChange={(value) => updateSetting('rssLogLevel', value)}
+            onValueChange={(value) => {
+              haptics.light();
+              updateSetting('rssLogLevel', value);
+            }}
           >
             <SelectTrigger className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
               <SelectValue />

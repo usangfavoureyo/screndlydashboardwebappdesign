@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Plus, Trash2, Edit } from 'lucide-react';
 import { haptics } from '../utils/haptics';
 import { youtubePoller } from '../utils/youtube-poller';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import type { Channel } from '../utils/youtube-rss';
 import { useUndo } from './UndoContext';
 

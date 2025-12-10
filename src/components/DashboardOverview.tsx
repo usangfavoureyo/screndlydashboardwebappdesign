@@ -138,7 +138,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             <div className="flex items-center gap-3">
               <Video className="w-6 h-6 text-[#ec1e24]" />
               <div>
-                <h3 className="text-gray-900 dark:text-white">Videos</h3>
+                <h3 className="text-gray-900 dark:text-white">Video</h3>
                 <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Active video monitoring</p>
               </div>
             </div>

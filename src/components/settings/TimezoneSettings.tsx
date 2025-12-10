@@ -3,7 +3,7 @@ import { Label } from '../ui/label';
 import { Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { haptics } from '../../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 
 interface TimezoneSettingsProps {
   onBack: () => void;

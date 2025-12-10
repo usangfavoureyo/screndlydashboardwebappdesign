@@ -194,7 +194,10 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
             <Label htmlFor="openai-model" className="text-[#9CA3AF]">Generate LLM Prompt AI Model</Label>
             <Select
               value={settings.openaiModel}
-              onValueChange={(value) => updateSetting('openaiModel', value)}
+              onValueChange={(value) => {
+                haptics.light();
+                updateSetting('openaiModel', value);
+              }}
             >
               <SelectTrigger id="openai-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
                 <SelectValue />
@@ -215,8 +218,6 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
 
         {/* Operational Settings */}
         <div className="space-y-4">
-          <h3 className="text-gray-900 dark:text-white">Operational Settings</h3>
-
           {/* Temperature */}
           <div>
             <Label htmlFor="temperature" className="text-[#9CA3AF]">Temperature</Label>
@@ -298,103 +299,108 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
 
         <Separator className="bg-gray-200 dark:bg-[#1F1F1F]" />
 
-        {/* Bandwidth Optimization */}
+        {/* Caption Generation Settings */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-gray-900 dark:text-white">Bandwidth Optimization</h3>
+            <h3 className="text-gray-900 dark:text-white">Caption Generation</h3>
             <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF] mt-1">
-              Reduce data usage with smart video processing features
+              Configure AI prompts for generating social media captions. Each section uses its own specialized prompt.
             </p>
           </div>
 
-          {/* Enable HTTP Range Requests */}
-          <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <label className="text-gray-900 dark:text-white">HTTP Range Requests</label>
-              </div>
-              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-                Download only needed video segments when cutting scenes. Requires keyframe indexing.
-              </p>
-              <p className="text-xs text-[#ec1e24] mt-2">
-                Saves bandwidth: ~70-90% for short clips from long videos
-              </p>
-            </div>
-            <Switch
-              checked={globalSettings.videoStudioRangeRequestsEnabled || false}
-              onCheckedChange={(checked) => {
-                haptics.medium();
-                updateGlobalSetting('videoStudioRangeRequestsEnabled', checked);
-                toast.success(checked ? 'Range Requests enabled' : 'Range Requests disabled');
-              }}
-            />
+          {/* Caption AI Model */}
+          <div>
+            <Label htmlFor="caption-model" className="text-[#9CA3AF]">Caption AI Model</Label>
+            <Select
+              value={settings.captionOpenaiModel}
+              onValueChange={(value) => updateSetting('captionOpenaiModel', value)}
+            >
+              <SelectTrigger id="caption-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
+                <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cost-Efficient)</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                <SelectItem value="gpt-4">GPT-4</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Model used to generate social media captions from video voiceovers
+            </p>
           </div>
 
-          {/* Enable Resumable Uploads */}
-          <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <label className="text-gray-900 dark:text-white">Resumable Uploads</label>
-              </div>
-              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-                Auto-resume uploads if network fails or app closes. Works for Review, Releases, and Scenes sections.
-              </p>
+          {/* Caption Temperature */}
+          <div>
+            <Label htmlFor="caption-temperature" className="text-[#9CA3AF]">Caption Temperature</Label>
+            <div className="flex gap-3 items-center mt-1">
+              <Input
+                id="caption-temperature"
+                type="number"
+                min="0"
+                max="2"
+                step="0.1"
+                value={settings.captionTemperature}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  updateSetting('captionTemperature', isNaN(val) ? 0.7 : val);
+                }}
+                className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white focus:border-[#292929] dark:focus:border-[#292929] focus:outline-none focus:ring-1 focus:ring-[#292929]"
+              />
+              <span className="text-sm text-[#6B7280] dark:text-[#9CA3AF] whitespace-nowrap min-w-[100px]">
+                {settings.captionTemperature < 0.3 ? 'Precise' : settings.captionTemperature < 0.7 ? 'Balanced' : settings.captionTemperature < 1.2 ? 'Creative' : 'Very Creative'}
+              </span>
             </div>
-            <Switch
-              checked={globalSettings.videoStudioResumableUploadsEnabled || true}
-              onCheckedChange={(checked) => {
-                haptics.medium();
-                updateGlobalSetting('videoStudioResumableUploadsEnabled', checked);
-                toast.success(checked ? 'Resumable uploads enabled' : 'Resumable uploads disabled');
-              }}
-            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Recommended: 0.7 — Balances creativity with consistency
+            </p>
           </div>
 
-          {/* Auto-generate Keyframe Index */}
-          {globalSettings.videoStudioRangeRequestsEnabled && (
-            <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <label className="text-gray-900 dark:text-white">Auto-generate Keyframe Index</label>
-                </div>
-                <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
-                  Automatically analyze videos during upload to create keyframe index for range requests
-                </p>
-              </div>
-              <Switch
-                checked={globalSettings.videoStudioAutoKeyframeIndex || true}
-                onCheckedChange={(checked) => {
-                  haptics.medium();
-                  updateGlobalSetting('videoStudioAutoKeyframeIndex', checked);
-                  toast.success(checked ? 'Auto keyframe indexing enabled' : 'Auto keyframe indexing disabled');
-                }}
-              />
-            </div>
-          )}
+          {/* Review Section Caption Prompt */}
+          <div>
+            <Label htmlFor="caption-review-prompt" className="text-[#9CA3AF]">Review Section Caption Prompt</Label>
+            <Textarea
+              id="caption-review-prompt"
+              value={settings.captionReviewPrompt}
+              onChange={(e) => updateSetting('captionReviewPrompt', e.target.value)}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[200px] font-mono text-xs focus:border-[#292929] dark:focus:border-[#292929] focus:outline-none focus:ring-1 focus:ring-[#292929]"
+              placeholder="Enter prompt for Review captions..."
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              For review-driven content about movies or TV shows (120-250 characters, no emojis)
+            </p>
+          </div>
 
-          {/* Upload Chunk Size */}
-          {globalSettings.videoStudioResumableUploadsEnabled && (
-            <div>
-              <Label htmlFor="upload-chunk-size" className="text-[#9CA3AF]">
-                Upload Chunk Size: {globalSettings.videoStudioUploadChunkSize || 10}MB
-              </Label>
-              <Slider
-                id="upload-chunk-size"
-                min={5}
-                max={100}
-                step={5}
-                value={[globalSettings.videoStudioUploadChunkSize || 10]}
-                onValueChange={(value) => {
-                  haptics.light();
-                  updateGlobalSetting('videoStudioUploadChunkSize', value[0]);
-                }}
-                className="mt-2"
-              />
-              <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
-                Size of each upload chunk (5-100MB). Smaller chunks = more resilient, larger chunks = faster uploads.
-              </p>
-            </div>
-          )}
+          {/* Releases Section Caption Prompt */}
+          <div>
+            <Label htmlFor="caption-releases-prompt" className="text-[#9CA3AF]">Releases Section Caption Prompt</Label>
+            <Textarea
+              id="caption-releases-prompt"
+              value={settings.captionReleasesPrompt}
+              onChange={(e) => updateSetting('captionReleasesPrompt', e.target.value)}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[200px] font-mono text-xs focus:border-[#292929] dark:focus:border-[#292929] focus:outline-none focus:ring-1 focus:ring-[#292929]"
+              placeholder="Enter prompt for Releases captions..."
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              For upcoming or newly released titles for the month (120-250 characters, no emojis)
+            </p>
+          </div>
+
+          {/* Scenes Section Caption Prompt */}
+          <div>
+            <Label htmlFor="caption-scenes-prompt" className="text-[#9CA3AF]">Scenes Section Caption Prompt</Label>
+            <Textarea
+              id="caption-scenes-prompt"
+              value={settings.captionScenesPrompt}
+              onChange={(e) => updateSetting('captionScenesPrompt', e.target.value)}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[200px] font-mono text-xs focus:border-[#292929] dark:focus:border-[#292929] focus:outline-none focus:ring-1 focus:ring-[#292929]"
+              placeholder="Enter prompt for Scenes captions..."
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              For scene-based clips cut from movies or shows (120-250 characters, no emojis)
+            </p>
+          </div>
         </div>
 
         <Separator className="bg-gray-200 dark:bg-[#1F1F1F]" />

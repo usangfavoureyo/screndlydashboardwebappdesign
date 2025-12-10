@@ -84,9 +84,9 @@ export function SubtitleTimestampAssist({ videoFileName, onSelectTimestamp, onSu
   };
 
   const loadBackblazeSubtitles = async () => {
-    if (!settings.backblazeKeyId || !settings.backblazeApplicationKey || !settings.backblazeBucketName) {
-      toast.error('Backblaze not configured', {
-        description: 'Add credentials in Settings → Video Studio'
+    if (!settings.backblazeVideosKeyId || !settings.backblazeVideosApplicationKey || !settings.backblazeVideosBucketName) {
+      toast.error('Backblaze Videos Bucket not configured', {
+        description: 'Add credentials in Settings → API Keys → Videos Bucket'
       });
       return;
     }
@@ -96,9 +96,9 @@ export function SubtitleTimestampAssist({ videoFileName, onSelectTimestamp, onSu
 
     try {
       const result = await listBackblazeFiles(
-        settings.backblazeKeyId,
-        settings.backblazeApplicationKey,
-        settings.backblazeBucketName
+        settings.backblazeVideosKeyId,
+        settings.backblazeVideosApplicationKey,
+        settings.backblazeVideosBucketName
       );
 
       if (result.success && result.files) {

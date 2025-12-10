@@ -85,7 +85,7 @@ export function AppContent() {
   };
 
   const handleNavigate = (page: string, fromPage?: string) => {
-    const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info'];
+    const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info', 'design-system'];
     
     // Handle special settings sub-pages
     const settingsPages = ['settings-comment-reply', 'settings-apikeys', 'settings-video', 'settings-rss', 'settings-tmdb', 'settings-videostudio', 'settings-error', 'settings-cleanup', 'settings-haptic', 'settings-appearance', 'settings-notifications'];
@@ -127,7 +127,7 @@ export function AppContent() {
   const toggleSettings = () => {
     if (!isSettingsOpen) {
       // Save current page before opening settings
-      const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info'];
+      const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info', 'design-system'];
       if (!staticPages.includes(currentPage)) {
         setPageBeforeSettings(currentPage);
       }
@@ -138,7 +138,7 @@ export function AppContent() {
 
   const handleCloseSettings = () => {
     setIsSettingsOpen(false);
-    const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info'];
+    const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info', 'design-system'];
     // If currently on a static page, go back to the page before settings
     if (staticPages.includes(currentPage)) {
       setCurrentPage(pageBeforeSettings);

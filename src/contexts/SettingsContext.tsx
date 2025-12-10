@@ -12,6 +12,9 @@ export interface Settings {
   backblazeKeyId: string;
   backblazeApplicationKey: string;
   backblazeBucketName: string;
+  backblazeVideosKeyId: string;
+  backblazeVideosApplicationKey: string;
+  backblazeVideosBucketName: string;
   redisUrl: string;
   databaseUrl: string;
   videoGoogleSearchApiKey: string;
@@ -170,6 +173,9 @@ function getDefaultSettings(): Settings {
     backblazeKeyId: '',
     backblazeApplicationKey: '',
     backblazeBucketName: '',
+    backblazeVideosKeyId: '',
+    backblazeVideosApplicationKey: '',
+    backblazeVideosBucketName: '',
     redisUrl: 'redis://localhost:6379',
     databaseUrl: 'postgresql://localhost/screndly',
     videoGoogleSearchApiKey: '',

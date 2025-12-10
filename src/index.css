@@ -467,14 +467,14 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--brand-red);
     outline-offset: 2px;
     border-radius: var(--radius-xs);
+    outline: 2px solid #292929;
   }
 
   button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [role="button"]:focus-visible, [tabindex]:not([tabindex="-1"]):focus-visible {
-    outline: 2px solid var(--brand-red);
     outline-offset: 2px;
+    outline: 2px solid #292929;
   }
 
   a:not([class]) {
@@ -4049,6 +4049,10 @@
     }
   }
 
+  .focus\:border-\[\#292929\]:focus {
+    border-color: #292929;
+  }
+
   .focus\:border-\[\#ec1e24\]:focus {
     border-color: #ec1e24;
   }
@@ -4074,9 +4078,23 @@
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
 
+  .focus\:ring-0:focus {
+    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+
+  .focus\:ring-1:focus {
+    --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+
   .focus\:ring-2:focus {
     --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+
+  .focus\:ring-\[\#292929\]:focus {
+    --tw-ring-color: #292929;
   }
 
   .focus\:ring-\[\#ec1e24\]:focus {
@@ -4117,6 +4135,10 @@
     opacity: 0;
   }
 
+  .focus-visible\:border-\[\#292929\]:focus-visible {
+    border-color: #292929;
+  }
+
   .focus-visible\:border-ring:focus-visible {
     border-color: var(--ring);
   }
@@ -4129,6 +4151,10 @@
   .focus-visible\:ring-\[3px\]:focus-visible {
     --tw-ring-shadow: var(--tw-ring-inset, ) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+
+  .focus-visible\:ring-\[\#292929\]\/50:focus-visible {
+    --tw-ring-color: oklab(28.094% 1.49012e-8 1.49012e-8 / .5);
   }
 
   .focus-visible\:ring-destructive\/20:focus-visible {
@@ -5025,6 +5051,14 @@
     }
   }
 
+  @media (width >= 64rem) {
+    @media (hover: hover) {
+      .lg\:group-hover\:flex:is(:where(.group):hover *) {
+        display: flex;
+      }
+    }
+  }
+
   .dark\:block:is(.dark *) {
     display: block;
   }
@@ -5233,10 +5267,6 @@
 
   .dark\:bg-\[\#ec1e24\]\/10:is(.dark *) {
     background-color: oklab(60.2029% .207399 .106284 / .1);
-  }
-
-  .dark\:bg-\[\#ec1e24\]\/20:is(.dark *) {
-    background-color: oklab(60.2029% .207399 .106284 / .2);
   }
 
   .dark\:bg-amber-900\/20:is(.dark *) {
@@ -5890,12 +5920,20 @@
     }
   }
 
+  .dark\:focus\:border-\[\#292929\]:is(.dark *):focus {
+    border-color: #292929;
+  }
+
   .dark\:focus\:bg-\[\#000000\]:is(.dark *):focus {
     background-color: #000;
   }
 
   .dark\:focus\:bg-\[\#ec1e24\]\/10:is(.dark *):focus {
     background-color: oklab(60.2029% .207399 .106284 / .1);
+  }
+
+  .dark\:focus-visible\:border-\[\#292929\]:is(.dark *):focus-visible {
+    border-color: #292929;
   }
 
   .dark\:focus-visible\:ring-destructive\/40:is(.dark *):focus-visible {
@@ -6364,7 +6402,7 @@
   --switch-background: #cbced4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(.708 0 0);
+  --ring: #292929;
   --chart-1: oklch(.646 .222 41.116);
   --chart-2: oklch(.6 .118 184.704);
   --chart-3: oklch(.398 .07 227.392);
@@ -6407,7 +6445,7 @@
   --border: oklch(.269 0 0);
   --input: oklch(.269 0 0);
   --input-background: #000;
-  --ring: oklch(.439 0 0);
+  --ring: #292929;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --chart-1: oklch(.488 .243 264.376);

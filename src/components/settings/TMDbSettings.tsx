@@ -256,7 +256,6 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-[#ec1e24]">•</span>
               <span className="text-gray-900 dark:text-white">Today's Releases Prompt</span>
             </div>
             <svg
@@ -296,7 +295,6 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-[#ec1e24]">•</span>
               <span className="text-gray-900 dark:text-white">Weekly Releases Prompt</span>
             </div>
             <svg
@@ -336,7 +334,6 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-[#ec1e24]">•</span>
               <span className="text-gray-900 dark:text-white">Monthly Previews Prompt</span>
             </div>
             <svg
@@ -376,7 +373,6 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-[#0A0A0A] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-[#ec1e24]">•</span>
               <span className="text-gray-900 dark:text-white">Anniversaries Prompt</span>
             </div>
             <svg
@@ -588,7 +584,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-[#9CA3AF]">Rehost Images to S3</span>
+          <span className="text-[#9CA3AF]">Rehost Image to storage</span>
           <Switch
             checked={tmdbSettings.rehostImages}
             onCheckedChange={(checked) => updateSetting('rehostImages', checked)}

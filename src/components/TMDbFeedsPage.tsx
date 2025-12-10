@@ -4,7 +4,7 @@ import { TMDbStatsPanel } from './tmdb/TMDbStatsPanel';
 import { TMDbFeedCard } from './tmdb/TMDbFeedCard';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 import { useTMDbPosts } from '../contexts/TMDbPostsContext';
 import { useUndo } from './UndoContext';
 

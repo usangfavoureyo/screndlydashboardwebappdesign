@@ -203,7 +203,11 @@ export function ChannelsPage() {
                   id="channel-name"
                   placeholder="e.g., Warner Bros. Pictures"
                   value={newChannelName}
-                  onChange={(e) => setNewChannelName(e.target.value)}
+                  onFocus={() => haptics.light()}
+                  onChange={(e) => {
+                    haptics.light();
+                    setNewChannelName(e.target.value);
+                  }}
                   className="rounded-lg"
                 />
               </div>
@@ -213,7 +217,11 @@ export function ChannelsPage() {
                   id="channel-id"
                   placeholder="e.g., @warnerbros or UCjmJDM5pRKbUlVIzDYYWb6g"
                   value={newChannelId}
-                  onChange={(e) => setNewChannelId(e.target.value)}
+                  onFocus={() => haptics.light()}
+                  onChange={(e) => {
+                    haptics.light();
+                    setNewChannelId(e.target.value);
+                  }}
                   className="rounded-lg"
                 />
                 <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">
@@ -257,7 +265,11 @@ export function ChannelsPage() {
                 id="edit-channel-name"
                 placeholder="e.g., Warner Bros. Pictures"
                 value={editChannelName}
-                onChange={(e) => setEditChannelName(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setEditChannelName(e.target.value);
+                }}
                 className="rounded-lg"
               />
             </div>
@@ -267,7 +279,11 @@ export function ChannelsPage() {
                 id="edit-channel-id"
                 placeholder="e.g., @warnerbros"
                 value={editChannelId}
-                onChange={(e) => setEditChannelId(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setEditChannelId(e.target.value);
+                }}
                 className="rounded-lg"
               />
             </div>

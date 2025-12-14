@@ -315,6 +315,221 @@ export function VideoStudioSettings({ onSave, onBack }: VideoStudioSettingsProps
 
         <Separator className="bg-gray-200 dark:bg-[#1F1F1F]" />
 
+        {/* Caption Generation Settings */}
+        <div className="space-y-4">
+          <h3 className="text-gray-900 dark:text-white">Caption Generation</h3>
+
+          <div>
+            <Label htmlFor="caption-model" className="text-[#9CA3AF]">Caption AI Model</Label>
+            <Select
+              value={settings.captionOpenaiModel}
+              onValueChange={(value) => {
+                haptics.light();
+                updateSetting('captionOpenaiModel', value);
+              }}
+            >
+              <SelectTrigger id="caption-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
+                <SelectItem value="gpt-4o-mini">GPT-4o Mini (Cost-Efficient)</SelectItem>
+                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                <SelectItem value="gpt-4">GPT-4</SelectItem>
+                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Model used to generate social media captions from voiceover transcripts
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="caption-temperature" className="text-[#9CA3AF]">Caption Temperature</Label>
+            <div className="flex gap-3 items-center mt-1">
+              <Input
+                id="caption-temperature"
+                type="number"
+                min="0"
+                max="2"
+                step="0.1"
+                value={settings.captionTemperature}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  updateSetting('captionTemperature', parseFloat(e.target.value));
+                }}
+                className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white"
+              />
+              <span className="text-sm text-[#6B7280] dark:text-[#9CA3AF] whitespace-nowrap min-w-[100px]">
+                {settings.captionTemperature < 0.5 ? 'Focused' : settings.captionTemperature < 1 ? 'Balanced' : 'Creative'}
+              </span>
+            </div>
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Recommended: 0.7 — Balanced creativity for engaging captions
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="caption-max-tokens" className="text-[#9CA3AF]">Caption Max Tokens</Label>
+            <Input
+              id="caption-max-tokens"
+              type="number"
+              min="100"
+              max="1000"
+              step="50"
+              value={settings.captionMaxTokens}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('captionMaxTokens', parseInt(e.target.value));
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Maximum tokens for caption generation (Recommended: 500)
+            </p>
+          </div>
+
+          {/* Caption Options */}
+          <div>
+            <Label htmlFor="caption-tone" className="text-[#9CA3AF]">Caption Tone</Label>
+            <Select
+              value={settings.captionTone}
+              onValueChange={(value) => {
+                haptics.light();
+                updateSetting('captionTone', value);
+              }}
+            >
+              <SelectTrigger id="caption-tone" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="engaging">Engaging</SelectItem>
+                <SelectItem value="hype">Hype & Excitement</SelectItem>
+                <SelectItem value="professional">Professional</SelectItem>
+                <SelectItem value="casual">Casual & Friendly</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Overall tone and style for generated captions
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="caption-max-length" className="text-[#9CA3AF]">Caption Max Length</Label>
+            <Input
+              id="caption-max-length"
+              type="number"
+              min="100"
+              max="500"
+              step="10"
+              value={settings.captionMaxLength}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('captionMaxLength', parseInt(e.target.value));
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Maximum character length for generated captions (Recommended: 250-280)
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="caption-emojis" className="text-[#9CA3AF]">Include Emojis</Label>
+            <Switch
+              id="caption-emojis"
+              checked={settings.captionIncludeEmojis}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('captionIncludeEmojis', checked);
+              }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="caption-hashtags" className="text-[#9CA3AF]">Include Hashtags</Label>
+            <Switch
+              id="caption-hashtags"
+              checked={settings.captionIncludeHashtags}
+              onCheckedChange={(checked) => {
+                haptics.light();
+                updateSetting('captionIncludeHashtags', checked);
+              }}
+            />
+          </div>
+        </div>
+
+        <Separator className="bg-gray-200 dark:bg-[#1F1F1F]" />
+
+        {/* Section-Specific Caption Prompts */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-gray-900 dark:text-white">Section-Specific Caption Prompts</h3>
+            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+              Customize caption generation prompts for different content types
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="caption-review-prompt" className="text-[#9CA3AF]">Review Caption Prompt</Label>
+            <Textarea
+              id="caption-review-prompt"
+              value={settings.captionReviewPrompt}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('captionReviewPrompt', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[200px] font-mono text-xs"
+              placeholder="Enter caption prompt for review content..."
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Prompt used for generating captions for review-driven content
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="caption-releases-prompt" className="text-[#9CA3AF]">Releases Caption Prompt</Label>
+            <Textarea
+              id="caption-releases-prompt"
+              value={settings.captionReleasesPrompt}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('captionReleasesPrompt', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[200px] font-mono text-xs"
+              placeholder="Enter caption prompt for monthly releases..."
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Prompt used for generating captions for upcoming or newly released titles
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="caption-scenes-prompt" className="text-[#9CA3AF]">Scenes Caption Prompt</Label>
+            <Textarea
+              id="caption-scenes-prompt"
+              value={settings.captionScenesPrompt}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('captionScenesPrompt', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1 min-h-[200px] font-mono text-xs"
+              placeholder="Enter caption prompt for scene-based content..."
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-2">
+              Prompt used for generating captions for specific scene clips
+            </p>
+          </div>
+        </div>
+
+        <Separator className="bg-gray-200 dark:bg-[#1F1F1F]" />
+
         {/* Activity Retention Section */}
         <div className="space-y-4">
           <div>

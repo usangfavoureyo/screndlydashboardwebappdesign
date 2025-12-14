@@ -188,7 +188,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                 <Label className="text-gray-600 dark:text-[#9CA3AF]">Feed Name</Label>
                 <Input
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    setFormData({ ...formData, name: e.target.value });
+                  }}
                   onFocus={() => haptics.light()}
                   placeholder="e.g., Variety - Film News"
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
@@ -198,7 +201,10 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                 <Label className="text-gray-600 dark:text-[#9CA3AF]">Feed URL</Label>
                 <Input
                   value={formData.url}
-                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  onChange={(e) => {
+                    haptics.light();
+                    setFormData({ ...formData, url: e.target.value });
+                  }}
                   onFocus={() => haptics.light()}
                   placeholder="https://example.com/feed"
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"

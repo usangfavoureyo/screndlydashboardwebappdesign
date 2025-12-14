@@ -95,7 +95,13 @@ export function FeedCard({
     instagram: InstagramIcon,
   };
 
-  const domain = new URL(feed.url).hostname.replace('www.', '');
+  let domain = '';
+  try {
+    domain = new URL(feed.url).hostname.replace('www.', '');
+  } catch (e) {
+    // Invalid URL, use empty string or fallback
+    domain = feed.url || '';
+  }
 
   return (
     <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200">

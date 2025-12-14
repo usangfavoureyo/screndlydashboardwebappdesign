@@ -616,7 +616,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
                         }
                         haptics.light();
                         onNavigate(item.id);
-                        onClose(); // Close settings panel after navigation
+                        // Don't call onClose() here - handleNavigate handles closing settings for static pages
                       }} 
                       className="block text-gray-600 dark:text-[#9CA3AF] hover:text-[#ec1e24] text-left w-full px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] rounded-lg transition-colors"
                     >

@@ -108,10 +108,6 @@ export function AppContent() {
       // Reset to login page (used when going back from static pages in unauthenticated state)
       setCurrentPage('dashboard');
     } else {
-      // If navigating to a static page, close settings first
-      if (staticPages.includes(page)) {
-        setIsSettingsOpen(false);
-      }
       // Track where we came from (if provided)
       if (fromPage) {
         setPreviousPage(fromPage);
@@ -120,6 +116,10 @@ export function AppContent() {
         setPreviousPage(currentPage);
       }
       setCurrentPage(page);
+      // If navigating to a static page, close settings after setting the page
+      if (staticPages.includes(page)) {
+        setIsSettingsOpen(false);
+      }
       // Reset scroll position instantly without animation
       window.scrollTo(0, 0);
     }

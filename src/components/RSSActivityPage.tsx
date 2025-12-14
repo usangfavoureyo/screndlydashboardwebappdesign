@@ -6,6 +6,7 @@ import { toast } from 'sonner@2.0.3';
 import { useRSSFeeds } from '../contexts/RSSFeedsContext';
 import { SwipeableActivityCard } from './SwipeableActivityCard';
 import { useUndo } from './UndoContext';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface QueueItem {
   id: string;
@@ -25,11 +26,31 @@ interface RSSActivityPageProps {
 export function RSSActivityPage({ onNavigate, previousPage }: RSSActivityPageProps) {
   const { feeds, deleteFeed, addFeed } = useRSSFeeds();
   const { showUndo } = useUndo();
+  const { settings } = useSettings();
   const [filter, setFilter] = useState<'all' | 'failures' | 'published' | 'pending'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Convert RSS feeds context to queue items format
-  const queueItems: QueueItem[] = feeds.map(feed => {
+  // Get retention period from settings (default 24 hours)
+  const retentionHours = settings.rssActivityRetention || 24;
+  const retentionMs = retentionHours * 60 * 60 * 1000; // Convert to milliseconds
+
+  // Helper function to check if an item is within retention period
+  const isWithinRetention = (timestamp: string): boolean => {
+    try {
+      const itemDate = new Date(timestamp);
+      const now = new Date();
+      const ageMs = now.getTime() - itemDate.getTime();
+      return ageMs <= retentionMs;
+    } catch (error) {
+      // If parsing fails, keep the item
+      return true;
+    }
+  };
+
+  // Convert RSS feeds context to queue items format and filter by retention
+  const queueItems: QueueItem[] = feeds
+    .filter(feed => isWithinRetention(feed.publishedDate))
+    .map(feed => {
     // Map feed status to queue item status
     let status: 'queued' | 'published' | 'failed' = 'queued';
     if (feed.status === 'published') {

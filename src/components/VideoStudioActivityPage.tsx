@@ -26,6 +26,28 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
   const { settings } = useSettings();
   const { showUndo } = useUndo();
   
+  // Get retention period from settings (default 24 hours)
+  const retentionHours = settings.videoStudioActivityRetention || 24;
+  const retentionMs = retentionHours * 60 * 60 * 1000; // Convert to milliseconds
+
+  // Helper function to check if an item should be kept based on retention
+  const shouldKeepItem = (item: VideoStudioActivity): boolean => {
+    // For completed and failed items, check retention period
+    if (item.status === 'completed' || item.status === 'failed') {
+      try {
+        const now = Date.now();
+        const ageMs = now - item.timestampMs;
+        return ageMs <= retentionMs;
+      } catch (error) {
+        // If parsing fails, keep the item
+        return true;
+      }
+    }
+
+    // Keep processing items regardless of age
+    return true;
+  };
+  
   // Tab filter state
   const [activeTab, setActiveTab] = useState<'review' | 'releases' | 'scenes'>('review');
   
@@ -376,6 +398,7 @@ export function VideoStudioActivityPage({ onNavigate, previousPage }: VideoStudi
 
         <div className="space-y-4">
           {activities
+            .filter(shouldKeepItem) // Apply retention filter first
             .filter(activity => {
               if (activeTab === 'review') return activity.type === 'review';
               if (activeTab === 'releases') return activity.type === 'monthly';

@@ -67,9 +67,10 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#000000]">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333]">
-        <div className="flex items-start gap-4 p-4">
+      {/* Content */}
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-start gap-4">
           <button
             onClick={() => {
               haptics.light();
@@ -82,14 +83,11 @@ export function CommentAutomationPage({ onBack }: CommentAutomationPageProps) {
             </svg>
           </button>
           <div>
-            <h1 className="text-2xl text-gray-900 dark:text-white">Comment Activity</h1>
-            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">AI-powered comment replies</p>
+            <h1 className="text-gray-900 dark:text-white mb-2">Comment Activity</h1>
+            <p className="text-[#6B7280] dark:text-[#9CA3AF]">AI-powered comment replies</p>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="p-6 space-y-6">
         {/* Overall Summary */}
         <div className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6">
           <div className="flex items-center gap-3 mb-6">

@@ -1,8 +1,15 @@
 import { Switch } from '../ui/switch';
-import { Bell, BellOff, Clock, Filter } from 'lucide-react';
+import { Bell, BellOff, Clock, Filter, Check } from 'lucide-react';
 import { haptics } from '../../utils/haptics';
 import { desktopNotifications } from '../../utils/desktopNotifications';
 import { Label } from '../ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
 
 interface NotificationsSettingsProps {
   settings: any;
@@ -214,19 +221,92 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
               <Label className="text-[#9CA3AF] mb-2 block">
                 Toast Duration
               </Label>
-              <select
-                value={settings.toastDuration ?? 5000}
-                onChange={(e) => {
-                  haptics.light();
-                  updateSetting('toastDuration', parseInt(e.target.value));
-                }}
-                className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-white outline-none focus:outline-none focus:ring-0"
-              >
-                <option value={3000}>3 seconds</option>
-                <option value={5000}>5 seconds</option>
-                <option value={7000}>7 seconds</option>
-                <option value={10000}>10 seconds</option>
-              </select>
+              <DropdownMenu onOpenChange={(open) => { if (!open) haptics.light(); }}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onPointerDown={() => haptics.light()}
+                    className="w-full justify-between bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
+                  >
+                    <span>
+                      {settings.toastDuration === 3000 && '3 seconds'}
+                      {settings.toastDuration === 5000 && '5 seconds'}
+                      {settings.toastDuration === 7000 && '7 seconds'}
+                      {settings.toastDuration === 10000 && '10 seconds'}
+                      {!settings.toastDuration && '5 seconds'}
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="opacity-50">
+                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-full bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-[#333333]" style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      haptics.light();
+                      updateSetting('toastDuration', 3000);
+                    }}
+                    className={`cursor-pointer ${
+                      (settings.toastDuration ?? 5000) === 3000
+                        ? 'bg-[#ec1e24] text-white hover:bg-[#ec1e24]'
+                        : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#111111]'
+                    }`}
+                  >
+                    <span className="flex-1">3 seconds</span>
+                    {(settings.toastDuration ?? 5000) === 3000 && (
+                      <Check className="w-4 h-4" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      haptics.light();
+                      updateSetting('toastDuration', 5000);
+                    }}
+                    className={`cursor-pointer ${
+                      (settings.toastDuration ?? 5000) === 5000
+                        ? 'bg-[#ec1e24] text-white hover:bg-[#ec1e24]'
+                        : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#111111]'
+                    }`}
+                  >
+                    <span className="flex-1">5 seconds</span>
+                    {(settings.toastDuration ?? 5000) === 5000 && (
+                      <Check className="w-4 h-4" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      haptics.light();
+                      updateSetting('toastDuration', 7000);
+                    }}
+                    className={`cursor-pointer ${
+                      (settings.toastDuration ?? 5000) === 7000
+                        ? 'bg-[#ec1e24] text-white hover:bg-[#ec1e24]'
+                        : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#111111]'
+                    }`}
+                  >
+                    <span className="flex-1">7 seconds</span>
+                    {(settings.toastDuration ?? 5000) === 7000 && (
+                      <Check className="w-4 h-4" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      haptics.light();
+                      updateSetting('toastDuration', 10000);
+                    }}
+                    className={`cursor-pointer ${
+                      (settings.toastDuration ?? 5000) === 10000
+                        ? 'bg-[#ec1e24] text-white hover:bg-[#ec1e24]'
+                        : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-[#111111]'
+                    }`}
+                  >
+                    <span className="flex-1">10 seconds</span>
+                    {(settings.toastDuration ?? 5000) === 10000 && (
+                      <Check className="w-4 h-4" />
+                    )}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -258,6 +338,7 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
                   <input
                     type="time"
                     value={settings.dndStartTime ?? '22:00'}
+                    onFocus={() => haptics.light()}
                     onChange={(e) => {
                       haptics.light();
                       updateSetting('dndStartTime', e.target.value);
@@ -270,6 +351,7 @@ export function NotificationsSettings({ settings, updateSetting, onBack }: Notif
                   <input
                     type="time"
                     value={settings.dndEndTime ?? '08:00'}
+                    onFocus={() => haptics.light()}
                     onChange={(e) => {
                       haptics.light();
                       updateSetting('dndEndTime', e.target.value);

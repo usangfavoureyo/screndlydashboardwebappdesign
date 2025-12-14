@@ -423,7 +423,11 @@ export function TikTokSettings({ onSave }: TikTokSettingsProps) {
               </Label>
               <Textarea
                 value={testTitle}
-                onChange={(e) => setTestTitle(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setTestTitle(e.target.value);
+                }}
                 placeholder="Enter your TikTok caption..."
                 className="!bg-gray-100 dark:!bg-[#000000] !text-gray-900 dark:!text-white text-sm border-gray-300 dark:border-[#333333] min-h-[80px]"
                 maxLength={150}
@@ -439,7 +443,11 @@ export function TikTokSettings({ onSave }: TikTokSettingsProps) {
               </Label>
               <Input
                 value={testVideoUrl}
-                onChange={(e) => setTestVideoUrl(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setTestVideoUrl(e.target.value);
+                }}
                 placeholder="https://example.com/video.mp4"
                 className="!bg-gray-100 dark:!bg-[#000000] !text-gray-900 dark:!text-white text-sm border-gray-300 dark:border-[#333333]"
               />

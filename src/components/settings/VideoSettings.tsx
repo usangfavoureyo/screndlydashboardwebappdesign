@@ -599,6 +599,7 @@ Input: "Squid Game Season 2" (South Korea, Korean, thriller)
 Output: NO (Korean-produced, non-English)
 
 Tone: Binary validation, strict criteria enforcement`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoFilterPrompt', e.target.value);
@@ -803,6 +804,7 @@ Output Format (JSON):
 }
 
 Tone: Clean, minimal, professional`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoYoutubeXThumbnailPrompt', e.target.value);
@@ -846,6 +848,7 @@ Output Format (JSON):
 }
 
 Tone: Clean poster presentation`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('videoSocialThumbnailPrompt', e.target.value);
@@ -922,6 +925,37 @@ Tone: Clean poster presentation`}
                 <span><span className="text-gray-900 dark:text-white">Queue:</span> Respect post intervals to avoid spam limits</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+
+        {/* Activity Retention Section */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-gray-900 dark:text-white mb-1">Activity Retention</h3>
+            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+              Automatically remove published and failed video activity items after a specified time period
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="video-activity-retention" className="text-[#6B7280] dark:text-[#9CA3AF]">Activity Retention (hours)</Label>
+            <Input
+              id="video-activity-retention"
+              type="number"
+              value={settings.videoActivityRetention || 24}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('videoActivityRetention', parseInt(e.target.value));
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
+              Published and failed video activity items will be automatically removed after this time period (Default: 24 hours)
+            </p>
           </div>
         </div>
       </div>

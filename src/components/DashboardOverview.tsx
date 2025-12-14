@@ -3,7 +3,7 @@ import { Video, Radio, Globe, AlertCircle, HardDrive, MessageSquare, Rss, Clappe
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Button } from './ui/button';
 import { haptics } from '../utils/haptics';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 
 const chartData = [
@@ -50,6 +50,27 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
     return () => observer.disconnect();
   }, []);
 
+  // Restore scroll position when component mounts
+  useEffect(() => {
+    const savedScrollPosition = sessionStorage.getItem('dashboardScrollPosition');
+    if (savedScrollPosition) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+        // Clear the saved position after restoring
+        sessionStorage.removeItem('dashboardScrollPosition');
+      });
+    }
+  }, []);
+
+  // Wrapper function to save scroll position before navigating
+  const handleNavigate = (page: string, source?: string) => {
+    // Save current scroll position
+    sessionStorage.setItem('dashboardScrollPosition', window.scrollY.toString());
+    // Navigate to the page
+    onNavigate(page, source);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -74,7 +95,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
               className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
               onClick={() => {
                 haptics.light();
-                onNavigate('logs');
+                handleNavigate('logs');
               }}
             >
               View all
@@ -147,7 +168,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
               className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
               onClick={() => {
                 haptics.light();
-                onNavigate('video-details', 'dashboard');
+                handleNavigate('video-activity', 'dashboard');
               }}
             >
               View all
@@ -262,7 +283,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
               className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
               onClick={() => {
                 haptics.light();
-                onNavigate('rss-activity', 'dashboard');
+                handleNavigate('rss-activity', 'dashboard');
               }}
             >
               View all
@@ -333,7 +354,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
               className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
               onClick={() => {
                 haptics.light();
-                onNavigate('comment-automation', 'dashboard');
+                handleNavigate('comment-automation', 'dashboard');
               }}
             >
               View all
@@ -385,7 +406,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
             onClick={() => {
               haptics.light();
-              onNavigate('tmdb-activity', 'dashboard');
+              handleNavigate('tmdb-activity', 'dashboard');
             }}
           >
             View all
@@ -442,7 +463,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
             onClick={() => {
               haptics.light();
-              onNavigate('video-studio-activity', 'dashboard');
+              handleNavigate('video-studio-activity', 'dashboard');
             }}
           >
             View all
@@ -496,7 +517,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
             onClick={() => {
               haptics.light();
-              onNavigate('upload-manager', 'dashboard');
+              handleNavigate('upload-manager', 'dashboard');
             }}
           >
             View all
@@ -555,7 +576,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
             onClick={() => {
               haptics.light();
-              onNavigate('api-usage', 'dashboard');
+              handleNavigate('api-usage', 'dashboard');
             }}
           >
             View all
@@ -644,7 +665,7 @@ export function DashboardOverview({ onNavigate }: DashboardOverviewProps) {
             className="text-gray-900 dark:text-white border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#000000]"
             onClick={() => {
               haptics.light();
-              onNavigate('activity');
+              handleNavigate('activity');
             }}
           >
             View all

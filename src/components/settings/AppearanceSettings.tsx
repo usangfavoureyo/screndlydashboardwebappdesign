@@ -33,7 +33,11 @@ export function AppearanceSettings({ theme, setTheme, updateSetting, onBack }: A
           <Label className="text-[#9CA3AF]">Theme</Label>
           <Select
             value={theme}
+            onOpenChange={(open) => {
+              if (open) haptics.light();
+            }}
             onValueChange={(value: 'dark' | 'light') => {
+              haptics.light();
               updateSetting('darkMode', value === 'dark');
               setTheme(value);
             }}

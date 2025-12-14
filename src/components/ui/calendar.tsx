@@ -6,6 +6,7 @@ import { DayPicker } from "react-day-picker@8.10.1";
 
 import { cn } from "./utils";
 import { buttonVariants } from "./button";
+import { haptics } from "../../utils/haptics";
 
 function Calendar({
   className,
@@ -67,6 +68,7 @@ function Calendar({
           <ChevronRight className={cn("size-4", className)} {...props} />
         ),
       }}
+      onMonthChange={() => haptics.light()}
       {...props}
     />
   );

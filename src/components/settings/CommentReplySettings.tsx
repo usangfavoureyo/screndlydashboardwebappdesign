@@ -126,6 +126,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.xCommentBlacklist.usernames}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, usernames: e.target.value });
@@ -138,6 +139,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.xCommentBlacklist.keywords}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, keywords: e.target.value });
@@ -182,6 +184,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.xCommentBlacklist.pauseAfterHours}
+                  onFocus={() => haptics.light()}
                   onChange={(e) => {
                     haptics.light();
                     updateSetting('xCommentBlacklist', { ...settings.xCommentBlacklist, pauseAfterHours: e.target.value });
@@ -210,6 +213,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.threadsCommentBlacklist.usernames}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, usernames: e.target.value });
@@ -222,6 +226,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.threadsCommentBlacklist.keywords}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, keywords: e.target.value });
@@ -266,6 +271,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.threadsCommentBlacklist.pauseAfterHours}
+                  onFocus={() => haptics.light()}
                   onChange={(e) => {
                     haptics.light();
                     updateSetting('threadsCommentBlacklist', { ...settings.threadsCommentBlacklist, pauseAfterHours: e.target.value });
@@ -294,6 +300,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.facebookCommentBlacklist.usernames}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, usernames: e.target.value });
@@ -306,6 +313,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.facebookCommentBlacklist.keywords}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, keywords: e.target.value });
@@ -350,6 +358,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.facebookCommentBlacklist.pauseAfterHours}
+                  onFocus={() => haptics.light()}
                   onChange={(e) => {
                     haptics.light();
                     updateSetting('facebookCommentBlacklist', { ...settings.facebookCommentBlacklist, pauseAfterHours: e.target.value });
@@ -378,6 +387,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.instagramCommentBlacklist.usernames}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, usernames: e.target.value });
@@ -390,6 +400,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.instagramCommentBlacklist.keywords}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, keywords: e.target.value });
@@ -434,6 +445,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.instagramCommentBlacklist.pauseAfterHours}
+                  onFocus={() => haptics.light()}
                   onChange={(e) => {
                     haptics.light();
                     updateSetting('instagramCommentBlacklist', { ...settings.instagramCommentBlacklist, pauseAfterHours: e.target.value });
@@ -462,6 +474,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Usernames</Label>
               <Textarea
                 value={settings.youtubeCommentBlacklist.usernames}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, usernames: e.target.value });
@@ -474,6 +487,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
               <Label className="text-xs text-[#6B7280] dark:text-[#9CA3AF]">Blacklist Keywords</Label>
               <Textarea
                 value={settings.youtubeCommentBlacklist.keywords}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, keywords: e.target.value });
@@ -518,6 +532,7 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
                 <Input
                   type="number"
                   value={settings.youtubeCommentBlacklist.pauseAfterHours}
+                  onFocus={() => haptics.light()}
                   onChange={(e) => {
                     haptics.light();
                     updateSetting('youtubeCommentBlacklist', { ...settings.youtubeCommentBlacklist, pauseAfterHours: e.target.value });
@@ -530,225 +545,32 @@ export function CommentReplySettings({ settings, updateSetting, onBack }: Commen
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+        <div className="border-t border-gray-200 dark:border-[#333333] my-4"></div>
 
-        {/* Reply Generation Section */}
+        {/* Comment Activity Retention */}
         <div className="space-y-4">
           <div>
-            <h3 className="text-gray-900 dark:text-white mb-1">Reply Generation (Comment Automation)</h3>
-            <p className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-              AI-powered reply generation for user comments across platforms
+            <h4 className="text-gray-900 dark:text-white mb-1">Comment Activity Retention</h4>
+            <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
+              Control how long comment reply history is stored
             </p>
           </div>
 
-          {/* Reply AI Model */}
           <div>
-            <Label htmlFor="comment-reply-model" className="text-[#9CA3AF]">Reply AI Model</Label>
-            <Select
-              value={settings.commentReplyModel || 'gpt-4o'}
-              onValueChange={(value) => {
-                haptics.light();
-                updateSetting('commentReplyModel', value);
-                toast.success(`Reply AI Model changed to ${value}`);
-              }}
-            >
-              <SelectTrigger id="comment-reply-model" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
-                <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-                <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
-              GPT-4o balances creativity and cost for engaging comment replies
-            </p>
-          </div>
-
-          {/* Reply Creativity */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-[#9CA3AF]">Reply Creativity (Temperature)</Label>
-              <span className="text-sm text-gray-600 dark:text-[#9CA3AF]">
-                {settings.commentReplyTemperature || 0.7} - Balanced
-              </span>
-            </div>
-            <Slider
-              value={[settings.commentReplyTemperature || 0.7]}
-              onValueChange={(value) => {
-                haptics.light();
-                updateSetting('commentReplyTemperature', value[0]);
-              }}
-              min={0}
-              max={1}
-              step={0.1}
-              className="mt-2"
-            />
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-2">
-              Recommended: 0.7 — Balanced creativity for engaging yet relevant replies
-            </p>
-          </div>
-
-          {/* Reply Tone */}
-          <div>
-            <Label htmlFor="comment-reply-tone" className="text-[#9CA3AF]">Reply Tone</Label>
-            <Select
-              value={settings.commentReplyTone || 'Friendly'}
-              onValueChange={(value) => {
-                haptics.light();
-                updateSetting('commentReplyTone', value);
-              }}
-            >
-              <SelectTrigger id="comment-reply-tone" className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Friendly">Friendly (Recommended)</SelectItem>
-                <SelectItem value="Professional">Professional</SelectItem>
-                <SelectItem value="Enthusiastic">Enthusiastic</SelectItem>
-                <SelectItem value="Casual">Casual</SelectItem>
-                <SelectItem value="Informative">Informative</SelectItem>
-                <SelectItem value="Witty">Witty</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
-              Sets the overall tone and style for generated replies
-            </p>
-          </div>
-
-          {/* Max Reply Length */}
-          <div>
-            <Label htmlFor="comment-reply-length" className="text-[#9CA3AF]">Max Reply Length (Characters)</Label>
+            <Label className="text-[#9CA3AF]">Comment History Retention (hours)</Label>
             <Input
-              id="comment-reply-length"
               type="number"
-              value={settings.commentReplyMaxLength || 280}
+              value={settings.commentRetention || '168'}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
-                updateSetting('commentReplyMaxLength', parseInt(e.target.value));
+                updateSetting('commentRetention', e.target.value);
               }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
-              280 for X/Twitter compatibility, 500 for most platforms
+            <p className="text-xs text-[#6B7280] mt-1">
+              Automatically remove comment reply history older than this period (Default: 168 hours / 7 days)
             </p>
-          </div>
-
-          {/* Reply Generation Prompt */}
-          <div>
-            <Label htmlFor="comment-reply-prompt" className="text-[#9CA3AF]">Reply Generation Prompt</Label>
-            <textarea
-              id="comment-reply-prompt"
-              value={settings.commentReplyPrompt || `You are an AI social media manager for Screen Render, responding to audience comments on movie/TV trailer posts. Your goal is to provide helpful, accurate, engaging, and human-like replies.
-
-CONTEXT AWARENESS:
-• You will receive the POST CAPTION and VIDEO TITLE for context about what the audience is commenting on
-• Use this context to make your replies relevant and specific to the content
-• Reference specific details from the post when appropriate
-
-SEARCH CAPABILITY:
-• For questions requiring current information, facts, release dates, cast details, or external knowledge:
-  - Determine if the question needs a web search for accurate answers
-  - Use search only when necessary (e.g., "When does it come out?", "Who's directing?", "Is this based on a true story?")
-  - Cite factual information naturally without saying "According to search results..."
-  - If search is unavailable or fails, respond with what you know or suggest where to find the answer
-
-REPLY STYLE & TONE:
-• Be warm, friendly, conversational, and genuinely helpful
-• Write like a real person, not a corporate bot
-• Use contractions, casual phrasing, and light humor when appropriate
-• Keep replies concise (1-2 sentences max, unless explaining something complex)
-• Match the energy level of the commenter
-
-BEHAVIOR RULES:
-• DO NOT use greetings ("Hi!", "Hey there!") or sign-offs
-• DO NOT ask follow-up questions unless genuinely helpful
-• DO reply to "thanks" with brief responses ("You're welcome!", "Anytime! 🙌")
-• DO reply to emoji-only comments with a relevant emoji or brief reaction
-• DO verify movie/TV show titles and facts before responding
-• DO NOT reply to your own previous responses in a chain
-• DO NOT use marketing language, promotional speak, or sales tactics
-• DO NOT make up information - if you don't know, say so honestly
-
-RESPONSE EXAMPLES:
-Comment: "When does this drop?"
-Reply: "Hitting theaters November 22! 🎬"
-
-Comment: "Is this a sequel or reboot?"
-Reply: "It's a standalone story, but set in the same universe as the original!"
-
-Comment: "Who's in the cast?"
-Reply: "Starring Timothée Chalamet, Zendaya, and Austin Butler. The ensemble is incredible! ⭐"
-
-Comment: "Can't wait! 🔥🔥🔥"
-Reply: "🔥🎥"
-
-Keep all replies authentic, helpful, and end-to-end human.`}
-              onChange={(e) => {
-                haptics.light();
-                updateSetting('commentReplyPrompt', e.target.value);
-              }}
-              rows={24}
-              className="w-full bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-lg p-3 text-sm text-gray-900 dark:text-white font-mono mt-1 resize-none"
-            />
-            <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
-              Instructions for AI to generate context-aware, intelligent replies
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 dark:border-[#333333] my-4"></div>
-
-          {/* Internet Search Settings */}
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-gray-900 dark:text-white mb-1">Internet Search Integration</h4>
-              <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
-                Enable AI to search the internet for accurate, up-to-date information when answering questions that require external knowledge
-              </p>
-            </div>
-
-            {/* Google Search API Toggle */}
-            <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Label className="text-gray-900 dark:text-white">Use Google Search API</Label>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
-                  Uses Google's Custom Search API for comprehensive web searches. Requires Google Search API key configured in API Keys settings.
-                </p>
-              </div>
-              <Switch
-                checked={settings.commentUseGoogleSearch || false}
-                onCheckedChange={(checked) => {
-                  haptics.medium();
-                  updateSetting('commentUseGoogleSearch', checked);
-                  toast.success(checked ? 'Google Search API enabled for comment replies' : 'Google Search API disabled');
-                }}
-              />
-            </div>
-
-            {/* Serper Toggle */}
-            <div className="flex items-start justify-between gap-4 p-4 bg-white dark:bg-[#000000] rounded-xl border border-gray-200 dark:border-[#333333]">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Label className="text-gray-900 dark:text-white">Use Serper API</Label>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-[#9CA3AF]">
-                  Uses Serper.dev for fast, accurate web searches. Requires Serper API key configured in API Keys settings.
-                </p>
-              </div>
-              <Switch
-                checked={settings.commentUseSerper || false}
-                onCheckedChange={(checked) => {
-                  haptics.medium();
-                  updateSetting('commentUseSerper', checked);
-                  toast.success(checked ? 'Serper API enabled for comment replies' : 'Serper API disabled');
-                }}
-              />
-            </div>
           </div>
         </div>
       </div>

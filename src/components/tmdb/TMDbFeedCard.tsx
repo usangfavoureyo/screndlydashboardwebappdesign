@@ -293,6 +293,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
   };
 
   const handleSaveSchedule = () => {
+    haptics.medium();
     if (selectedPlatforms.length === 0) {
       toast.error('Please select at least one platform');
       return;
@@ -368,7 +369,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-[#333333] overflow-hidden transition-all">
+      <div className="bg-white dark:bg-black rounded-2xl border border-gray-200 dark:border-[#333333] shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] overflow-hidden transition-all">
         <div className="flex flex-col sm:flex-row">
           {/* Image Section */}
           <Dialog open={isImageExpanded} onOpenChange={setIsImageExpanded}>
@@ -387,7 +388,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
                 </div>
               </div>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none">
+            <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-transparent border-none" hideCloseButton>
               <VisuallyHidden>
                 <DialogTitle>{feed.title} ({feed.year})</DialogTitle>
                 <DialogDescription>
@@ -396,7 +397,10 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
               </VisuallyHidden>
               <div className="relative">
                 <button
-                  onClick={() => setIsImageExpanded(false)}
+                  onClick={() => {
+                    haptics.light();
+                    setIsImageExpanded(false);
+                  }}
                   className="absolute top-4 right-4 z-50 bg-black/80 text-white p-2 rounded-full hover:bg-black transition-colors"
                 >
                   <X className="w-6 h-6" />
@@ -414,41 +418,41 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
           <div className="flex-1 p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2">
                   <h3 className="text-gray-900 dark:text-white">
                     {feed.title} ({feed.year})
                   </h3>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded text-xs">
                     {feed.mediaType.toUpperCase()}
                   </span>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
                   <span className={`px-3 py-1 rounded-lg text-xs ${getSourceColor(feed.source)}`}>
                     {getSourceLabel(feed.source)}
                   </span>
                 </div>
               </div>
 
-              <DropdownMenu>
+              <DropdownMenu onOpenChange={(open) => haptics.light()}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="w-4 h-4" />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 w-8 p-0 border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#111111]"
+                  >
+                    <MoreVertical className="w-4 h-4 text-gray-600 dark:text-[#9CA3AF]" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={handleEditCaption}>
+                  <DropdownMenuItem onClick={handleEditCaption} onPointerDown={() => haptics.light()}>
                     <Edit3 className="w-4 h-4 mr-2 text-[#ec1e24]" />
                     Edit Caption
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleRegenerateCaption}>
-                    <RefreshCw className="w-4 h-4 mr-2 text-[#ec1e24]" />
-                    Regenerate Caption
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleChangeImage}>
+                  <DropdownMenuItem onClick={handleChangeImage} onPointerDown={() => haptics.light()}>
                     <ImageIcon className="w-4 h-4 mr-2 text-[#ec1e24]" />
                     Change Image
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} className="text-red-500">
+                  <DropdownMenuItem onClick={handleDelete} className="text-red-500" onPointerDown={() => haptics.light()}>
                     <Trash2 className="w-4 h-4 mr-2 text-[#ec1e24]" />
                     Delete
                   </DropdownMenuItem>
@@ -459,7 +463,14 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             {/* Caption */}
             <div className="bg-white dark:bg-black border border-gray-200 dark:border-[#333333] rounded-xl p-4 mb-4">
               <div className="flex items-start gap-2">
-                <Edit3 className="w-4 h-4 text-gray-400 dark:text-[#9CA3AF] mt-0.5 flex-shrink-0" />
+                <button
+                  onClick={handleEditCaption}
+                  onPointerDown={() => haptics.light()}
+                  className="mt-0.5 flex-shrink-0 hover:opacity-80 transition-opacity focus:outline-none"
+                  type="button"
+                >
+                  <Edit3 className="w-4 h-4 text-black dark:text-white" />
+                </button>
                 <div className="flex-1">
                   <p className="text-gray-900 dark:text-white mb-1">
                     {feed.caption}
@@ -515,7 +526,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
       {/* Edit Caption Dialog */}
       <Dialog open={isEditCaptionOpen} onOpenChange={setIsEditCaptionOpen}>
-        <DialogContent className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+        <DialogContent className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]" hideCloseButton>
           <DialogHeader>
             <DialogTitle>Edit Caption</DialogTitle>
             <DialogDescription>
@@ -524,13 +535,28 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="caption">Caption</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="caption">Caption</Label>
+                <button
+                  onClick={handleRegenerateCaption}
+                  onPointerDown={() => haptics.light()}
+                  disabled={isRegenerating}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+                  title="Regenerate Caption"
+                >
+                  <RefreshCw className={`w-4 h-4 text-black dark:text-white ${isRegenerating ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
               <Textarea
                 id="caption"
                 value={editedCaption}
-                onChange={(e) => setEditedCaption(e.target.value)}
+                onChange={(e) => {
+                  haptics.light();
+                  setEditedCaption(e.target.value);
+                }}
+                onFocus={() => haptics.light()}
                 placeholder="Enter your caption..."
-                className="mt-2 min-h-[100px] bg-white dark:bg-black border-gray-200 dark:border-[#333333]"
+                className="min-h-[100px] bg-white dark:bg-black border-gray-200 dark:border-[#333333]"
                 maxLength={200}
               />
               <p className="text-xs text-gray-500 dark:text-[#6B7280] mt-1">
@@ -539,7 +565,10 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditCaptionOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+            <Button variant="outline" onClick={() => {
+              haptics.light();
+              setIsEditCaptionOpen(false);
+            }} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
               Cancel
             </Button>
             <Button onClick={handleSaveCaption}>
@@ -551,7 +580,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
       {/* Change Image Dialog */}
       <Dialog open={isChangeImageOpen} onOpenChange={setIsChangeImageOpen}>
-        <DialogContent className="bg-white dark:bg-black">
+        <DialogContent className="bg-white dark:bg-black" hideCloseButton>
           <DialogHeader>
             <DialogTitle>Change Image Type</DialogTitle>
             <DialogDescription>
@@ -593,7 +622,10 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsChangeImageOpen(false)} className="bg-white dark:bg-black">
+            <Button variant="outline" onClick={() => {
+              haptics.light();
+              setIsChangeImageOpen(false);
+            }} className="bg-white dark:bg-black">
               Cancel
             </Button>
             <Button onClick={handleSaveImageType}>
@@ -605,7 +637,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
       {/* Reschedule Dialog */}
       <Dialog open={isRescheduleOpen} onOpenChange={setIsRescheduleOpen} modal={false}>
-        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogContent className="bg-white dark:bg-black" onInteractOutside={(e) => e.preventDefault()} hideCloseButton>
           <DialogHeader>
             <DialogTitle>Schedule Post</DialogTitle>
             <DialogDescription>
@@ -688,7 +720,10 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRescheduleOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+            <Button variant="outline" onClick={() => {
+              haptics.light();
+              setIsRescheduleOpen(false);
+            }} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
               Cancel
             </Button>
             <Button onClick={handleSaveSchedule}>
@@ -700,7 +735,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Feed</AlertDialogTitle>
             <AlertDialogDescription>
@@ -708,25 +743,28 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogCancel 
+              onClick={() => haptics.light()}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                haptics.light();
+                confirmDelete();
+              }} 
+              className="bg-red-500 hover:bg-red-600"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Regenerating Toast */}
-      {isRegenerating && (
-        <div className="fixed bottom-4 right-4 bg-black dark:bg-white text-white dark:text-black px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50">
-          <RefreshCw className="w-4 h-4 animate-spin" />
-          <span>Regenerating caption with AI...</span>
-        </div>
-      )}
-
       {/* Platform Selection Dialog */}
       <Dialog open={isPlatformSelectOpen} onOpenChange={setIsPlatformSelectOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]">
+        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]" hideCloseButton>
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-white">Select Platforms</DialogTitle>
             <DialogDescription className="text-[#6B7280] dark:text-[#9CA3AF]">
@@ -776,6 +814,7 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
             <Button 
               variant="outline" 
               onClick={() => {
+                haptics.light();
                 setIsPlatformSelectOpen(false);
                 setIsPostNowMode(false);
               }} 
@@ -784,7 +823,10 @@ export function TMDbFeedCard({ feed, onUpdate, onDelete }: TMDbFeedCardProps) {
               Cancel
             </Button>
             <Button 
-              onClick={handleSchedulePost}
+              onClick={() => {
+                haptics.medium();
+                handleSchedulePost();
+              }}
               className="flex-1 bg-[#ec1e24] hover:bg-[#d01a20] text-white shadow-none hover:shadow-none active:shadow-none focus:shadow-none hover:scale-100 active:scale-100"
             >
               {isPostNowMode ? 'Publish' : 'Schedule Post'}

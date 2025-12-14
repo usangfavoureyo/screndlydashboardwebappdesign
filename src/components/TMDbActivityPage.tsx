@@ -65,7 +65,51 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
   const [editedCaption, setEditedCaption] = useState('');
   const [selectedImageType, setSelectedImageType] = useState<'poster' | 'backdrop'>('poster');
 
-  const filteredItems = posts.filter((item) => {
+  // Get retention period from TMDb settings (default 24 hours)
+  const getTMDbSettings = () => {
+    try {
+      const savedSettings = localStorage.getItem('screndly_tmdb_settings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        return parsed;
+      }
+    } catch (error) {
+      console.error('Error loading TMDb settings:', error);
+    }
+    return { tmdbActivityRetention: 24 };
+  };
+
+  const tmdbSettings = getTMDbSettings();
+  const retentionHours = tmdbSettings.tmdbActivityRetention || 24;
+  const retentionMs = retentionHours * 60 * 60 * 1000; // Convert to milliseconds
+
+  // Helper function to check if an item should be filtered based on retention
+  const shouldKeepItem = (item: TMDbActivityItem): boolean => {
+    // Always keep scheduled and queued items regardless of age
+    if (item.status === 'scheduled' || item.status === 'queued') {
+      return true;
+    }
+
+    // For published and failed items, check retention period
+    if (item.status === 'published' || item.status === 'failed') {
+      try {
+        const itemDate = new Date(item.timestamp);
+        const now = new Date();
+        const ageMs = now.getTime() - itemDate.getTime();
+        return ageMs <= retentionMs;
+      } catch (error) {
+        // If parsing fails, keep the item
+        return true;
+      }
+    }
+
+    return true;
+  };
+
+  // Filter posts by retention period first, then by status filter
+  const filteredItems = posts
+    .filter(item => shouldKeepItem(item))
+    .filter((item) => {
     if (filter === 'failures') return item.status === 'failed';
     if (filter === 'published') return item.status === 'published';
     if (filter === 'pending') return item.status === 'queued';
@@ -368,7 +412,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] p-4">
+      <div className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-4">
         <div className="flex items-center gap-2 overflow-x-auto">
           <button
             onClick={() => {
@@ -433,7 +477,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                 : 'bg-white dark:bg-black text-gray-600 dark:text-[#9CA3AF]'
             }`}
           >
-            Failure
+            Failures
           </button>
         </div>
       </div>
@@ -450,6 +494,7 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                 key={item.id}
                 id={item.id}
                 onDelete={(id) => handleDelete(id, item.title)}
+                isScheduled={item.status === 'scheduled'}
                 className="bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#333333] rounded-2xl shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-5 hover:shadow-md dark:hover:shadow-[0_4px_16px_rgba(255,255,255,0.08)] transition-all duration-200"
               >
                 <div className="flex gap-4">
@@ -541,13 +586,12 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                         </span>
                       </span>
                     </div>
-                    <DropdownMenu>
+                    <DropdownMenu onOpenChange={() => haptics.light()}>
                       <DropdownMenuTrigger asChild>
                         <Button
                           size="sm"
                           variant="outline"
                           className="h-8 w-8 p-0 border-gray-200 dark:border-[#333333] hover:bg-gray-50 dark:bg-[#000000] dark:hover:bg-[#111111]"
-                          onClick={() => haptics.light()}
                         >
                           <MoreVertical className="w-4 h-4 text-gray-600 dark:text-[#9CA3AF]" />
                         </Button>
@@ -603,16 +647,6 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
                           <Clock className="w-4 h-4 mr-2 text-[#ec1e24]" />
                           Change Time
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            haptics.medium();
-                            handleDelete(item.id, item.title);
-                          }}
-                          className="cursor-pointer text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#111111]"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2 text-[#ec1e24]" />
-                          Delete
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -665,7 +699,14 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsChangeDateOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                haptics.light();
+                setIsChangeDateOpen(false);
+              }} 
+              className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]"
+            >
               Cancel
             </Button>
             <Button onClick={handleSaveSchedule}>
@@ -705,10 +746,16 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsChangeTimeOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+            <Button variant="outline" onClick={() => {
+              haptics.light();
+              setIsChangeTimeOpen(false);
+            }} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
               Cancel
             </Button>
-            <Button onClick={handleSaveSchedule}>
+            <Button onClick={() => {
+              haptics.light();
+              handleSaveSchedule();
+            }}>
               Save Time
             </Button>
           </DialogFooter>
@@ -726,12 +773,51 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="caption">Caption</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="caption">Caption</Label>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    if (selectedItemId) {
+                      haptics.light();
+                      setIsRegenerating(true);
+                      
+                      // Simulate AI caption generation
+                      setTimeout(() => {
+                        const selectedPost = posts.find(p => p.id === selectedItemId);
+                        if (selectedPost) {
+                          const regeneratedCaptions = [
+                            `🎬 ${selectedPost.title} (${selectedPost.year}) - An unforgettable cinematic experience! #NowWatching`,
+                            `✨ Don't miss ${selectedPost.title}! Coming to theaters ${new Date(selectedPost.releaseDate).toLocaleDateString()}`,
+                            `🍿 ${selectedPost.title} is here! Featuring ${selectedPost.cast[0]} and more incredible talent.`,
+                            `🎥 Experience ${selectedPost.title} like never before. ${selectedPost.mediaType === 'movie' ? 'In theaters now!' : 'Streaming now!'}`,
+                          ];
+                          
+                          const newCaption = regeneratedCaptions[Math.floor(Math.random() * regeneratedCaptions.length)];
+                          setEditedCaption(newCaption);
+                          setIsRegenerating(false);
+                          haptics.success();
+                          toast.success('Caption regenerated with AI');
+                        }
+                      }, 1500);
+                    }
+                  }}
+                  disabled={isRegenerating}
+                  className="h-7 w-7 p-0 hover:bg-gray-100 dark:hover:bg-[#111111]"
+                >
+                  <RefreshCw className={`w-4 h-4 text-black dark:text-white ${isRegenerating ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
               <div className="mt-2">
                 <Textarea
                   id="caption"
                   value={editedCaption}
-                  onChange={(e) => setEditedCaption(e.target.value)}
+                  onChange={(e) => {
+                    haptics.light();
+                    setEditedCaption(e.target.value);
+                  }}
+                  onFocus={() => haptics.light()}
                   placeholder="Enter a new caption"
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333]"
                   disabled={isRegenerating}
@@ -740,43 +826,13 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             </div>
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                if (selectedItemId) {
-                  haptics.light();
-                  setIsRegenerating(true);
-                  
-                  // Simulate AI caption generation
-                  setTimeout(() => {
-                    const selectedPost = posts.find(p => p.id === selectedItemId);
-                    if (selectedPost) {
-                      const regeneratedCaptions = [
-                        `🎬 ${selectedPost.title} (${selectedPost.year}) - An unforgettable cinematic experience! #NowWatching`,
-                        `✨ Don't miss ${selectedPost.title}! Coming to theaters ${new Date(selectedPost.releaseDate).toLocaleDateString()}`,
-                        `🍿 ${selectedPost.title} is here! Featuring ${selectedPost.cast[0]} and more incredible talent.`,
-                        `🎥 Experience ${selectedPost.title} like never before. ${selectedPost.mediaType === 'movie' ? 'In theaters now!' : 'Streaming now!'}`,
-                      ];
-                      
-                      const newCaption = regeneratedCaptions[Math.floor(Math.random() * regeneratedCaptions.length)];
-                      setEditedCaption(newCaption);
-                      setIsRegenerating(false);
-                      haptics.success();
-                      toast.success('Caption regenerated with AI');
-                    }
-                  }, 1500);
-                }
-              }}
-              disabled={isRegenerating}
-              className="bg-white dark:bg-black border-gray-200 dark:border-[#333333] sm:flex-1"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRegenerating ? 'animate-spin' : ''}`} />
-              {isRegenerating ? 'Regenerating...' : 'Regenerate'}
-            </Button>
-            <div className="flex gap-2 sm:flex-1">
+            <div className="flex gap-2 sm:flex-1 w-full">
               <Button 
                 variant="outline" 
-                onClick={() => setIsEditCaptionOpen(false)} 
+                onClick={() => {
+                  haptics.light();
+                  setIsEditCaptionOpen(false);
+                }} 
                 className="bg-white dark:bg-black border-gray-200 dark:border-[#333333] flex-1"
                 disabled={isRegenerating}
               >
@@ -838,10 +894,22 @@ export function TMDbActivityPage({ onNavigate, previousPage }: TMDbActivityPageP
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsChangeImageOpen(false)} className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                haptics.light();
+                setIsChangeImageOpen(false);
+              }} 
+              className="bg-white dark:bg-black border-gray-200 dark:border-[#333333]"
+            >
               Cancel
             </Button>
-            <Button onClick={handleSaveImage}>
+            <Button 
+              onClick={() => {
+                haptics.medium();
+                handleSaveImage();
+              }}
+            >
               Change Image
             </Button>
           </DialogFooter>

@@ -26,6 +26,7 @@ const RSSActivityPage = lazy(() => import("./RSSActivityPage").then(m => ({ defa
 const TMDbFeedsPage = lazy(() => import("./TMDbFeedsPage").then(m => ({ default: m.TMDbFeedsPage })));
 const TMDbActivityPage = lazy(() => import("./TMDbActivityPage").then(m => ({ default: m.TMDbActivityPage })));
 const VideoDetailsPage = lazy(() => import("./VideoDetailsPage").then(m => ({ default: m.VideoDetailsPage })));
+const VideoActivityPage = lazy(() => import("./VideoActivityPage").then(m => ({ default: m.VideoActivityPage })));
 const VideoStudioPage = lazy(() => import("./VideoStudioPage").then(m => ({ default: m.VideoStudioPage })));
 const VideoStudioActivityPage = lazy(() => import("./VideoStudioActivityPage").then(m => ({ default: m.VideoStudioActivityPage })));
 const PrivacyPage = lazy(() => import("./PrivacyPage").then(m => ({ default: m.PrivacyPage })));
@@ -38,7 +39,7 @@ const DataDeletionPage = lazy(() => import("./DataDeletionPage").then(m => ({ de
 const AppInfoPage = lazy(() => import("./AppInfoPage").then(m => ({ default: m.AppInfoPage })));
 const APIUsage = lazy(() => import("./APIUsage").then(m => ({ default: m.APIUsage })));
 const CommentAutomationPage = lazy(() => import("./CommentAutomationPage").then(m => ({ default: m.CommentAutomationPage })));
-const UploadManagerPage = lazy(() => import("./UploadManagerPage").then(m => ({ default: m.UploadManagerPage })));
+const UploadManagerPage = lazy(() => import("./jobs/UploadManagerPage").then(m => ({ default: m.UploadManagerPage })));
 
 // Loading component
 const PageLoader = () => (
@@ -64,7 +65,7 @@ export function AppContent() {
   // List of all valid pages
   const validPages = [
     'dashboard', 'channels', 'platforms', 'logs', 'activity', 'design-system',
-    'rss', 'rss-activity', 'tmdb', 'tmdb-activity', 'video-details',
+    'rss', 'rss-activity', 'tmdb', 'tmdb-activity', 'video-details', 'video-activity',
     'video-studio', 'video-studio-activity', 'privacy', 'terms', 'disclaimer',
     'cookie', 'contact', 'about', 'data-deletion', 'app-info', 'api-usage',
     'comment-automation', 'upload-manager', 'not-found'
@@ -88,7 +89,7 @@ export function AppContent() {
     const staticPages = ['privacy', 'terms', 'disclaimer', 'cookie', 'contact', 'about', 'data-deletion', 'app-info', 'design-system'];
     
     // Handle special settings sub-pages
-    const settingsPages = ['settings-comment-reply', 'settings-apikeys', 'settings-video', 'settings-rss', 'settings-tmdb', 'settings-videostudio', 'settings-error', 'settings-cleanup', 'settings-haptic', 'settings-appearance', 'settings-notifications'];
+    const settingsPages = ['settings-comment-reply', 'settings-apikeys', 'settings-video', 'settings-rss', 'settings-tmdb', 'settings-videostudio', 'settings-error', 'settings-cleanup', 'settings-haptic', 'settings-appearance', 'settings-notifications', 'settings-thumbnail'];
     
     if (page === 'settings') {
       setSettingsInitialPage(null);
@@ -217,26 +218,14 @@ export function AppContent() {
       return;
     }
     
-    // If notifications panel is open, close it (swipe to dashboard)
+    // If notifications panel is open, close it
     if (isNotificationsOpen) {
       haptics.light();
-      setIsNotificationsOpen(false);
-      return;
-    }
-    
-    // Disable swipe left when settings panel is open
-    if (isSettingsOpen) {
+      handleCloseNotifications();
       return;
     }
     
     const currentIndex = bottomNavPages.indexOf(currentPage);
-    
-    // Special case: Swipe left on video-studio page opens settings
-    if (currentPage === 'video-studio') {
-      haptics.light();
-      toggleSettings();
-      return;
-    }
     
     if (currentIndex !== -1 && currentIndex < bottomNavPages.length - 1) {
       haptics.light();
@@ -263,13 +252,6 @@ export function AppContent() {
     }
     
     const currentIndex = bottomNavPages.indexOf(currentPage);
-    
-    // Special case: Swipe right on dashboard opens notifications
-    if (currentPage === 'dashboard') {
-      haptics.light();
-      handleToggleNotifications();
-      return;
-    }
     
     if (currentIndex > 0) {
       haptics.light();
@@ -368,6 +350,9 @@ export function AppContent() {
               )}
               {displayPage === "video-details" && (
                 <Suspense fallback={<PageLoader />}><VideoDetailsPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
+              )}
+              {displayPage === "video-activity" && (
+                <Suspense fallback={<PageLoader />}><VideoActivityPage onNavigate={handleNavigate} previousPage={previousPage} /></Suspense>
               )}
               {displayPage === "video-studio" && (
                 <Suspense fallback={<PageLoader />}><VideoStudioPage onNavigate={handleNavigate} previousPage={previousPage} onCaptionEditorChange={setIsCaptionEditorOpen} /></Suspense>

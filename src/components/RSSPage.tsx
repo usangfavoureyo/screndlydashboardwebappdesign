@@ -425,7 +425,13 @@ export function RSSPage({ onNavigate }: RSSPageProps) {
 
             <div className="flex items-center gap-2">
               <span className="text-gray-900 dark:text-white text-sm whitespace-nowrap">Posting Interval</span>
-              <Select value={settings.postingInterval} onValueChange={(value) => updateSetting('postingInterval', value)}>
+              <Select 
+                value={settings.postingInterval} 
+                onValueChange={(value) => {
+                  haptics.light();
+                  updateSetting('postingInterval', value);
+                }}
+              >
                 <SelectTrigger className="w-32 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white">
                   <SelectValue />
                 </SelectTrigger>

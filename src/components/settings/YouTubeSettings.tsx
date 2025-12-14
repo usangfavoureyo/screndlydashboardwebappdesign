@@ -51,7 +51,7 @@ export function YouTubeSettings({ onSave }: YouTubeSettingsProps) {
   const [channelInfo, setChannelInfo] = useState<any>(null);
   
   // Test upload state
-  const [testTitle, testTitle] = useState('Amazing Movie Trailer 2026 🎬');
+  const [testTitle, setTestTitle] = useState('Amazing Movie Trailer 2026 🎬');
   const [testDescription, setTestDescription] = useState('Official trailer for the upcoming blockbuster film.\n\n#Movies #Trailer #Film #Cinema');
   const [testTags, setTestTags] = useState('movies, trailer, film, cinema, 2026');
   const [testVideoUrl, setTestVideoUrl] = useState('');
@@ -416,7 +416,11 @@ export function YouTubeSettings({ onSave }: YouTubeSettingsProps) {
               </Label>
               <Input
                 value={testTitle}
-                onChange={(e) => setTestTitle(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setTestTitle(e.target.value);
+                }}
                 placeholder="Enter video title..."
                 className="!bg-gray-100 dark:!bg-[#000000] !text-gray-900 dark:!text-white text-sm border-gray-300 dark:border-[#333333]"
                 maxLength={100}
@@ -432,7 +436,11 @@ export function YouTubeSettings({ onSave }: YouTubeSettingsProps) {
               </Label>
               <Textarea
                 value={testDescription}
-                onChange={(e) => setTestDescription(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setTestDescription(e.target.value);
+                }}
                 placeholder="Enter video description..."
                 className="!bg-gray-100 dark:!bg-[#000000] !text-gray-900 dark:!text-white text-sm border-gray-300 dark:border-[#333333] min-h-[100px]"
                 maxLength={5000}
@@ -448,7 +456,11 @@ export function YouTubeSettings({ onSave }: YouTubeSettingsProps) {
               </Label>
               <Input
                 value={testTags}
-                onChange={(e) => setTestTags(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setTestTags(e.target.value);
+                }}
                 placeholder="tag1, tag2, tag3"
                 className="!bg-gray-100 dark:!bg-[#000000] !text-gray-900 dark:!text-white text-sm border-gray-300 dark:border-[#333333]"
               />
@@ -499,7 +511,11 @@ export function YouTubeSettings({ onSave }: YouTubeSettingsProps) {
               </Label>
               <Input
                 value={testVideoUrl}
-                onChange={(e) => setTestVideoUrl(e.target.value)}
+                onFocus={() => haptics.light()}
+                onChange={(e) => {
+                  haptics.light();
+                  setTestVideoUrl(e.target.value);
+                }}
                 placeholder="https://example.com/video.mp4"
                 className="!bg-gray-100 dark:!bg-[#000000] !text-gray-900 dark:!text-white text-sm border-gray-300 dark:border-[#333333]"
               />

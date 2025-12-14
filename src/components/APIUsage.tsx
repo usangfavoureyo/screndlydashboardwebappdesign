@@ -9,9 +9,10 @@ interface APIUsageProps {
 export function APIUsage({ onBack }: APIUsageProps) {
   return (
     <div className="min-h-screen bg-white dark:bg-[#000000]">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333]">
-        <div className="flex items-start gap-4 p-4">
+      {/* Content */}
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-start gap-4">
           <button
             onClick={() => {
               haptics.light();
@@ -24,14 +25,11 @@ export function APIUsage({ onBack }: APIUsageProps) {
             </svg>
           </button>
           <div>
-            <h1 className="text-2xl text-gray-900 dark:text-white">API Usage Activity</h1>
-            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">Monitor your API consumption</p>
+            <h1 className="text-gray-900 dark:text-white mb-2">API Usage Activity</h1>
+            <p className="text-[#6B7280] dark:text-[#9CA3AF]">Monitor your API consumption</p>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="p-6 space-y-6">
         {/* Summary Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
           {/* OpenAI */}

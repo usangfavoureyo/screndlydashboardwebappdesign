@@ -1,9 +1,9 @@
 # Screndly App Structure & Implementation Guide
 
 ## Overview
-Screndly is an automation dashboard web app for movie/TV trailer downloading, posting, and engagement through AI agents for Screen Render. The app features a clean, modern, cinematic IFTTT-inspired design with modular cards, soft shadows, and minimalist typography.
+Screndly is a frontend-only PWA for movie/TV trailer management with FFmpeg.wasm video processing, Backblaze B2 cloud storage, and multi-platform publishing automation. The app features a clean, modern, cinematic IFTTT-inspired design with modular cards, soft shadows, and minimalist typography.
 
-**Current UI Maturity Level:** 7.5 → **Target:** 9.0
+**Current UI Maturity Level:** 9.0 → **Target:** 9.5
 
 ## Brand Colors
 - Primary Red: `#ec1e24`
@@ -13,6 +13,7 @@ Screndly is an automation dashboard web app for movie/TV trailer downloading, po
 - Dark Card Background: `#111111` (hover states)
 - Border: `#333333` (dark mode borders), `#1A1A1A` (darker accents)
 - Gray Text: `#9CA3AF` (secondary text), `#6B7280` (labels)
+- Input Focus: `#292929` (grey focus state)
 
 ---
 
@@ -32,51 +33,60 @@ Screndly is an automation dashboard web app for movie/TV trailer downloading, po
 
 ## State Management Architecture
 
-### **Enterprise-Grade Context System (6 Global Contexts)**
+### **Enterprise-Grade Context System (7 Global Contexts)**
 
 ```typescript
-// 1. ThemeContext (/contexts/ThemeContext.tsx)
+// 1. ThemeProvider (/components/ThemeProvider.tsx)
 interface ThemeContextType {
   theme: 'light' | 'dark';
-  toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark') => void;
 }
-// Auto-persists to localStorage: 'screndly_theme'
+// Auto-persists to localStorage: 'theme'
 
-// 2. NotificationContext (/contexts/NotificationContext.tsx)
-interface NotificationContextType {
+// 2. NotificationsContext (/contexts/NotificationsContext.tsx)
+interface NotificationsContextType {
   notifications: Notification[];
   unreadCount: number;
-  addNotification: (notification: Omit<Notification, 'id'>) => void;
+  addNotification: (title: string, message: string, type: 'success' | 'error' | 'info' | 'warning', source: NotificationSource) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
-  clearAllNotifications: () => void;
+  clearAll: () => void;
   deleteNotification: (id: string) => void;
 }
 // Auto-persists to localStorage: 'screndly_notifications'
 
-// 3. InstallPromptContext (/contexts/InstallPromptContext.tsx)
-interface InstallPromptContextType {
-  deferredPrompt: BeforeInstallPromptEvent | null;
-  isInstalled: boolean;
-  showInstallPrompt: () => Promise<void>;
-  dismissInstallPrompt: () => void;
+// 3. SettingsContext (/contexts/SettingsContext.tsx)
+interface SettingsContextType {
+  settings: Settings;
+  updateSetting: (key: string, value: any) => void;
+  resetSettings: () => void;
+  isLoading: boolean;
 }
-// Handles PWA installation prompts
+// Auto-persists to localStorage: 'screndly_settings'
 
-// 4. HapticContext (/contexts/HapticContext.tsx)
-interface HapticContextType {
-  enabled: boolean;
-  toggleHaptics: () => void;
-  light: () => void;
-  medium: () => void;
-  heavy: () => void;
-  success: () => void;
-  warning: () => void;
-  error: () => void;
+// 4. RSSFeedsContext (/contexts/RSSFeedsContext.tsx)
+interface RSSFeedsContextType {
+  feeds: RSSFeed[];
+  addFeed: (feed: Omit<RSSFeed, 'id'>) => void;
+  updateFeed: (id: string, updates: Partial<RSSFeed>) => void;
+  deleteFeed: (id: string) => void;
+  toggleFeedActive: (id: string) => void;
+  getFeedsBySource: (source: string) => RSSFeed[];
 }
-// Auto-persists to localStorage: 'screndly_haptic_enabled'
+// Manages RSS feed sources and configurations
 
-// 5. TMDbPostsContext (/contexts/TMDbPostsContext.tsx)
+// 5. VideoStudioTemplatesContext (/contexts/VideoStudioTemplatesContext.tsx)
+interface VideoStudioTemplatesContextType {
+  captionTemplates: CaptionTemplate[];
+  videoTemplates: VideoTemplate[];
+  addCaptionTemplate: (template: Omit<CaptionTemplate, 'id'>) => void;
+  updateCaptionTemplate: (id: string, updates: Partial<CaptionTemplate>) => void;
+  deleteCaptionTemplate: (id: string) => void;
+  // ... video template methods
+}
+// Manages Video Studio caption and video templates
+
+// 6. TMDbPostsContext (/contexts/TMDbPostsContext.tsx)
 interface TMDbPostsContextType {
   posts: TMDbPost[];
   addPost: (post: Omit<TMDbPost, 'id'>) => void;
@@ -87,7 +97,7 @@ interface TMDbPostsContextType {
 }
 // Auto-persists to localStorage: 'screndly_tmdb_posts'
 
-// 6. VideoContext (/contexts/VideoContext.tsx)
+// 7. VideoContext (/contexts/VideoContext.tsx)
 interface VideoContextType {
   videos: Video[];
   addVideo: (video: Omit<Video, 'id'>) => void;
@@ -113,9 +123,10 @@ interface VideoContextType {
 App.tsx (ROOT)
 ├── Global Context Providers
 │   ├── ThemeProvider (wraps entire app)
-│   ├── NotificationProvider
-│   ├── InstallPromptProvider
-│   ├── HapticProvider
+│   ├── NotificationsProvider
+│   ├── SettingsProvider
+│   ├── RSSFeedsProvider
+│   ├── VideoStudioTemplatesProvider
 │   ├── TMDbPostsProvider
 │   └── VideoProvider
 │
@@ -139,7 +150,7 @@ App.tsx (ROOT)
 │   │   └── Renders: 6 bottom nav icons (Dashboard, Channels, Platforms, Logs, Activity, Design)
 │   │
 │   ├── NotificationPanel.tsx
-│   │   ├── Uses: NotificationContext
+│   │   ├── Uses: NotificationsContext
 │   │   ├── Manages: mark read/unread, clear all, delete
 │   │   └── Icons: Clapperboard (TMDb), Rss, Upload, AlertCircle
 │   │
@@ -213,6 +224,25 @@ App.tsx (ROOT)
 │   ├── VideoDetailsPage.tsx
 │   │   ├── Receives: onNavigate, previousPage
 │   │   └── Shows video metadata and processing details
+│   │
+│   ├── VideoActivityPage.tsx
+│   │   ├── Receives: onNavigate, previousPage
+│   │   ├── Uses: localStorage ('videoPosts')
+│   │   ├── Stats: Total Posts, Published, Failures
+│   │   ├── Platform Filters: YouTube, Instagram, Facebook, TikTok, X, Threads
+│   │   ├── Features:
+│   │   │   ├── View Details modal with platform-specific content:
+│   │   │   │   ├── YouTube: Title, Description & Thumbnail
+│   │   │   │   ├── X (Twitter): Caption & Thumbnail
+│   │   │   │   └── Instagram/Threads/Facebook/TikTok: Caption & Poster
+│   │   │   ├── Edit Metadata (YouTube & Facebook only)
+│   │   │   │   └── Streamlined modal with Cancel/Save Changes buttons
+│   │   │   ├── Retry failed uploads
+│   │   │   ├── View post URLs (external links)
+│   │   │   ├── Swipe-left-to-delete with undo functionality
+│   │   │   ├── Auto-delete posts older than 24 hours (configurable)
+│   │   │   └── Haptic feedback on all interactions
+│   │   └── Responsive: Platform filters scroll horizontally on mobile
 │   │
 │   ├── VideoStudioPage.tsx
 │   │   ├── Receives: onNavigate, previousPage, onCaptionEditorChange
@@ -701,8 +731,8 @@ export function TMDbActivityPage() {
   );
 }
 
-// Using NotificationContext
-import { useNotifications } from '../contexts/NotificationContext';
+// Using NotificationsContext
+import { useNotifications } from '../contexts/NotificationsContext';
 
 export function NotificationPanel() {
   const { 
@@ -940,7 +970,7 @@ User Story: Install Screndly as PWA
 
 ## UI/UX Maturity Improvements
 
-### **Current Level: 7.5 → Target: 9.0**
+### **Current Level: 9.0 → Target: 9.5**
 
 #### ✅ Completed Improvements
 1. **State Consistency**
@@ -994,7 +1024,7 @@ User Story: Install Screndly as PWA
     - Consistent spacing system
     - Reduced visual noise
 
-#### 🎯 Focus Areas for 9.0
+#### 🎯 Focus Areas for 9.5
 - Performance optimization (lazy loading, code splitting)
 - Advanced filtering and search
 - Keyboard shortcuts for power users

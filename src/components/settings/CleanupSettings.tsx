@@ -151,7 +151,51 @@ export function CleanupSettings({ settings, updateSetting, onBack }: CleanupSett
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
             <p className="text-xs text-[#6B7280] mt-1">
-              Applies to generated videos in Video Review and Monthly Releases
+              Applies to generated videos in Review, Releases, and Scenes
+            </p>
+          </div>
+        </div>
+
+        {/* Logs Section */}
+        <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-gray-900 dark:text-white">Logs</h3>
+          
+          <div>
+            <Label className="text-[#9CA3AF]">Log Retention (hours)</Label>
+            <Input
+              type="number"
+              value={settings.logsRetention || '168'}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('logsRetention', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] mt-1">
+              Automatically remove log entries older than this period (Default: 168 hours / 7 days)
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Activity Section */}
+        <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-[#333333]">
+          <h3 className="text-gray-900 dark:text-white">Recent Activity</h3>
+          
+          <div>
+            <Label className="text-[#9CA3AF]">Activity Retention (hours)</Label>
+            <Input
+              type="number"
+              value={settings.recentActivityRetention || '24'}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('recentActivityRetention', e.target.value);
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] mt-1">
+              Automatically remove combined activity history older than this period (Default: 24 hours / 1 day)
             </p>
           </div>
         </div>

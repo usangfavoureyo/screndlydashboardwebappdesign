@@ -124,6 +124,7 @@ export function RssSettings({ settings, updateSetting, onBack }: RssSettingsProp
               id="rss-caption-length"
               type="number"
               value={settings.rssCaptionMaxLength || 280}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('rssCaptionMaxLength', parseInt(e.target.value));
@@ -154,6 +155,7 @@ Guidelines:
 - No generic "Check this out" openers
 - Focus on the key news or reveal from the article
 - Make it shareable and clickable`}
+              onFocus={() => haptics.light()}
               onChange={(e) => {
                 haptics.light();
                 updateSetting('rssCaptionPrompt', e.target.value);
@@ -163,6 +165,37 @@ Guidelines:
             />
             <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
               Instructions for generating captions from RSS article content
+            </p>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+
+        {/* Activity Retention Section */}
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-gray-900 dark:text-white mb-1">Activity Retention</h3>
+            <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+              Automatically remove RSS activity items after a specified time period
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="rss-activity-retention" className="text-[#6B7280] dark:text-[#9CA3AF]">Activity Retention (hours)</Label>
+            <Input
+              id="rss-activity-retention"
+              type="number"
+              value={settings.rssActivityRetention || 24}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('rssActivityRetention', parseInt(e.target.value));
+              }}
+              className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+            />
+            <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
+              RSS activity items will be automatically removed after this time period (Default: 24 hours)
             </p>
           </div>
         </div>

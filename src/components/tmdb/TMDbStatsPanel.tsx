@@ -106,7 +106,7 @@ export function TMDbStatsPanel({ feeds, onFilterChange }: TMDbStatsPanelProps) {
     <div className="grid grid-cols-1 gap-4">
       {/* Ready Items */}
       <div 
-        className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] p-6 transition-all text-left"
+        className="bg-white dark:bg-[#000000] rounded-2xl border border-gray-200 dark:border-[#333333] shadow-sm dark:shadow-[0_2px_8px_rgba(255,255,255,0.05)] p-6 hover:shadow-xl dark:hover:shadow-[0_8px_24px_rgba(255,255,255,0.12)] transition-all text-left"
       >
         <div className="flex items-center justify-between mb-2">
           <Calendar className="w-5 h-5 text-[#ec1e24]" />

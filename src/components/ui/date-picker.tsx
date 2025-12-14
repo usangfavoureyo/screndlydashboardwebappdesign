@@ -8,6 +8,7 @@ import { cn } from "./utils";
 import { Button } from "./button";
 import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { haptics } from "../../utils/haptics";
 
 interface DatePickerProps {
   date?: Date;
@@ -22,11 +23,19 @@ export function DatePicker({
   placeholder = "Pick a date",
   className,
 }: DatePickerProps) {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    haptics.light();
+    onDateChange?.(selectedDate);
+  };
+
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={"outline"}
+          onClick={() => haptics.light()}
           className={cn(
             "w-full justify-start text-left font-normal !bg-white dark:!bg-[#000000] border-gray-200 dark:border-[#333333]",
             !date && "text-muted-foreground",
@@ -47,7 +56,7 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={date}
-          onSelect={onDateChange}
+          onSelect={handleDateSelect}
           initialFocus
         />
       </PopoverContent>

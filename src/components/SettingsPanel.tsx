@@ -1,4 +1,4 @@
-import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell, Film, Search, Download, Globe } from 'lucide-react';
+import { X, ChevronRight, LogOut, Key, FileText, Mail, Video, MessageSquare, Rss, AlertCircle, Trash2, Palette, Smartphone, Clapperboard, Bell, Film, Search, Download, Globe, Image } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Input } from './ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Separator } from './ui/separator';
 import { useTheme } from './ThemeProvider';
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import { haptics, setHapticsEnabled } from '../utils/haptics';
 import { useSettings } from '../contexts/SettingsContext';
 import { TMDbSettings } from './settings/TMDbSettings';
@@ -24,6 +24,7 @@ import { AppearanceSettings } from './settings/AppearanceSettings';
 import { NotificationsSettings } from './settings/NotificationsSettings';
 import { PWASettings } from './settings/PWASettings';
 import { TimezoneSettings } from './settings/TimezoneSettings';
+import { ThumbnailSettings } from './settings/ThumbnailSettings';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -41,22 +42,241 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
   
   const [activeSettingsPage, setActiveSettingsPage] = useState<string | null>(initialPage || null);
   const [searchQuery, setSearchQuery] = useState('');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [savedScrollPosition, setSavedScrollPosition] = useState(0);
+
+  // Restore scroll position when SettingsPanel opens
+  useLayoutEffect(() => {
+    if (isOpen && activeSettingsPage === null && scrollContainerRef.current) {
+      // First check if we're returning from a static page (mobile/tablet only)
+      const isDesktop = window.innerWidth >= 1024;
+      if (!isDesktop) {
+        const savedStaticPageScroll = sessionStorage.getItem('settingsPanelScrollFromStaticPage');
+        if (savedStaticPageScroll) {
+          scrollContainerRef.current.scrollTop = parseInt(savedStaticPageScroll, 10);
+          sessionStorage.removeItem('settingsPanelScrollFromStaticPage');
+          return;
+        }
+      }
+      // Otherwise restore from regular settings sub-page navigation
+      scrollContainerRef.current.scrollTop = savedScrollPosition;
+    }
+  }, [activeSettingsPage, savedScrollPosition, isOpen]);
+
+  const handleOpenSettingsPage = (pageId: string) => {
+    if (scrollContainerRef.current) {
+      setSavedScrollPosition(scrollContainerRef.current.scrollTop);
+    }
+    haptics.light();
+    setActiveSettingsPage(pageId);
+  };
 
   // Define all settings items with searchable terms
   const settingsItems = [
-    { id: 'apikeys', label: 'API Keys', icon: Key, keywords: ['api', 'keys', 'youtube', 'openai', 'serper', 'tmdb', 's3', 'backblaze', 'b2', 'redis', 'database', 'integration'] },
-    { id: 'video', label: 'Video', icon: Video, keywords: ['video', 'fetch', 'interval', 'region', 'filter', 'trailer', 'monitoring'] },
-    { id: 'comment', label: 'Comment Automation', icon: MessageSquare, keywords: ['comment', 'reply', 'automation', 'ai', 'blacklist', 'throttle', 'frequency'] },
-    { id: 'rss', label: 'RSS Feeds', icon: Rss, keywords: ['rss', 'feed', 'posting', 'image', 'platform', 'deduplication', 'fetch'] },
-    { id: 'tmdb', label: 'TMDb Feeds', icon: Clapperboard, keywords: ['tmdb', 'movie', 'database', 'feeds', 'anniversary', 'scheduler'] },
-    { id: 'videostudio', label: 'Video Studio', icon: Film, keywords: ['video', 'studio', 'generation', 'llm', 'shotstack', 'gpt', 'openai', 'caption'] },
-    { id: 'timezone', label: 'Timezone', icon: Globe, keywords: ['timezone', 'time', 'zone', 'schedule', 'scheduling', 'generation', 'feeds', 'utc', 'gmt'] },
-    { id: 'error', label: 'Error Handling', icon: AlertCircle, keywords: ['error', 'handling', 'retry', 'logging', 'failure', 'alert'] },
-    { id: 'cleanup', label: 'Cleanup', icon: Trash2, keywords: ['cleanup', 'storage', 'retention', 'maintenance', 'delete', 'purge'] },
-    { id: 'haptic', label: 'Haptic Feedback', icon: Smartphone, keywords: ['haptic', 'vibration', 'feedback', 'mobile', 'touch'] },
-    { id: 'appearance', label: 'Appearance', icon: Palette, keywords: ['appearance', 'theme', 'dark', 'light', 'mode', 'color'] },
-    { id: 'notifications', label: 'Notifications', icon: Bell, keywords: ['notifications', 'email', 'push', 'alert', 'notify'] },
-    { id: 'pwa', label: 'Progressive Web App', icon: Download, keywords: ['pwa', 'progressive', 'web', 'app', 'install', 'offline', 'cache', 'service', 'worker'] },
+    { 
+      id: 'apikeys', 
+      label: 'API Keys', 
+      icon: Key, 
+      keywords: [
+        'api', 'keys', 'credentials', 'integration', 'authentication',
+        'openai', 'openai api key', 'gpt', 'chatgpt',
+        'serper', 'serper api key', 'search',
+        'tmdb', 'tmdb api key', 'movie database',
+        'google video intelligence', 'google video intelligence api key', 'video analysis',
+        'shotstack', 'shotstack api key', 'video generation',
+        'google search', 'google search api key', 'custom search engine', 'cx',
+        's3', 'aws', 'aws s3', 'amazon',
+        'backblaze', 'b2', 'backblaze b2', 'key id', 'application key', 'bucket', 'bucket name',
+        'general storage', 'trailers', 'uploads',
+        'videos bucket', 'movies', 'tv shows', 'video scenes', 'scenes module'
+      ] 
+    },
+    { 
+      id: 'video', 
+      label: 'Video', 
+      icon: Video, 
+      keywords: [
+        'video', 'trailer', 'monitoring', 'fetch', 'tracking',
+        'interval', 'fetch interval', 'check frequency', 'polling',
+        'region', 'region filter', 'location', 'country', 'geographic',
+        'enabled', 'disable', 'turn off', 'turn on',
+        'automatic', 'auto fetch', 'auto check'
+      ] 
+    },
+    { 
+      id: 'thumbnail', 
+      label: 'Thumbnail Overlay', 
+      icon: Image, 
+      keywords: [
+        'thumbnail', 'template', 'logo', 'position', 'overlay', 'image',
+        'youtube', 'twitter', 'x', 'facebook', 'instagram', 'tiktok', 'platform',
+        'backdrop', 'poster', 'cover', 'banner',
+        'movie', 'tv', 'show', 'media',
+        'auto', 'scale', 'size', 'resize', 'scaling',
+        'placement', 'positioning', 'location',
+        'preview', 'live preview',
+        'top left', 'top center', 'top right', 'middle left', 'middle center', 'middle right', 'bottom left', 'bottom center', 'bottom right',
+        'upload', 'custom logo', 'logo upload'
+      ] 
+    },
+    { 
+      id: 'comment', 
+      label: 'Comment Automation', 
+      icon: MessageSquare, 
+      keywords: [
+        'comment', 'reply', 'automation', 'auto reply', 'automatic reply',
+        'ai', 'artificial intelligence', 'openai', 'gpt', 'llm',
+        'model', 'ai model', 'openai model',
+        'blacklist', 'block', 'filter', 'ignore', 'banned words',
+        'throttle', 'rate limit', 'frequency', 'limit',
+        'retention', 'history', 'keep', 'delete', 'cleanup',
+        'activity', 'log', 'tracking', 'record',
+        'enable', 'disable', 'turn on', 'turn off'
+      ] 
+    },
+    { 
+      id: 'rss', 
+      label: 'RSS Feeds', 
+      icon: Rss, 
+      keywords: [
+        'rss', 'feed', 'feeds', 'syndication',
+        'posting', 'post', 'share', 'publish',
+        'image', 'photo', 'thumbnail', 'media',
+        'platform', 'social media', 'youtube', 'twitter', 'x', 'facebook', 'instagram',
+        'deduplication', 'duplicate', 'unique', 'prevent duplicates',
+        'fetch', 'check', 'poll', 'interval', 'frequency',
+        'url', 'feed url', 'source',
+        'enable', 'disable', 'turn on', 'turn off'
+      ] 
+    },
+    { 
+      id: 'tmdb', 
+      label: 'TMDb Feeds', 
+      icon: Clapperboard, 
+      keywords: [
+        'tmdb', 'the movie database', 'movie', 'database', 'film',
+        'feeds', 'feed', 'content',
+        'anniversary', 'birthday', 'release date', 'celebration',
+        'scheduler', 'schedule', 'timing', 'frequency',
+        'popular', 'trending', 'now playing', 'upcoming', 'top rated',
+        'enable', 'disable', 'turn on', 'turn off',
+        'interval', 'fetch interval', 'check frequency'
+      ] 
+    },
+    { 
+      id: 'videostudio', 
+      label: 'Video Studio', 
+      icon: Film, 
+      keywords: [
+        'video', 'studio', 'generation', 'create', 'generate',
+        'llm', 'language model', 'ai', 'artificial intelligence',
+        'shotstack', 'video editing', 'rendering',
+        'gpt', 'openai', 'chatgpt', 'model',
+        'caption', 'captions', 'subtitles', 'text',
+        'scenes', 'scene detection', 'segments',
+        'web search', 'search', 'google', 'serper', 'context',
+        'provider', 'search provider',
+        'max results', 'result limit',
+        'enable', 'disable', 'turn on', 'turn off'
+      ] 
+    },
+    { 
+      id: 'timezone', 
+      label: 'Timezone', 
+      icon: Globe, 
+      keywords: [
+        'timezone', 'time zone', 'time', 'zone', 'clock',
+        'schedule', 'scheduling', 'timing',
+        'generation', 'post timing', 'publish time',
+        'feeds', 'rss', 'tmdb',
+        'utc', 'gmt', 'offset',
+        'location', 'region', 'area',
+        'america', 'europe', 'asia', 'pacific', 'new york', 'los angeles', 'london', 'tokyo'
+      ] 
+    },
+    { 
+      id: 'error', 
+      label: 'Error Handling', 
+      icon: AlertCircle, 
+      keywords: [
+        'error', 'errors', 'failure', 'failed', 'problem',
+        'handling', 'management', 'recovery',
+        'retry', 'retry attempts', 'max retries', 'retry limit',
+        'logging', 'log', 'record', 'track',
+        'alert', 'notification', 'notify', 'warning',
+        'automatic', 'auto retry', 'automatic retry',
+        'enable', 'disable', 'turn on', 'turn off'
+      ] 
+    },
+    { 
+      id: 'cleanup', 
+      label: 'Cleanup', 
+      icon: Trash2, 
+      keywords: [
+        'cleanup', 'clean', 'maintenance', 'housekeeping',
+        'storage', 'disk', 'space', 'memory',
+        'retention', 'keep', 'preserve', 'duration',
+        'delete', 'remove', 'purge', 'clear',
+        'comment', 'comments', 'comment activity', 'comment logs',
+        'logs', 'log files', 'activity logs',
+        'activity', 'history', 'recent activity',
+        'recent', 'recent videos', 'recent uploads',
+        'combined', 'combined activity', 'all activity',
+        'automatic', 'auto delete', 'auto cleanup',
+        'days', 'retention days', 'keep for days',
+        'enable', 'disable', 'turn on', 'turn off'
+      ] 
+    },
+    { 
+      id: 'haptic', 
+      label: 'Haptic Feedback', 
+      icon: Smartphone, 
+      keywords: [
+        'haptic', 'haptics', 'vibration', 'vibrate', 'buzz',
+        'feedback', 'tactile', 'touch',
+        'mobile', 'phone', 'device',
+        'enable', 'disable', 'turn on', 'turn off'
+      ] 
+    },
+    { 
+      id: 'appearance', 
+      label: 'Appearance', 
+      icon: Palette, 
+      keywords: [
+        'appearance', 'theme', 'style', 'look', 'visual',
+        'dark', 'dark mode', 'dark theme', 'night mode',
+        'light', 'light mode', 'light theme', 'day mode',
+        'mode', 'color', 'colors', 'scheme', 'color scheme',
+        'switch', 'toggle', 'change'
+      ] 
+    },
+    { 
+      id: 'notifications', 
+      label: 'Notifications', 
+      icon: Bell, 
+      keywords: [
+        'notifications', 'notification', 'alerts', 'alert',
+        'email', 'email notification', 'mail',
+        'push', 'push notification', 'browser notification',
+        'notify', 'inform', 'update',
+        'enable', 'disable', 'turn on', 'turn off',
+        'sound', 'badge', 'banner'
+      ] 
+    },
+    { 
+      id: 'pwa', 
+      label: 'Progressive Web App', 
+      icon: Download, 
+      keywords: [
+        'pwa', 'progressive web app', 'progressive',
+        'web', 'app', 'application',
+        'install', 'installation', 'add to home', 'add to homescreen',
+        'offline', 'offline mode', 'work offline',
+        'cache', 'caching', 'cached',
+        'service', 'worker', 'service worker',
+        'update', 'version', 'latest version'
+      ] 
+    },
   ];
 
   const legalItems = [
@@ -157,7 +377,10 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
         {/* Overlay for inner settings */}
         <div 
           className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
-          onClick={() => setActiveSettingsPage(null)}
+          onClick={() => {
+            haptics.light();
+            setActiveSettingsPage(null);
+          }}
         />
         <VideoStudioSettings onSave={updateSetting} onBack={() => setActiveSettingsPage(null)} />
       </>
@@ -247,6 +470,18 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
       </>
     );
   }
+  if (activeSettingsPage === 'thumbnail') {
+    return (
+      <>
+        {/* Overlay for inner settings */}
+        <div 
+          className="hidden lg:block fixed inset-0 bg-black/50 z-40 lg:pl-64"
+          onClick={() => setActiveSettingsPage(null)}
+        />
+        <ThumbnailSettings onBack={() => setActiveSettingsPage(null)} />
+      </>
+    );
+  }
 
   return (
     <>
@@ -257,7 +492,10 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
       />
       
       {/* Settings Panel */}
-      <div className="fixed top-0 right-0 bottom-0 w-full lg:w-[600px] bg-white dark:bg-[#000000] z-50 overflow-y-auto">
+      <div 
+        ref={scrollContainerRef}
+        className="fixed top-0 right-0 bottom-0 w-full lg:w-[600px] bg-white dark:bg-[#000000] z-50 overflow-y-auto"
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#333333] p-4 flex items-center justify-between z-10">
           <h2 className="text-gray-900 dark:text-white text-xl">Settings</h2>
@@ -284,7 +522,10 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
               type="text"
               placeholder="Search settings..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                haptics.light();
+                setSearchQuery(e.target.value);
+              }}
               onFocus={() => haptics.light()}
               className="pl-10 bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white"
             />
@@ -308,10 +549,7 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
             {filteredSettings.map(item => (
               <button
                 key={item.id}
-                onClick={() => {
-                  haptics.light();
-                  setActiveSettingsPage(item.id);
-                }}
+                onClick={() => handleOpenSettingsPage(item.id)}
                 className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A] transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -338,6 +576,11 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
                     <button 
                       key={item.id}
                       onClick={() => {
+                        // Save scroll position to sessionStorage on mobile/tablet only (not desktop)
+                        const isDesktop = window.innerWidth >= 1024;
+                        if (!isDesktop && scrollContainerRef.current) {
+                          sessionStorage.setItem('settingsPanelScrollFromStaticPage', scrollContainerRef.current.scrollTop.toString());
+                        }
                         haptics.light();
                         onNavigate(item.id);
                       }} 
@@ -366,6 +609,11 @@ export function SettingsPanel({ isOpen, onClose, onLogout, onNavigate, onNewNoti
                     <button 
                       key={item.id}
                       onClick={() => {
+                        // Save scroll position to sessionStorage on mobile/tablet only (not desktop)
+                        const isDesktop = window.innerWidth >= 1024;
+                        if (!isDesktop && scrollContainerRef.current) {
+                          sessionStorage.setItem('settingsPanelScrollFromStaticPage', scrollContainerRef.current.scrollTop.toString());
+                        }
                         haptics.light();
                         onNavigate(item.id);
                         onClose(); // Close settings panel after navigation

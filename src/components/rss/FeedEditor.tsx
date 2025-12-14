@@ -204,13 +204,6 @@ export function FeedEditor({ feed, onSave, onDelete, onClose, isOpen }: FeedEdit
                   className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
                 />
               </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-gray-600 dark:text-[#9CA3AF]">Enabled</Label>
-                <Switch
-                  checked={formData.enabled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, enabled: checked })}
-                />
-              </div>
               <div>
                 <Label className="text-gray-600 dark:text-[#9CA3AF]">Polling Interval (minutes)</Label>
                 <Select

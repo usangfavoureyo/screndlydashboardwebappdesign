@@ -5,6 +5,7 @@ import { haptics } from '../utils/haptics';
 import { SwipeableActivityItem } from './SwipeableActivityItem';
 import { useUndo } from './UndoContext';
 import { getRecentActivities } from '../utils/activityStore';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface Activity {
   id: string;
@@ -37,6 +38,7 @@ function getTimeAgo(timestamp: number): string {
 
 export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
   const { showUndo } = useUndo();
+  const { settings } = useSettings();
   
   // Initialize activities with timestamps (stored in localStorage)
   const [activities, setActivities] = useState<Activity[]>(() => {
@@ -87,16 +89,17 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
     }
   }, [activities]);
 
-  // Auto-delete activities older than 24 hours
+  // Auto-delete activities older than retention period
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      const twentyFourHours = 24 * 60 * 60 * 1000;
+      const retentionHours = parseInt(settings.recentActivityRetention || '24', 10);
+      const retentionMs = retentionHours * 60 * 60 * 1000;
       
       setActivities(prev => {
         const filtered = prev.filter(activity => {
           const age = now - activity.timestamp;
-          return age < twentyFourHours;
+          return age < retentionMs;
         });
         
         // Only update if something changed
@@ -108,7 +111,7 @@ export function RecentActivityPage({ onNavigate }: RecentActivityPageProps) {
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, []);
+  }, [settings.recentActivityRetention]);
 
   // Update time display every minute
   useEffect(() => {

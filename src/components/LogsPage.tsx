@@ -6,6 +6,7 @@ import { haptics } from '../utils/haptics';
 import { getPlatformConnection, PlatformType } from '../utils/platformConnections';
 import { SwipeableLogRow } from './SwipeableLogRow';
 import { useUndo } from './UndoContext';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface LogEntry {
   id: string;
@@ -49,6 +50,7 @@ interface LogsPageProps {
 
 export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
   const { showUndo } = useUndo();
+  const { settings } = useSettings();
   const [logs, setLogs] = useState<LogEntry[]>(mockLogs);
   const [statusFilter, setStatusFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
@@ -56,6 +58,23 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
   const [timeFilter, setTimeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 10;
+
+  // Get retention period from settings (default 168 hours / 7 days)
+  const retentionHours = parseInt(settings.logsRetention || '168');
+  const retentionMs = retentionHours * 60 * 60 * 1000; // Convert to milliseconds
+
+  // Helper function to check if a log should be kept based on retention
+  const shouldKeepLog = (log: LogEntry): boolean => {
+    try {
+      const logDate = new Date(log.timestamp);
+      const now = new Date();
+      const ageMs = now.getTime() - logDate.getTime();
+      return ageMs <= retentionMs;
+    } catch (error) {
+      // If parsing fails, keep the log
+      return true;
+    }
+  };
 
   const platformUrls: Record<string, string> = {
     Instagram: 'https://www.instagram.com/screenrender',
@@ -125,34 +144,36 @@ export function LogsPage({ onNewNotification, onNavigate }: LogsPageProps) {
     });
   };
 
-  const filteredLogs = logs.filter(log => {
-    if (statusFilter !== 'all' && log.status !== statusFilter) return false;
-    if (platformFilter !== 'all' && log.platform !== platformFilter) return false;
-    if (typeFilter !== 'all' && log.type !== typeFilter) return false;
+  const filteredLogs = logs
+    .filter(shouldKeepLog) // Apply retention filter first
+    .filter(log => {
+      if (statusFilter !== 'all' && log.status !== statusFilter) return false;
+      if (platformFilter !== 'all' && log.platform !== platformFilter) return false;
+      if (typeFilter !== 'all' && log.type !== typeFilter) return false;
     
-    // Time filter
-    if (timeFilter !== 'all') {
-      const logDate = new Date(log.timestamp);
-      const now = new Date();
+      // Time filter
+      if (timeFilter !== 'all') {
+        const logDate = new Date(log.timestamp);
+        const now = new Date();
       
-      switch (timeFilter) {
-        case 'last-hour':
-          if (logDate < new Date(now.getTime() - 60 * 60 * 1000)) return false;
-          break;
-        case 'last-24h':
-          if (logDate < new Date(now.getTime() - 24 * 60 * 60 * 1000)) return false;
-          break;
-        case 'last-7d':
-          if (logDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)) return false;
-          break;
-        case 'last-30d':
-          if (logDate < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)) return false;
-          break;
+        switch (timeFilter) {
+          case 'last-hour':
+            if (logDate < new Date(now.getTime() - 60 * 60 * 1000)) return false;
+            break;
+          case 'last-24h':
+            if (logDate < new Date(now.getTime() - 24 * 60 * 60 * 1000)) return false;
+            break;
+          case 'last-7d':
+            if (logDate < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)) return false;
+            break;
+          case 'last-30d':
+            if (logDate < new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)) return false;
+            break;
+        }
       }
-    }
     
-    return true;
-  });
+      return true;
+    });
 
   const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
   const startIndex = (currentPage - 1) * logsPerPage;

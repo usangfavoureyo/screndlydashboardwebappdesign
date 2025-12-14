@@ -19,7 +19,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       {/* Logo in Center */}
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center animate-pulse">
-          <img src={screndlyLogo} alt="Screndly" className="w-[96.95px] h-[96.95px]" />
+          <img src={screndlyLogo} alt="Screndly" className="w-[96.82px] h-[96.82px]" />
         </div>
       </div>
 

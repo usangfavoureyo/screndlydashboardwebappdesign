@@ -271,6 +271,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             <div className="p-4 pt-0">
               <textarea
                 value={tmdbSettings.todayPrompt}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('todayPrompt', e.target.value);
@@ -310,6 +311,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             <div className="p-4 pt-0">
               <textarea
                 value={tmdbSettings.weeklyPrompt}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('weeklyPrompt', e.target.value);
@@ -349,6 +351,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             <div className="p-4 pt-0">
               <textarea
                 value={tmdbSettings.monthlyPrompt}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('monthlyPrompt', e.target.value);
@@ -388,6 +391,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             <div className="p-4 pt-0">
               <textarea
                 value={tmdbSettings.anniversaryPrompt}
+                onFocus={() => haptics.light()}
                 onChange={(e) => {
                   haptics.light();
                   updateSetting('anniversaryPrompt', e.target.value);
@@ -400,6 +404,37 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
               </p>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200 dark:border-[#333333]"></div>
+
+      {/* Activity Retention Section */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-gray-900 dark:text-white mb-1">Activity Retention</h3>
+          <p className="text-sm text-[#6B7280] dark:text-[#9CA3AF]">
+            Automatically remove published and failed TMDb activity items after a specified time period
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="tmdb-activity-retention" className="text-[#6B7280] dark:text-[#9CA3AF]">Activity Retention (hours)</Label>
+          <Input
+            id="tmdb-activity-retention"
+            type="number"
+            value={tmdbSettings.tmdbActivityRetention || 24}
+            onFocus={() => haptics.light()}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('tmdbActivityRetention', parseInt(e.target.value));
+            }}
+            className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
+          />
+          <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
+            Published and failed TMDb activity items will be automatically removed after this time period. Scheduled items are kept. (Default: 24 hours)
+          </p>
         </div>
       </div>
 
@@ -476,7 +511,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
                 className={`px-3 py-1 rounded-lg text-sm transition-all ${
                   tmdbSettings.anniversaryYears.includes(year)
                     ? 'bg-[#ec1e24] text-white'
-                    : 'bg-gray-200 dark:bg-[#1A1A1A] text-gray-600 dark:text-[#9CA3AF]'
+                    : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
                 }`}
               >
                 {year}y
@@ -491,7 +526,11 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
               min="1"
               max="5"
               value={tmdbSettings.maxPerAnniversary}
-              onChange={(e) => updateSetting('maxPerAnniversary', e.target.value)}
+              onFocus={() => haptics.light()}
+              onChange={(e) => {
+                haptics.light();
+                updateSetting('maxPerAnniversary', e.target.value);
+              }}
               className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
             />
           </div>
@@ -508,7 +547,11 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             min="50"
             max="200"
             value={tmdbSettings.captionMaxLength}
-            onChange={(e) => updateSetting('captionMaxLength', e.target.value)}
+            onFocus={() => haptics.light()}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('captionMaxLength', e.target.value);
+            }}
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
           <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
@@ -546,7 +589,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
               className={`px-4 py-2 rounded-lg transition-all text-sm ${
                 tmdbSettings.preferredImage === 'poster'
                   ? 'bg-[#ec1e24] text-white'
-                  : 'bg-gray-100 dark:bg-[#0A0A0A] text-gray-600 dark:text-[#9CA3AF]'
+                  : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
               }`}
             >
               Poster (Vertical)
@@ -559,7 +602,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
               className={`px-4 py-2 rounded-lg transition-all text-sm ${
                 tmdbSettings.preferredImage === 'backdrop'
                   ? 'bg-[#ec1e24] text-white'
-                  : 'bg-gray-100 dark:bg-[#0A0A0A] text-gray-600 dark:text-[#9CA3AF]'
+                  : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
               }`}
             >
               Backdrop (Horizontal)
@@ -572,7 +615,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
               className={`px-4 py-2 rounded-lg transition-all text-sm ${
                 tmdbSettings.preferredImage === 'random'
                   ? 'bg-[#ec1e24] text-white'
-                  : 'bg-gray-100 dark:bg-[#0A0A0A] text-gray-600 dark:text-[#9CA3AF]'
+                  : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
               }`}
             >
               Random
@@ -602,7 +645,11 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             min="1"
             max="90"
             value={tmdbSettings.dedupeWindow}
-            onChange={(e) => updateSetting('dedupeWindow', e.target.value)}
+            onFocus={() => haptics.light()}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('dedupeWindow', e.target.value);
+            }}
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
           <p className="text-xs text-[#6B7280] dark:text-[#9CA3AF] mt-1">
@@ -618,7 +665,11 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             min="1"
             max="48"
             value={tmdbSettings.discoveryCacheTTL}
-            onChange={(e) => updateSetting('discoveryCacheTTL', e.target.value)}
+            onFocus={() => haptics.light()}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('discoveryCacheTTL', e.target.value);
+            }}
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
         </div>
@@ -631,7 +682,11 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             min="1"
             max="90"
             value={tmdbSettings.creditsCacheTTL}
-            onChange={(e) => updateSetting('creditsCacheTTL', e.target.value)}
+            onFocus={() => haptics.light()}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('creditsCacheTTL', e.target.value);
+            }}
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
         </div>
@@ -644,7 +699,11 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
             min="1"
             max="90"
             value={tmdbSettings.captionCacheTTL}
-            onChange={(e) => updateSetting('captionCacheTTL', e.target.value)}
+            onFocus={() => haptics.light()}
+            onChange={(e) => {
+              haptics.light();
+              updateSetting('captionCacheTTL', e.target.value);
+            }}
             className="bg-white dark:bg-[#000000] border-gray-200 dark:border-[#333333] text-gray-900 dark:text-white mt-1"
           />
         </div>
@@ -680,7 +739,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
                       className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                         enabled 
                           ? 'bg-[#ec1e24] text-white' 
-                          : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-400 dark:text-[#6B7280]'
+                          : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
                       }`}
                       title={platformLabels[platform]}
                     >
@@ -721,7 +780,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
                       className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                         enabled 
                           ? 'bg-[#ec1e24] text-white' 
-                          : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-400 dark:text-[#6B7280]'
+                          : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
                       }`}
                       title={platformLabels[platform]}
                     >
@@ -762,7 +821,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
                       className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                         enabled 
                           ? 'bg-[#ec1e24] text-white' 
-                          : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-400 dark:text-[#6B7280]'
+                          : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
                       }`}
                       title={platformLabels[platform]}
                     >
@@ -803,7 +862,7 @@ export function TMDbSettings({ onSave }: TMDbSettingsProps) {
                       className={`flex items-center justify-center w-9 h-9 rounded-lg transition-all ${
                         enabled 
                           ? 'bg-[#ec1e24] text-white' 
-                          : 'bg-gray-100 dark:bg-[#1A1A1A] text-gray-400 dark:text-[#6B7280]'
+                          : 'bg-white dark:bg-[#000000] text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#222222]'
                       }`}
                       title={platformLabels[platform]}
                     >

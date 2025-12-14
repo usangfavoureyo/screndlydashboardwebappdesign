@@ -7,13 +7,15 @@ interface SwipeableActivityCardProps {
   onDelete: (id: string) => void;
   children: ReactNode;
   className?: string;
+  isScheduled?: boolean;
 }
 
 export function SwipeableActivityCard({
   id,
   onDelete,
   children,
-  className = ''
+  className = '',
+  isScheduled = false
 }: SwipeableActivityCardProps) {
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
@@ -120,7 +122,7 @@ export function SwipeableActivityCard({
             haptics.medium();
             onDelete(id);
           }}
-          className="hidden lg:flex absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 z-10"
+          className={`hidden lg:flex absolute ${isScheduled ? 'bottom-[5.5rem]' : 'bottom-4'} right-4 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center hover:text-[#ec1e24] text-gray-600 dark:text-gray-400 z-10`}
           title="Delete item"
         >
           <Trash2 className="w-4 h-4" />

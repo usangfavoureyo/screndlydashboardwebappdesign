@@ -164,7 +164,10 @@ export function NotificationPanel({
                     {/* Overlay to close menu */}
                     <div 
                       className="fixed inset-0 z-10" 
-                      onClick={() => setShowMenu(false)}
+                      onClick={() => {
+                        haptics.light();
+                        setShowMenu(false);
+                      }}
                     />
                     
                     {/* Menu */}

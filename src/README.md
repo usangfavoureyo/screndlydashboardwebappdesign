@@ -1,8 +1,8 @@
 # 🎬 Screndly
 
-**Automation Dashboard for Movie/TV Trailer Management**
+**Frontend-Only PWA for Movie/TV Trailer Management**
 
-A comprehensive single-user web application for automating movie and TV trailer downloading, posting, and engagement through AI agents for Screen Render.
+A comprehensive single-user progressive web application for automating movie and TV trailer management with FFmpeg.wasm video processing, Backblaze B2 cloud storage, and multi-platform publishing for Screen Render.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
@@ -15,41 +15,89 @@ A comprehensive single-user web application for automating movie and TV trailer 
 
 ### 📊 Core Dashboard
 - Real-time activity monitoring across all automation channels
-- Performance metrics and analytics
+- Performance metrics and analytics with interactive charts
 - Quick action controls for all features
+- Job pipeline visualization (7-stage tracking)
 
-### 🎥 Video Studio
+### 🎥 Video Processing & Storage
+- **FFmpeg.wasm Integration**: Browser-based video processing with zero backend dependencies
+  - Mechanical video cutting with precision timestamps
+  - HTTP Range Request optimization for bandwidth savings
+  - Audio manipulation (fade, volume adjustment)
+  - Video merging with transitions
+  - Progress tracking with real-time callbacks
+- **Backblaze B2 Cloud Storage**: Dual-bucket architecture for trailers and metadata
+  - Cost-effective storage ($6/TB vs AWS S3 $23/TB)
+  - S3-compatible API integration
+  - Resumable transfer support
+  - File browser with search and filtering
+- **Upload Manager**: 7-stage job pipeline (queued → processing → metadata → encoding → waiting → uploading → published)
+  - Real-time job progress tracking
+  - Event logging with severity levels
+  - Retry mechanisms for failed uploads
+  - Cost estimation tracking
+
+### 🎬 Video Studio
 - Advanced video generation with LLM + JSON prompt layers
-- Audio dynamics controls and waveform visualization
+- OpenAI GPT-4 integration for AI-powered caption generation
+- Shotstack API integration for cloud rendering
 - Caption template editor with multiple styles
+- Scene extraction and classification
+- Timestamp validation with auto-retry
+- Preview before render workflow
 - Multiple video upload functionality
-- Social media caption generation system
-- Preview and publish workflow
 
 ### 📡 Content Automation
 - **RSS Feeds**: Automated trailer discovery with AI-powered smart image selection
+  - Serper API integration for 16:9 image enrichment
+  - Multi-source feed management
+  - Deduplication logic
+  - Scheduled posting intervals
 - **TMDb Integration**: US-focused Hollywood filtering with 11-rule smart system
-- **Multi-platform Publishing**: YouTube, Instagram, TikTok, Twitter, Facebook
+  - Anniversary detection algorithm
+  - Smart ranking and duplicate filtering
+  - Timezone-aware scheduled generation
+- **Multi-platform Publishing**: YouTube, Instagram, TikTok, X (Twitter), Facebook
+  - Platform-specific adapters with OAuth support
+  - Resumable video uploads with chunked transfer
+  - Rate limiting per platform tier
+  - Upload progress tracking
 - **16:9 Format Detection**: Intelligent YouTube Shorts exclusion (9:16 vertical videos)
-- **Aspect Ratio Preservation**: Original cinematic format maintained across all 7 platforms
+- **Aspect Ratio Preservation**: Original cinematic format maintained across platforms
 - **Smart Filtering**: 90% rejection rate, 98% precision for high-quality blockbusters
+
+### 💬 Comment Automation
+- AI-powered reply generation with OpenAI integration
+- Blacklist filtering (usernames and keywords)
+- Reply frequency controls and throttle management
+- Statistics tracking (processed, posted, errors)
 
 ### 📅 Scheduling System
 - Comprehensive schedule/reschedule functionality
 - Timestamp filtering and management
 - Queue management with priority controls
+- Timezone configuration support
 
 ### 🔔 Notifications & Activity
-- Enhanced notification system with toast notifications
+- Enhanced notification system with Sonner toast notifications (3s, 5s, 7s, 10s durations)
 - Desktop push notifications (PWA)
 - Activity tracking across 4 dedicated pages
+  - **Video Activity Page**: Track and manage social media posts
+    - View Details modal with platform-specific content (YouTube: Title/Description/Thumbnail, X: Caption/Thumbnail, Others: Caption/Poster)
+    - Edit metadata for YouTube and Facebook posts
+    - Retry failed uploads
+    - Filter by platform
+  - **RSS Activity**, **TMDb Activity**, **Video Studio Activity**
 - Swipe-left-to-delete functionality with haptic feedback
+- Grouped notifications (uploads, RSS, TMDb, Video Studio, system)
+- Read/unread tracking with persistence
 
 ### 📱 Progressive Web App
-- Full PWA capabilities with offline support
+- Full PWA capabilities with service worker caching
 - Install prompts for desktop and mobile
 - Responsive design with mobile-first approach
-- Swipe navigation between pages
+- Swipe navigation between pages (customizable)
+- **Partial Offline Support**: UI caching (requires online for cloud storage and APIs)
 
 ### 🎨 Design System
 - Clean, modern, cinematic IFTTT-inspired design
@@ -57,6 +105,10 @@ A comprehensive single-user web application for automating movie and TV trailer 
 - Modular cards with soft shadows
 - Minimalist typography
 - Full dark mode support
+- Comprehensive haptic feedback (7 patterns)
+  - Light, medium, heavy for interactions
+  - Success, error, warning for feedback
+  - Selection for toggles and checkboxes
 
 ---
 
@@ -98,31 +150,57 @@ npm run preview
 
 ```
 screndly/
-├── components/           # React components
+├── adapters/            # Platform API adapters
+│   ├── youtubeAdapter.ts    # YouTube OAuth & upload
+│   ├── tiktokAdapter.ts     # TikTok OAuth & upload
+│   ├── metaAdapter.ts       # Facebook/Instagram
+│   └── xAdapter.ts          # X (Twitter)
+├── components/          # React components
 │   ├── ui/              # Base UI components (Button, Input, etc.)
 │   ├── figma/           # Figma import components
-│   ├── jobs/            # Job/task management components
+│   ├── jobs/            # Upload Manager components
+│   ├── rss/             # RSS feed components
+│   ├── tmdb/            # TMDb feed components
+│   ├── settings/        # Settings panel sub-pages
 │   ├── *Page.tsx        # Page components
 │   └── *.tsx            # Feature components
-├── contexts/            # React Context providers
+├── contexts/            # React Context providers (7 total)
 │   ├── NotificationsContext.tsx
 │   ├── RSSFeedsContext.tsx
 │   ├── SettingsContext.tsx
 │   ├── TMDbPostsContext.tsx
 │   └── VideoStudioTemplatesContext.tsx
+├── lib/                 # Business logic & API clients
+│   ├── api/             # API client & integrations
+│   │   ├── client.ts        # Base API client
+│   │   ├── youtube.ts       # YouTube Data API
+│   │   ├── openai.ts        # OpenAI GPT-4
+│   │   ├── shotstack.ts     # Video rendering
+│   │   ├── tmdb.ts          # TMDb API
+│   │   └── websocket.ts     # WebSocket client
+│   ├── rss/             # RSS feed processing
+│   └── tmdb/            # TMDb filtering & ranking
+├── store/               # Zustand state management
+│   ├── useAppStore.ts       # Global app state
+│   └── useJobsStore.ts      # Upload job pipeline
 ├── utils/               # Utility functions
-│   ├── accessibility.ts
-│   ├── haptics.ts
+│   ├── ffmpeg.ts            # FFmpeg.wasm integration
+│   ├── backblaze.ts         # Backblaze B2 storage
+│   ├── resumableTransfer.ts # Resumable uploads
+│   ├── videoRangeRequest.ts # HTTP Range Requests
+│   ├── haptics.ts           # Haptic feedback
+│   ├── desktopNotifications.ts # Desktop notifications
 │   └── platformConnections.ts
 ├── hooks/               # Custom React hooks
-│   └── useSwipeNavigation.ts
+│   ├── useSwipeNavigation.ts
+│   └── useDesktopShortcuts.ts
 ├── styles/              # Global styles
 │   └── globals.css      # Design tokens and utilities
-├── tests/               # Test files (250+ test cases)
+├── tests/               # Test files (12+ comprehensive test suites)
 ├── public/              # Static assets
 │   ├── manifest.json    # PWA manifest
-│   └── service-worker.js
-└── App.tsx             # Root component
+│   └── sw.js            # Service worker
+└── App.tsx              # Root component
 ```
 
 ---
@@ -140,7 +218,7 @@ npm run test:ui
 npm run test:coverage
 ```
 
-**Test Coverage**: 250+ test cases across 15 test files covering:
+**Test Coverage**: 12+ comprehensive test suites covering:
 - Component rendering and interactions
 - Context state management
 - User workflows

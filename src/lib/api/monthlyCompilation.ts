@@ -7,7 +7,7 @@ import { analyzeTrailer, TrailerAnalysis, VideoMoment } from './googleVideoIntel
 import { ShotstackConfig, ShotstackClip } from './shotstack';
 import { calculateAutoframing, AutoframingResult } from './autoframing';
 import { validateShotstackConfig, sanitizeShotstackConfig } from '../validation/shotstackSchema';
-import { toast } from 'sonner';
+import { toast } from 'sonner@2.0.3';
 
 export interface MonthlyTrailerAnalysis {
   trailerId: string;

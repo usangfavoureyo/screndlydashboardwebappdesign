@@ -2553,7 +2553,11 @@ Do not include any other text or explanation. Only return the JSON object.`;
                     max="59"
                     placeholder="MM"
                     value={reviewVideoLength !== 'auto' ? Math.floor(parseInt(reviewVideoLength) / 60) || '' : ''}
+                    onFocus={() => {
+                      haptics.light();
+                    }}
                     onChange={(e) => {
+                      haptics.light();
                       const minutes = parseInt(e.target.value) || 0;
                       const seconds = reviewVideoLength !== 'auto' ? parseInt(reviewVideoLength) % 60 : 0;
                       setReviewVideoLength(String(minutes * 60 + seconds));
@@ -2566,7 +2570,11 @@ Do not include any other text or explanation. Only return the JSON object.`;
                     max="59"
                     placeholder="SS"
                     value={reviewVideoLength !== 'auto' ? (parseInt(reviewVideoLength) % 60).toString() : ''}
+                    onFocus={() => {
+                      haptics.light();
+                    }}
                     onChange={(e) => {
+                      haptics.light();
                       const minutes = reviewVideoLength !== 'auto' ? Math.floor(parseInt(reviewVideoLength) / 60) : 0;
                       const seconds = e.target.value === '' ? 0 : parseInt(e.target.value);
                       setReviewVideoLength(String(minutes * 60 + seconds));

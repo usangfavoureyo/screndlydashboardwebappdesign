@@ -5,6 +5,7 @@ import { Clock } from "lucide-react@0.487.0";
 import { cn } from "./utils";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { haptics } from "../../utils/haptics";
 
 interface TimePickerProps {
   value?: string;
@@ -26,6 +27,7 @@ export function TimePicker({
 
   const isDraggingRef = React.useRef(false);
   const scrollTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastHapticTimeRef = React.useRef<number>(0);
 
   // Generate hours (1-12)
   const hoursList = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -58,16 +60,19 @@ export function TimePicker({
   }, [value]);
 
   const handleHourChange = (hour: number) => {
+    haptics.light();
     setSelectedHours(hour);
     updateTime(hour, selectedMinutes, selectedPeriod);
   };
 
   const handleMinuteChange = (minute: number) => {
+    haptics.light();
     setSelectedMinutes(minute);
     updateTime(selectedHours, minute, selectedPeriod);
   };
 
   const handlePeriodChange = (period: 'AM' | 'PM') => {
+    haptics.light();
     setSelectedPeriod(period);
     updateTime(selectedHours, selectedMinutes, period);
   };
@@ -106,6 +111,13 @@ export function TimePicker({
     setter: (val: any) => void,
     column: 'hours' | 'minutes' | 'period'
   ) => {
+    // Haptic feedback throttling for scroll
+    const now = Date.now();
+    if (now - lastHapticTimeRef.current > 100) {
+      haptics.light();
+      lastHapticTimeRef.current = now;
+    }
+
     // Update selection in real-time as user scrolls
     const itemHeight = 44;
     const scrollTop = ref.scrollTop;
@@ -185,6 +197,7 @@ export function TimePicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          onClick={() => haptics.light()}
           className={cn(
             "w-full justify-start text-left font-normal !bg-white dark:!bg-[#000000] border-gray-200 dark:border-[#333333]",
             "hover:bg-white dark:hover:bg-[#000000]",
@@ -310,7 +323,10 @@ export function TimePicker({
         <div className="border-t border-black/10 dark:border-white/10 p-3">
           <Button 
             className="w-full bg-[#ec1e24] hover:bg-[#d11a1f] text-white rounded-xl"
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              haptics.light();
+              setIsOpen(false);
+            }}
           >
             Done
           </Button>

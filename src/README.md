@@ -399,34 +399,32 @@ chore: Maintenance tasks
 a11y: Accessibility improvements
 ```
 
+For detailed contributing guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+
 ---
 
-## 📈 Roadmap
+## 🚀 Deployment
 
-### Completed ✅
-- [x] Core dashboard and navigation
-- [x] Video Studio with advanced features
-- [x] RSS and TMDb feed automation
-- [x] YouTube Shorts exclusion and 16:9 format detection
-- [x] Comprehensive scheduling system
-- [x] Enhanced notification system
-- [x] PWA implementation
-- [x] Swipe gestures and haptic feedback
-- [x] Dark mode support
-- [x] 250+ test cases
-- [x] Accessibility foundation
-- [x] ESLint configuration
-- [x] 404 error page
-- [x] Multi-platform aspect ratio preservation
+### Quick Deploy
 
-### Future Enhancements 🚀
-- [ ] Advanced analytics dashboard
-- [ ] Bulk actions for content management
-- [ ] Export/import functionality
-- [ ] Keyboard shortcuts modal
-- [ ] Activity timeline visualization
-- [ ] Advanced search and filtering
-- [ ] Customizable dashboard widgets
+Deploy to your preferred platform:
+
+```bash
+# Build for production
+npm run build
+
+# Preview build locally
+npm run preview
+```
+
+Screndly can be deployed to:
+- **Netlify** (recommended) - Zero-config deployment
+- **Vercel** - Edge-optimized hosting
+- **GitHub Pages** - Free for public repos
+- **Render** - Simple static site hosting
+- **AWS S3 + CloudFront** - Enterprise-grade deployment
+
+For detailed deployment instructions and platform-specific configurations, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ---
 
@@ -450,9 +448,18 @@ For issues or questions about Screndly:
 
 ### Core System
 - **[CHANGELOG.md](./CHANGELOG.md)** - Version history and release notes
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Comprehensive project status and readiness report
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Contributing guidelines and code standards
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guides for multiple platforms
 - **[ACCESSIBILITY.md](./ACCESSIBILITY.md)** - Accessibility standards and compliance
 - **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture and design
 - **[docs/TESTING_GUIDE.md](./docs/TESTING_GUIDE.md)** - Testing procedures and guidelines
+
+### Production Architecture (Backend + Database)
+- **[docs/PRODUCTION_ARCHITECTURE.md](./docs/PRODUCTION_ARCHITECTURE.md)** - Production backend architecture ($5.40/month)
+- **[docs/OPTION_B_QUICK_START.md](./docs/OPTION_B_QUICK_START.md)** - 30-minute setup guide
+- **[docs/RAILWAY_SETUP.md](./docs/RAILWAY_SETUP.md)** - Railway backend deployment guide
+- **[docs/NEON_SETUP.md](./docs/NEON_SETUP.md)** - Neon Postgres database setup
 
 ### RSS Feeds (AI-Powered Image Selection)
 - **[docs/RSS_FEED_WORKFLOW.md](./docs/RSS_FEED_WORKFLOW.md)** - RSS feed news automation workflow

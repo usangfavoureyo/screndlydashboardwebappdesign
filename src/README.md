@@ -455,6 +455,12 @@ For issues or questions about Screndly:
 - **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - System architecture and design
 - **[docs/TESTING_GUIDE.md](./docs/TESTING_GUIDE.md)** - Testing procedures and guidelines
 
+### Complete Documentation Index
+- **[docs/INDEX.md](./docs/INDEX.md)** - 📚 Master documentation index with all guides, setup instructions, and references
+
+### Historical Reports & Status Updates
+- **[docs/reports/](./docs/reports/)** - All completion reports, audits, and historical documentation
+
 ### Production Architecture (Backend + Database)
 - **[docs/PRODUCTION_ARCHITECTURE.md](./docs/PRODUCTION_ARCHITECTURE.md)** - Production backend architecture ($5.40/month)
 - **[docs/OPTION_B_QUICK_START.md](./docs/OPTION_B_QUICK_START.md)** - 30-minute setup guide

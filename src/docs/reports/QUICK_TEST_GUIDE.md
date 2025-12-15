@@ -222,7 +222,7 @@ If tests fail, check:
 For comprehensive testing:
 - **Automated Tests:** `/tests/comprehensive-verification.test.tsx`
 - **Manual Tests:** `/tests/VISUAL_TEST_REPORT.md`
-- **Test Summary:** `/TEST_EXECUTION_SUMMARY.md`
+- **Test Summary:** `/docs/reports/TEST_EXECUTION_SUMMARY.md`
 - **Manual Checklist:** `/tests/MANUAL_TEST_CHECKLIST.md`
 
 ---

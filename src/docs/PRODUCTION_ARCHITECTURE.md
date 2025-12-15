@@ -535,8 +535,8 @@ import { checkTMDbPosts } from '../jobs/tmdb-automation';
 import { processComments } from '../jobs/comment-automation';
 
 export function initCronJobs() {
-  // RSS Feeds - Every 30 minutes
-  cron.schedule('*/30 * * * *', async () => {
+  // RSS Feeds - Every 5 minutes
+  cron.schedule('*/5 * * * *', async () => {
     console.log('[CRON] Running RSS feed automation...');
     await fetchRSSFeeds();
   });
@@ -547,8 +547,8 @@ export function initCronJobs() {
     await checkTMDbPosts();
   });
 
-  // Comment Automation - Every 2 hours
-  cron.schedule('0 */2 * * *', async () => {
+  // Comment Automation - Every 10 minutes
+  cron.schedule('*/10 * * * *', async () => {
     console.log('[CRON] Processing comments...');
     await processComments();
   });

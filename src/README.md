@@ -460,6 +460,9 @@ For issues or questions about Screndly:
 - **[docs/OPTION_B_QUICK_START.md](./docs/OPTION_B_QUICK_START.md)** - 30-minute setup guide
 - **[docs/RAILWAY_SETUP.md](./docs/RAILWAY_SETUP.md)** - Railway backend deployment guide
 - **[docs/NEON_SETUP.md](./docs/NEON_SETUP.md)** - Neon Postgres database setup
+- **[docs/AUTOMATION_INTERVALS.md](./docs/AUTOMATION_INTERVALS.md)** - Automation schedule (RSS every 5min, Comments every 10min)
+- **[docs/TOTAL_MONTHLY_COST.md](./docs/TOTAL_MONTHLY_COST.md)** - Complete cost breakdown ($20-30/month total)
+- **[docs/ARCHITECTURE_DECISION.md](./docs/ARCHITECTURE_DECISION.md)** - Why Option B was selected
 
 ### RSS Feeds (AI-Powered Image Selection)
 - **[docs/RSS_FEED_WORKFLOW.md](./docs/RSS_FEED_WORKFLOW.md)** - RSS feed news automation workflow

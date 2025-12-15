@@ -136,10 +136,10 @@ META_CLIENT_SECRET=your_meta_client_secret
 REDIS_URL=https://your-redis.upstash.io
 REDIS_TOKEN=your_upstash_token
 
-# Cron Configuration
-RSS_FETCH_INTERVAL=30
-TMDB_CHECK_INTERVAL=60
-COMMENT_CHECK_INTERVAL=120
+# Cron Jobs
+RSS_FETCH_INTERVAL=5 # minutes
+TMDB_CHECK_INTERVAL=60 # minutes
+COMMENT_CHECK_INTERVAL=10 # minutes
 
 # CORS Configuration
 FRONTEND_URL=https://screndly.vercel.app

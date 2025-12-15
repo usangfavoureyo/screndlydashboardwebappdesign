@@ -7,7 +7,7 @@ export function LoadingScreen() {
         <img 
           src={brandLogo} 
           alt="Screndly" 
-          className="w-[97px] h-[97px] sm:w-[113px] sm:h-[113px] md:w-[130px] md:h-[130px]"
+          className="w-[99px] h-[99px] sm:w-[115px] sm:h-[115px] md:w-[132px] md:h-[132px]"
         />
       </div>
     </div>
